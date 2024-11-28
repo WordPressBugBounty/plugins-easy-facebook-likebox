@@ -69,6 +69,14 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			);
 
 			add_action(
+				'wp_ajax_esf_hide_sale_notice',
+				array(
+					$this,
+					'esf_hide_sale_notice',
+				)
+			);
+
+			add_action(
 				'wp_ajax_esf_hide_row_notice',
 				array(
 					$this,
@@ -407,7 +415,46 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 				</script>
 				<?php
 			}
-
+			if ( get_site_option( 'fta_bfcm_sale' ) !== 'yes' ) { ?>
+				<div style="position:relative;padding-right:80px;background: #fff;" class="update-nag fta_msg fta_sale">
+					<p style="margin-right: 40px;">
+						<b><?php esc_html_e( '47% OFF Easy Social Feed ', 'easy-facebook-likebox' ); ?></b>
+						<?php esc_html_e( 'is just a click away! Use code ', 'easy-facebook-likebox' ); ?>
+						<b><?php esc_html_e( 'FSBFCM2024', 'easy-facebook-likebox' ); ?></b>
+						<?php esc_html_e( 'before the sale ends!', 'easy-facebook-likebox' ); ?>
+					</p>
+					<div class="fl_support_btns">
+						<a href="<?php echo admin_url( 'admin.php?page=feed-them-all-pricing' ) ?>"
+							class="esf_hide_sale button button-primary">
+							<?php esc_html_e( 'Checkout Now', 'easy-facebook-likebox' ); ?>
+						</a>
+						<div class="esf_hide_sale" style="position:absolute;right:10px;cursor:pointer;top:4px;color: #029be4;">
+							<div style="font-weight:bold;" class="dashicons dashicons-no-alt"></div>
+							<span style="margin-left: 2px;">
+								<?php esc_html_e( 'Dismiss', 'easy-facebook-likebox' ); ?>
+							</span>
+						</div>
+					</div>
+				</div>
+				<script>
+					jQuery('.esf_hide_sale').click(function() {
+					var data = {'action': 'esf_hide_sale_notice'};
+						jQuery.ajax({
+								url: "<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>",
+								type: 'post',
+								data: data,
+								dataType: 'json',
+								async: !0,
+								success: function(e) {
+								if(e === 'success'){
+									jQuery('.fta_sale').slideUp('fast');
+								}
+								},
+						});
+						});
+				</script>
+			<?php
+			}
 			return false;
 		}
 
@@ -418,6 +465,12 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 		 */
 		public function esf_hide_rating_notice() {
 			update_site_option( 'fta_supported', 'yes' );
+			echo wp_json_encode( array( 'success' ) );
+			wp_die();
+		}
+
+		public function esf_hide_sale_notice() {
+			update_site_option( 'fta_bfcm_sale', 'yes' );
 			echo wp_json_encode( array( 'success' ) );
 			wp_die();
 		}
@@ -682,11 +735,11 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 				$banner_info = array(
 					'name'              => 'Easy Social Feed',
 					'bold'              => 'PRO',
-					'fb-description'    => 'Increase social followers, engage more users and get 10x traffic with 17% off on all plans (including monthly billings). So grab this offer now before it will go forever.',
-					'insta-description' => 'Increase social followers, engage more users and get 10x traffic with 17% off on all plans (including monthly billings). So grab this offer now before it will go forever.',
+					'fb-description'    => 'Increase social followers, engage more users and get 10x traffic with 47% off on all plans (including monthly billings). So grab this offer now before it will go forever.',
+					'insta-description' => 'Increase social followers, engage more users and get 10x traffic with 47% off on all plans (including monthly billings). So grab this offer now before it will go forever.',
 					'discount-text'     => '',
-					'coupon'            => 'ESPF17',
-					'discount'          => '17%',
+					'coupon'            => 'FSBFCM2024',
+					'discount'          => '47%',
 					'button-text'       => 'Upgrade Now',
 					'button-url'        => efl_fs()->get_upgrade_url(),
 					'target'            => '',
