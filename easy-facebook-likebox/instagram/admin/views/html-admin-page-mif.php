@@ -46,7 +46,7 @@ $auth_url = esc_url(
 	)
 );
 
-$mif_personal_clients = array( '684707889486632' );
+$mif_personal_clients = array( '1097984338516189' );
 
 $mif_personal_app_ID = $mif_personal_clients[ array_rand( $mif_personal_clients, '1' ) ];
 
@@ -54,8 +54,8 @@ $personal_auth_url = esc_url(
 	add_query_arg(
 		array(
 			'client_id'     => $mif_personal_app_ID,
-			'redirect_uri'  => 'https://easysocialfeed.com/apps/meta/basic/' . $mif_personal_app_ID . '/index.php',
-			'scope'         => 'user_profile,user_media',
+			'redirect_uri'  => 'https://easysocialfeed.com/apps/meta/' . $mif_personal_app_ID . '/index.php',
+			'scope'         => 'instagram_business_basic',
 			'response_type' => 'code',
 			'state'         => admin_url( 'admin.php?page=mif' ),
 		),
