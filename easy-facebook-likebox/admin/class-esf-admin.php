@@ -418,9 +418,9 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			if ( get_site_option( 'fta_bfcm_sale' ) !== 'yes' ) { ?>
 				<div style="position:relative;padding-right:80px;background: #fff;" class="update-nag fta_msg fta_sale">
 					<p style="margin-right: 40px;">
-						<b><?php esc_html_e( '47% OFF Easy Social Feed ', 'easy-facebook-likebox' ); ?></b>
+						<b><?php esc_html_e( '17% OFF Easy Social Feed ', 'easy-facebook-likebox' ); ?></b>
 						<?php esc_html_e( 'is just a click away! Use code ', 'easy-facebook-likebox' ); ?>
-						<b><?php esc_html_e( 'FSBFCM2024', 'easy-facebook-likebox' ); ?></b>
+						<b><?php esc_html_e( 'ESPF17', 'easy-facebook-likebox' ); ?></b>
 						<?php esc_html_e( 'before the sale ends!', 'easy-facebook-likebox' ); ?>
 					</p>
 					<div class="fl_support_btns">
@@ -735,11 +735,11 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 				$banner_info = array(
 					'name'              => 'Easy Social Feed',
 					'bold'              => 'PRO',
-					'fb-description'    => 'Increase social followers, engage more users and get 10x traffic with 47% off on all plans (including monthly billings). So grab this offer now before it will go forever.',
-					'insta-description' => 'Increase social followers, engage more users and get 10x traffic with 47% off on all plans (including monthly billings). So grab this offer now before it will go forever.',
+					'fb-description'    => 'Increase social followers, engage more users and get 10x traffic with 17% off on all plans (including monthly billings). So grab this offer now before it will go forever.',
+					'insta-description' => 'Increase social followers, engage more users and get 10x traffic with 17% off on all plans (including monthly billings). So grab this offer now before it will go forever.',
 					'discount-text'     => '',
-					'coupon'            => 'FSBFCM2024',
-					'discount'          => '47%',
+					'coupon'            => 'ESPF17',
+					'discount'          => '17%',
 					'button-text'       => 'Upgrade Now',
 					'button-url'        => efl_fs()->get_upgrade_url(),
 					'target'            => '',
