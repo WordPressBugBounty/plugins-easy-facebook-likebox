@@ -6,7 +6,7 @@
 if ( !defined( 'ABSPATH' ) ) {
     exit;
 }
-if ( $insta_settings['shoppable'] ) {
+if ( isset( $insta_settings['shoppable'] ) && $insta_settings['shoppable'] ) {
     $shoppable_set = $insta_settings['shoppable'];
 } else {
     $shoppable_set = false;
@@ -17,6 +17,7 @@ $cpt_id = '';
 $selected = '';
 $click_behaviour = '';
 $link_text = '';
+$is_free = false;
 if ( $feed->media_url ) {
     ?>
 

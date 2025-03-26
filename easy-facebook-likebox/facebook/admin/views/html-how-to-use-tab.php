@@ -9,7 +9,7 @@ if ( !defined( 'ABSPATH' ) ) {
 global $efbl_skins;
 $FTA = new Feed_Them_All();
 $fta_settings = $FTA->fta_get_settings();
-$efbl_default_likebox_notice = '';
+$first_page_id = '';
 ?>
 <div id="efbl-general" class="col s12 efbl_tab_c slideLeft <?php 
 echo esc_attr( ( $active_tab == 'efbl-general' ? 'active' : '' ) );
@@ -128,7 +128,7 @@ esc_html_e( 'Select Page', 'easy-facebook-likebox' );
 do_action( 'esf_fb_page_attr' );
 ?>>
 												<?php 
-if ( $fta_settings['plugins']['facebook']['approved_pages'] ) {
+if ( isset( $fta_settings['plugins']['facebook']['approved_pages'] ) && !empty( $fta_settings['plugins']['facebook']['approved_pages'] ) ) {
     $i = 0;
     foreach ( $fta_settings['plugins']['facebook']['approved_pages'] as $efbl_page ) {
         $i++;

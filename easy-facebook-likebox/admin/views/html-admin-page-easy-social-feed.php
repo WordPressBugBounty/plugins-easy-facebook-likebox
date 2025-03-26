@@ -251,7 +251,7 @@ if ( efl_fs()->is_free_plan() ) {
 
 							<p>
 								<?php
-								if ( strpos( $mt_plugin['active_installs'], 'Just' ) !== false ) {
+								if ( esf_safe_strpos( $mt_plugin['active_installs'], 'Just' ) !== false ) {
 									esc_html_e( $mt_plugin['active_installs'] );
 								} else {
 									esc_html_e( 'Active Installs: ', 'easy-facebook-likebox' );

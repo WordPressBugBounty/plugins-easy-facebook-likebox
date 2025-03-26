@@ -15,12 +15,16 @@ if ( !defined( 'ABSPATH' ) ) {
  * @copyright 2020 MaltaThemes
  */
 $instance = apply_filters( 'efbl_feed_shortcode_params', $instance );
+if ( !efbl_has_connected_account() ) {
+    echo '<div class="efbl_feed_wraper"><p class="efbl_error_msg">' . __( 'Whoops! No connected account found. Try connecting an account first.', 'easy-facebook-likebox' ) . '</p></div>';
+    return;
+}
 global $post;
 $efbl_demo_page_id = efbl_demo_page_id();
 $is_public_page = '';
 $is_multifeed = false;
 // if "," exists in fanpage_id, then it's a multifeed
-if ( isset( $instance['fanpage_id'] ) && !empty( $instance['fanpage_id'] ) && strpos( $instance['fanpage_id'], ',' ) !== false ) {
+if ( isset( $instance['fanpage_id'] ) && !empty( $instance['fanpage_id'] ) && esf_safe_strpos( $instance['fanpage_id'], ',' ) !== false ) {
     $account_ids = explode( ',', $instance['fanpage_id'] );
     if ( is_array( $account_ids ) && count( $account_ids ) > 1 ) {
         $is_multifeed = true;
@@ -134,18 +138,22 @@ if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
     } else {
         $efbl_number_of_cols = 3;
     }
+    $load_description_action = 'efbl_load_more_description';
     ?>
 
 	<div class="efbl_feeds_holder efbl_feeds_<?php 
     esc_attr_e( $layout );
+    ?> <?php 
     esc_attr_e( $carousel_class );
+    ?> <?php 
     do_action( 'efbl_feed_custom_class' );
-    ?>" <?php 
+    ?>
+	" <?php 
     esc_attr_e( $carousel_atts );
     ?> <?php 
     do_action( 'efbl_feed_custom_attrs' );
     ?>
-		    data-template="<?php 
+			data-template="<?php 
     esc_attr_e( $layout );
     ?>">
 		<?php 
@@ -182,11 +190,9 @@ if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
                 $feed_type = '';
             }
             if ( efl_fs()->is_plan( 'facebook_premium', true ) or efl_fs()->is_plan( 'combo_premium', true ) ) {
-            } else {
-                if ( !$is_moderate ) {
-                    if ( isset( $story->story ) && strpos( $story->story, 'live' ) !== false ) {
-                        continue;
-                    }
+            } elseif ( !$is_moderate ) {
+                if ( isset( $story->story ) && esf_safe_strpos( $story->story, 'live' ) !== false ) {
+                    continue;
                 }
             }
             if ( isset( $story->title ) ) {
@@ -335,7 +341,7 @@ if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
                 $j = 0;
                 if ( $text_tags ) {
                     foreach ( $text_tags as $message_tag ) {
-                        $j++;
+                        ++$j;
                         $tag_name = $message_tag->name;
                         $tag_link = '<a href="https://facebook.com/' . $message_tag->id . '" target="' . $link_target . '">' . $message_tag->name . '</a>';
                         $post_text = str_replace( $tag_name, $tag_link, $post_text );
@@ -360,6 +366,9 @@ if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
                 continue;
             }
             if ( $filter == 'albums' && $story->count == 0 ) {
+                continue;
+            }
+            if ( $filter == 'albums' && !isset( $story->photos->data ) ) {
                 continue;
             }
             $video_iframe = null;
@@ -394,7 +403,6 @@ if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
                 'target' => $link_target,
             ) );
             $efbl_feed_comments_popup_url = '';
-            $load_description_action = 'efbl_load_more_description';
             $efbl_reactions_modal = '';
             if ( isset( $story->reactions->data ) ) {
                 $reactions_arr = $story->reactions->data;
@@ -426,9 +434,9 @@ if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
                 }
             }
             require $efbl_templateurl;
-            $i++;
+            ++$i;
             if ( 'added_photos' == $feed_type || 'added_video' == $feed_type ) {
-                $pi++;
+                ++$pi;
             }
             if ( $i == $post_limit ) {
                 break;
@@ -466,37 +474,33 @@ if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
 				<?php 
     }
     // If no posts found
-} else {
-    if ( isset( $efbl_queried_data['error'] ) && !empty( $efbl_queried_data['error'] ) ) {
-        ?>
+} elseif ( isset( $efbl_queried_data['error'] ) && !empty( $efbl_queried_data['error'] ) ) {
+    ?>
 					<p class="efbl_error_msg"> <?php 
-        esc_html_e( $efbl_queried_data['error'] );
-        ?> </p>
+    esc_html_e( $efbl_queried_data['error'] );
+    ?> </p>
 				<?php 
+} elseif ( $filter ) {
+    if ( isset( $events_filter ) && $events_filter == 'upcoming' ) {
+        $events_filter_name = __( 'upcoming', 'easy-facebook-likebox' );
     } else {
-        if ( $filter ) {
-            if ( isset( $events_filter ) && $events_filter == 'upcoming' ) {
-                $events_filter_name = __( 'upcoming', 'easy-facebook-likebox' );
-            } else {
-                $events_filter_name = '';
-            }
-            ?>
-
-						<p class="efbl_error_msg"><?php 
-            esc_html_e( "{$efbl_bio_data->name} don't have any {$events_filter_name} {$filter}.", 'easy-facebook-likebox' );
-            ?> </p>
-
-					<?php 
-        } else {
-            ?>
-
-						<p class="efbl_error_msg"><?php 
-            echo apply_filters( 'efbl_error_message', __( 'Whoops! Nothing found according to your query, Try changing fanpage ID.', 'easy-facebook-likebox' ) );
-            ?> </p>
-
-					<?php 
-        }
+        $events_filter_name = '';
     }
+    ?>
+
+						<p class="efbl_error_msg"><?php 
+    esc_html_e( "{$efbl_bio_data->name} don't have any {$events_filter_name} {$filter}.", 'easy-facebook-likebox' );
+    ?> </p>
+
+				<?php 
+} else {
+    ?>
+
+						<p class="efbl_error_msg"><?php 
+    echo apply_filters( 'efbl_error_message', __( 'Whoops! Nothing found according to your query, Try changing fanpage ID.', 'easy-facebook-likebox' ) );
+    ?> </p>
+
+					<?php 
 }
 ?>
 

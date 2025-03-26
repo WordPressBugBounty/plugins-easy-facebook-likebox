@@ -6,6 +6,7 @@
 if ( !defined( 'ABSPATH' ) ) {
     exit;
 }
+$efbl_event_date_formatting = '';
 if ( $is_album_feed ) {
 } else {
     $efbl_ver = 'free';
@@ -59,7 +60,7 @@ if ( $is_album_feed ) {
 												<?php 
                 esc_attr_e( $efbl_free_popup_type );
                 ?>
-							 data-storylink="
+							data-storylink="
 							<?php 
                 echo esc_url( $story_link );
                 ?>
@@ -79,7 +80,7 @@ if ( $is_album_feed ) {
 							<?php 
                 esc_attr_e( $efbl_free_popup_class );
                 ?>
-							 efbl-cff-item_number-
+							efbl-cff-item_number-
 							<?php 
                 esc_attr_e( $pi );
                 ?>
@@ -91,7 +92,7 @@ if ( $is_album_feed ) {
                     ?>
 
 										<i class="icon icon-esf-plus efbl-plus"
-										   aria-hidden="true"></i>
+											aria-hidden="true"></i>
 
 									<?php 
                 }
@@ -100,13 +101,13 @@ if ( $is_album_feed ) {
                 if ( $feed_type == 'added_video' || $feed_attachment_type == 'video_inline' ) {
                     ?>
 										<i class="icon icon-esf-clone icon-esf-video-camera"
-										   aria-hidden="true"></i>
+											aria-hidden="true"></i>
 										<?php 
                 }
                 if ( isset( $story->attachments->data['0']->subattachments->data ) && !empty( $story->attachments->data['0']->subattachments->data ) ) {
                     ?>
 										<i class="icon icon-esf-clone efbl_multimedia"
-										   aria-hidden="true"></i>
+											aria-hidden="true"></i>
 									<?php 
                 }
                 ?>
@@ -114,7 +115,7 @@ if ( $is_album_feed ) {
 								<img alt="<?php 
                 esc_attr_e( $story_name );
                 ?>"
-									 src="<?php 
+									src="<?php 
                 echo esc_url( $story->attachments->data[0]->media->image->src );
                 ?>"/>
 								<div class="efbl-overlay">
@@ -125,7 +126,7 @@ if ( $is_album_feed ) {
                     ?>
 
 										<i class="icon icon-esf-plus efbl-plus"
-										   aria-hidden="true"></i>
+											aria-hidden="true"></i>
 
 										<?php 
                 }
@@ -134,13 +135,13 @@ if ( $is_album_feed ) {
                 if ( $feed_type == 'added_video' ) {
                     ?>
 										<i class="icon icon-esf-clone icon-esf-video-camera"
-										   aria-hidden="true"></i>
+											aria-hidden="true"></i>
 										<?php 
                 }
                 if ( isset( $story->attachments->data['0']->subattachments->data ) && !empty( $story->attachments->data['0']->subattachments->data ) ) {
                     ?>
 										<i class="icon icon-esf-clone efbl_multimedia"
-										   aria-hidden="true"></i>
+											aria-hidden="true"></i>
 										<?php 
                 }
                 ?>
@@ -176,17 +177,17 @@ if ( $is_album_feed ) {
 									<a href="https://facebook.com/<?php 
                 esc_attr_e( $page_id );
                 ?>"
-									   title="<?php 
+										title="<?php 
                 esc_attr_e( $story_name );
                 ?>"
-									   rel="nofollow"
-									   target="<?php 
+										rel="nofollow"
+										target="<?php 
                 esc_attr_e( $link_target );
                 ?>">
 										<img alt="<?php 
                 esc_attr_e( $story_name );
                 ?>"
-											 src="<?php 
+											src="<?php 
                 echo esc_url( $auth_img_src );
                 ?>"/></a>
 								</div>
@@ -207,7 +208,7 @@ if ( $is_album_feed ) {
                 ?>
 											<div class="efbl-verified-status">
 												<i class="icon icon-esf-check"
-												   aria-hidden="true"></i>
+													aria-hidden="true"></i>
 											</div>
 										<?php 
             }
@@ -238,8 +239,8 @@ if ( $is_album_feed ) {
 								<a href="<?php 
             echo esc_url( $story_link );
             ?>"
-								   rel="nofollow"
-								   target="<?php 
+									rel="nofollow"
+									target="<?php 
             esc_attr_e( $link_target );
             ?>">
 									<?php 
@@ -333,9 +334,9 @@ if ( $is_album_feed ) {
 					<a href="<?php 
                 echo esc_url( $story->attachments->data['0']->url );
                 ?>"
-					   class="efbl_link_image"
-					   rel="nofollow"
-					   target="<?php 
+						class="efbl_link_image"
+						rel="nofollow"
+						target="<?php 
                 esc_attr_e( $link_target );
                 ?>"><img
 								alt="<?php 
@@ -372,17 +373,17 @@ if ( $is_album_feed ) {
 									<a href="https://facebook.com/<?php 
                 esc_attr_e( $page_id );
                 ?>"
-									   title="<?php 
+										title="<?php 
                 esc_attr_e( $story_name );
                 ?>"
-									   rel="nofollow"
-									   target="<?php 
+										rel="nofollow"
+										target="<?php 
                 esc_attr_e( $link_target );
                 ?>">
 										<img alt="<?php 
                 esc_attr_e( $story_name );
                 ?>"
-											 src="<?php 
+											src="<?php 
                 echo esc_url( $auth_img_src );
                 ?>"/></a>
 								</div>
@@ -403,7 +404,7 @@ if ( $is_album_feed ) {
                 ?>
 											<div class="efbl-verified-status">
 												<i class="icon icon-esf-check"
-												   aria-hidden="true"></i>
+													aria-hidden="true"></i>
 											</div>
 										<?php 
             }
@@ -460,8 +461,8 @@ if ( $is_album_feed ) {
 							<a href="<?php 
         echo esc_url( $story->attachments->data['0']->url );
         ?>"
-							   rel="nofollow"
-							   target="<?php 
+								rel="nofollow"
+								target="<?php 
         esc_attr_e( $link_target );
         ?>">
 								<?php 
@@ -503,19 +504,19 @@ if ( $is_album_feed ) {
             ?>?action=efbl_generate_popup_html" <?php 
             esc_attr_e( $efbl_free_popup_type );
             ?>
-						   data-storylink="<?php 
+							data-storylink="<?php 
             echo esc_url( $story_link );
             ?>"
-						   data-linktext="<?php 
+							data-linktext="<?php 
             echo __( 'Read full story', 'easy-facebook-likebox' );
             ?>"
-						   data-caption="<?php 
+							data-caption="<?php 
             echo htmlentities( $post_text );
             ?>"
-						   data-itemnumber="<?php 
+							data-itemnumber="<?php 
             esc_attr_e( $pi );
             ?>"
-						   class="efbl_feed_popup <?php 
+							class="efbl_feed_popup <?php 
             esc_attr_e( $efbl_free_popup_class );
             ?> efbl-cff-item_number-<?php 
             esc_attr_e( $pi );
@@ -523,8 +524,8 @@ if ( $is_album_feed ) {
 							<img src="<?php 
             echo esc_url( $feed_img );
             ?>"
-								 class="img-responsive"
-								 alt="<?php 
+								class="img-responsive"
+								alt="<?php 
             esc_attr_e( $story_from_name );
             ?>"/>
 							<div class="efbl-overlay">
@@ -535,7 +536,7 @@ if ( $is_album_feed ) {
                 ?>
 
 									<i class="icon icon-esf-plus efbl-plus"
-									   aria-hidden="true"></i>
+										aria-hidden="true"></i>
 
 								<?php 
             }
@@ -544,13 +545,13 @@ if ( $is_album_feed ) {
             if ( $feed_type == 'added_video' ) {
                 ?>
 									<i class="icon icon-esf-clone icon-esf-video-camera"
-									   aria-hidden="true"></i>
+										aria-hidden="true"></i>
 									<?php 
             }
             if ( isset( $story->attachments->data['0']->subattachments->data ) && !empty( $story->attachments->data['0']->subattachments->data ) ) {
                 ?>
 									<i class="icon icon-esf-clone efbl_multimedia"
-									   aria-hidden="true"></i>
+										aria-hidden="true"></i>
 								<?php 
             }
             ?>
@@ -580,17 +581,17 @@ if ( $is_album_feed ) {
 									<a href="https://facebook.com/<?php 
                 esc_attr_e( $page_id );
                 ?>"
-									   title="<?php 
+										title="<?php 
                 esc_attr_e( $story_name );
                 ?>"
-									   rel="nofollow"
-									   target="<?php 
+										rel="nofollow"
+										target="<?php 
                 esc_attr_e( $link_target );
                 ?>">
 										<img alt="<?php 
                 esc_attr_e( $story_name );
                 ?>"
-											 src="<?php 
+											src="<?php 
                 echo esc_url( $auth_img_src );
                 ?>"/></a>
 								</div>
@@ -611,7 +612,7 @@ if ( $is_album_feed ) {
                 ?>
 											<div class="efbl-verified-status">
 												<i class="icon icon-esf-check"
-												   aria-hidden="true"></i>
+													aria-hidden="true"></i>
 											</div>
 										<?php 
             }
@@ -641,8 +642,8 @@ if ( $is_album_feed ) {
 								<a href="https://www.facebook.com<?php 
             echo esc_url( $story->permalink_url );
             ?>"
-								   rel="nofollow"
-								   target="<?php 
+									rel="nofollow"
+									target="<?php 
             esc_attr_e( $link_target );
             ?>">
 									<?php 
@@ -693,8 +694,8 @@ if ( $is_album_feed ) {
 								<a href="<?php 
             echo esc_url( $story->link );
             ?>"
-								   rel="nofollow"
-								   target="<?php 
+									rel="nofollow"
+									target="<?php 
             esc_attr_e( $link_target );
             ?>">
 									<?php 
@@ -758,17 +759,17 @@ if ( $is_album_feed ) {
 									<a href="https://facebook.com/<?php 
                     esc_attr_e( $page_id );
                     ?>"
-									   rel="nofollow"
-									   title="<?php 
+										rel="nofollow"
+										title="<?php 
                     esc_attr_e( $story_name );
                     ?>"
-									   target="<?php 
+										target="<?php 
                     esc_attr_e( $link_target );
                     ?>">
 										<img alt="<?php 
                     esc_attr_e( $story_name );
                     ?>"
-											 src="<?php 
+											src="<?php 
                     echo esc_url( $auth_img_src );
                     ?>"/></a>
 								</div>
@@ -789,7 +790,7 @@ if ( $is_album_feed ) {
                     ?>
 											<div class="efbl-verified-status">
 												<i class="icon icon-esf-check"
-												   aria-hidden="true"></i>
+													aria-hidden="true"></i>
 											</div>
 										<?php 
                 }

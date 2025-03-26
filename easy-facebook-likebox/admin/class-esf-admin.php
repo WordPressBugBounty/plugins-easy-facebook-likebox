@@ -229,7 +229,7 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			);
 
 			add_submenu_page(
-				null,
+				'hidden',
 				__( 'Welcome', 'easy-facebook-likebox' ),
 				__( 'Welcome', 'easy-facebook-likebox' ),
 				'administrator',

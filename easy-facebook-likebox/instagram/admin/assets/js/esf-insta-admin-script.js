@@ -406,6 +406,11 @@ jQuery(document).ready(function($) {
   function mif_get_moderate_feed( clear_cache = false ){
 
     const user_id = $('#mif_moderate_user_id').val();
+
+    if( ! user_id ){
+      return false;
+    }
+
     jQuery('#mif-moderate-wrap .mif-moderate-visual-wrap').html(' ')
     esfShowNotification(mif.moderate_wait, 400000);
     var data = {

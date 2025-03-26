@@ -97,7 +97,7 @@ $mif_trans_stories = $this->get_cache( 'stories' );
 					$trans_name = array_pop( $pieces );
 					$trans_name = $pieces['1'];
 
-					if ( strpos( $key, 'hashtag' ) !== false ) {
+					if ( esf_safe_strpos( $key, 'hashtag' ) !== false ) {
 
 						$hashtag_pieces = explode( '-', $key );
 

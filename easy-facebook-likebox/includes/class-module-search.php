@@ -82,12 +82,12 @@ if ( ! class_exists( 'ESPF_MODULE_SEARCH' ) ) :
 			/*
 			* espf-search-results Css.
 			*/
-			wp_enqueue_style( 'espf-search-results', FTA_PLUGIN_URL . 'assets/css/espf-search-results.css' );
+			wp_enqueue_style( 'espf-search-results', FTA_PLUGIN_URL . 'admin/assets/css/espf-search-results.css' );
 
 			/*
 			* espf-search-results JS
 			*/
-			wp_enqueue_script( 'espf-search-results-js', FTA_PLUGIN_URL . 'assets/js/espf-search-results.js', array( 'jquery' ), true );
+			wp_enqueue_script( 'espf-search-results-js', FTA_PLUGIN_URL . 'admin/assets/js/espf-search-results.js', array( 'jquery' ), true );
 
 			wp_localize_script(
 				'espf-search-results-js',

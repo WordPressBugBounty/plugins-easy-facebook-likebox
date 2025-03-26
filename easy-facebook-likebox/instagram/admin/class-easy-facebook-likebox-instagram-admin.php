@@ -118,7 +118,7 @@ if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
             $transient_id = sanitize_text_field( $_POST['transient_id'] );
             $replaced_value = str_replace( '_transient_', '', $transient_id );
             // Delete feed media from local server.
-            if ( strpos( $replaced_value, 'posts' ) !== false ) {
+            if ( esf_safe_strpos( $replaced_value, 'posts' ) !== false ) {
                 $feed = get_transient( $replaced_value );
                 if ( $feed ) {
                     $feed = json_decode( $feed );
@@ -284,8 +284,13 @@ if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
                             $fta_insta_accounts = wp_remote_get( $fta_insta_api_url, $args );
                             if ( is_array( $fta_insta_accounts ) && !is_wp_error( $fta_insta_accounts ) ) {
                                 $fta_insta_accounts = json_decode( $fta_insta_accounts['body'] );
-                                $fta_insta_connected_api_url = 'https://graph.facebook.com/v4.0/' . $fta_insta_accounts->connected_instagram_account->id . '/?fields=name,profile_picture_url,ig_id,username&access_token=' . $efbl_page->access_token;
-                                $fta_insta_connected_account = wp_remote_get( $fta_insta_connected_api_url, $args );
+                                if ( isset( $fta_insta_accounts->connected_instagram_account ) && !empty( $fta_insta_accounts->connected_instagram_account ) ) {
+                                    $insta_connected_account_id = $fta_insta_accounts->connected_instagram_account->id;
+                                    $fta_insta_connected_api_url = 'https://graph.facebook.com/v4.0/' . $insta_connected_account_id . '/?fields=name,profile_picture_url,ig_id,username&access_token=' . $efbl_page->access_token;
+                                    $fta_insta_connected_account = wp_remote_get( $fta_insta_connected_api_url, $args );
+                                } else {
+                                    $fta_insta_connected_account = '';
+                                }
                                 if ( is_array( $fta_insta_connected_account ) && !is_wp_error( $fta_insta_connected_account ) ) {
                                     $fta_insta_connected_account = json_decode( $fta_insta_connected_account['body'] );
                                     if ( 'insta' == $id ) {
@@ -307,7 +312,7 @@ if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
                                                     }
                                                 }
                                             }
-                                            if ( $auth_img_src->error ) {
+                                            if ( isset( $auth_img_src->error ) && !empty( $auth_img_src->error ) ) {
                                                 if ( isset( $fta_insta_connected_account->profile_picture_url ) && !empty( $fta_insta_connected_account->profile_picture_url ) ) {
                                                     $auth_img_src = $fta_insta_connected_account->profile_picture_url;
                                                 } else {
@@ -488,13 +493,13 @@ if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
             $all_cache = array();
             if ( $mif_trans_results ) {
                 foreach ( $mif_trans_results as $mif_trans_result ) {
-                    if ( strpos( $mif_trans_result->name, 'esf_insta' ) !== false && strpos( $mif_trans_result->name, 'posts' ) !== false && strpos( $mif_trans_result->name, 'timeout' ) == false ) {
+                    if ( esf_safe_strpos( $mif_trans_result->name, 'esf_insta' ) !== false && esf_safe_strpos( $mif_trans_result->name, 'posts' ) !== false && esf_safe_strpos( $mif_trans_result->name, 'timeout' ) == false ) {
                         $mif_trans_posts[$mif_trans_result->name] = $mif_trans_result->value;
                     }
-                    if ( strpos( $mif_trans_result->name, 'esf_insta' ) !== false && strpos( $mif_trans_result->name, 'stories' ) !== false && strpos( $mif_trans_result->name, 'timeout' ) == false ) {
+                    if ( esf_safe_strpos( $mif_trans_result->name, 'esf_insta' ) !== false && esf_safe_strpos( $mif_trans_result->name, 'stories' ) !== false && esf_safe_strpos( $mif_trans_result->name, 'timeout' ) == false ) {
                         $mif_trans_stories[$mif_trans_result->name] = $mif_trans_result->value;
                     }
-                    if ( strpos( $mif_trans_result->name, 'esf_insta' ) !== false && strpos( $mif_trans_result->name, 'bio' ) !== false && strpos( $mif_trans_result->name, 'timeout' ) == false ) {
+                    if ( esf_safe_strpos( $mif_trans_result->name, 'esf_insta' ) !== false && esf_safe_strpos( $mif_trans_result->name, 'bio' ) !== false && esf_safe_strpos( $mif_trans_result->name, 'timeout' ) == false ) {
                         $mif_trans_bio[$mif_trans_result->name] = $mif_trans_result->value;
                     }
                 }

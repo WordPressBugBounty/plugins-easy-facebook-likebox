@@ -86,13 +86,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <form class="ei-shoppable-general-form" name="ei-shoppable-general-form">
                                 <div class="ei-field-container ei-btn-text-wrap">
                                     <label> <?php esc_html_e('Button/link text', 'easy-facebook-likebox'); ?> </label>
-                                    <input type="text" id="ei-link-text" <?php if( $is_free ) { ?> disabled <?php } ?> value="<?php echo esc_attr( $link_text ) ?>" name="link_text" />
+                                    <input type="text" id="ei-link-text" <?php if( $is_free ) { ?> disabled <?php } ?> value="<?php echo isset( $link_text ) ? esc_attr( $link_text ) : ''; ?>" name="link_text" />
                                 </div>
                                 <div class="ei-field-container">
                                     <label> <?php esc_html_e('Click behaviour', 'easy-facebook-likebox'); ?></label>
                                     <select <?php if( $is_free ) { ?> disabled <?php } ?> class="ei-select2" id="ei-click-behaviour" name="click_behaviour">
-                                        <option <?php selected( $click_behaviour, 'popup' ); ?> value="popup"><?php echo esc_html_e( 'Popup', 'easy-facebook-likebox' ); ?></option>
-                                        <option <?php selected( $click_behaviour, 'direct_link' ); ?> value="direct_link"><?php echo esc_html_e( 'Direct Link', 'easy-facebook-likebox' ); ?></option>
+                                        <option <?php selected( isset( $click_behaviour ) ? $click_behaviour : '', 'popup' ); ?> value="popup"><?php echo esc_html_e( 'Popup', 'easy-facebook-likebox' ); ?></option>
+                                        <option <?php selected( isset( $click_behaviour ) ? $click_behaviour : '', 'direct_link' ); ?> value="direct_link"><?php echo esc_html_e( 'Direct Link', 'easy-facebook-likebox' ); ?></option>
                                     </select>
                                 </div>
                                 <div class="ei-cta-wrap">

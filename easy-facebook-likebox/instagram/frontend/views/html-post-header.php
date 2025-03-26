@@ -36,7 +36,7 @@ if ( $hashtag && ! empty( $hashtag ) ) {
 				<a href="<?php echo esc_url( $this->instagram_url ); ?>/<?php esc_attr_e( $mif_self_username ); ?>"
 					title="@<?php esc_attr_e( $mif_self_username ); ?>"
 					target="<?php esc_attr_e( $link_target ); ?>">
-					<img src="<?php echo esc_url( apply_filters( 'esf_insta_post_header_image', $esf_insta_user_data->profile_picture_url, $esf_insta_user_data ) ); ?>"/>
+					<img src="<?php echo esc_url( apply_filters( 'esf_insta_post_header_image', $profile_picture, $esf_insta_user_data ) ); ?>"/>
 				</a>
 			</div>
 

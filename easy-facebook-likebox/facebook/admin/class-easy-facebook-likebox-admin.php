@@ -384,13 +384,13 @@ if ( !class_exists( 'Easy_Facebook_Likebox_Admin' ) ) {
             $all_cache = array();
             if ( $efbl_trans_results ) {
                 foreach ( $efbl_trans_results as $efbl_trans_result ) {
-                    if ( strpos( $efbl_trans_result->name, 'efbl' ) !== false && strpos( $efbl_trans_result->name, 'posts' ) !== false && strpos( $efbl_trans_result->name, 'timeout' ) == false ) {
+                    if ( esf_safe_strpos( $efbl_trans_result->name, 'efbl' ) !== false && esf_safe_strpos( $efbl_trans_result->name, 'posts' ) !== false && esf_safe_strpos( $efbl_trans_result->name, 'timeout' ) == false ) {
                         $efbl_trans_posts[$efbl_trans_result->name] = $efbl_trans_result->value;
                     }
-                    if ( strpos( $efbl_trans_result->name, 'efbl' ) !== false && strpos( $efbl_trans_result->name, 'bio' ) !== false && strpos( $efbl_trans_result->name, 'timeout' ) == false ) {
+                    if ( esf_safe_strpos( $efbl_trans_result->name, 'efbl' ) !== false && esf_safe_strpos( $efbl_trans_result->name, 'bio' ) !== false && esf_safe_strpos( $efbl_trans_result->name, 'timeout' ) == false ) {
                         $efbl_trans_bio[$efbl_trans_result->name] = $efbl_trans_result->value;
                     }
-                    if ( strpos( $efbl_trans_result->name, 'efbl' ) !== false && strpos( $efbl_trans_result->name, 'group' ) !== false && strpos( $efbl_trans_result->name, 'timeout' ) == false ) {
+                    if ( esf_safe_strpos( $efbl_trans_result->name, 'efbl' ) !== false && esf_safe_strpos( $efbl_trans_result->name, 'group' ) !== false && esf_safe_strpos( $efbl_trans_result->name, 'timeout' ) == false ) {
                         $efbl_trans_group[$efbl_trans_result->name] = $efbl_trans_result->value;
                     }
                 }

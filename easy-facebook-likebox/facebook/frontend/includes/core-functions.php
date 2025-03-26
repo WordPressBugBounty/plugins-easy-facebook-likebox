@@ -40,7 +40,7 @@ if ( !function_exists( 'efbl_time_ago' ) ) {
                 $difference %= $value;
                 $retval .= (( $retval ? ' ' : '' )) . $time . ' ';
                 $retval .= ( $time > 1 ? $date_time_strings[$key . 's'] : $date_time_strings[$key] );
-                $granularity--;
+                --$granularity;
             }
             if ( $granularity == '0' ) {
                 break;
@@ -72,6 +72,10 @@ if ( !function_exists( 'ecff_hastags_to_link' ) ) {
 }
 if ( !function_exists( 'efbl_parse_url' ) ) {
     function efbl_parse_url(  $url  ) {
+        // check if url is valid
+        if ( !filter_var( $url, FILTER_VALIDATE_URL ) && !empty( $url ) ) {
+            return $url;
+        }
         $fb_url = parse_url( $url );
         $fanpage_url = str_replace( '/', '', $fb_url['path'] );
         return $fanpage_url;
@@ -175,7 +179,7 @@ if ( !function_exists( 'efbl_check_reaction' ) ) {
             foreach ( $array as $efbl_reaction ) {
                 $efbl_reaction = (array) $efbl_reaction;
                 if ( $needle == $efbl_reaction['type'] ) {
-                    $efbl_reaction_count++;
+                    ++$efbl_reaction_count;
                     $efbl_reaction_array['data'][] = $efbl_reaction;
                 }
             }
@@ -521,7 +525,7 @@ if ( !function_exists( 'efbl_eventdate' ) ) {
      *
      * @return string
      */
-    function efbl_eventdate(  $original, $date_format, $custom_date  ) {
+    function efbl_eventdate(  $original, $date_format = '', $custom_date = ''  ) {
         switch ( $date_format ) {
             case '2':
                 $print = date_i18n( '<k>F jS, </k>g:ia', $original );
@@ -634,6 +638,21 @@ if ( !function_exists( 'efbl_get_group_bio' ) ) {
             }
         }
         return $efbl_bio_data;
+    }
+
+}
+if ( !function_exists( 'efbl_has_connected_account' ) ) {
+    /**
+     * Check if the page has connected account
+     * @return bool
+     */
+    function efbl_has_connected_account() {
+        $FTA = new Feed_Them_All();
+        $fta_settings = $FTA->fta_get_settings();
+        if ( isset( $fta_settings['plugins']['facebook']['approved_pages'] ) && !empty( $fta_settings['plugins']['facebook']['approved_pages'] ) ) {
+            return true;
+        }
+        return false;
     }
 
 }

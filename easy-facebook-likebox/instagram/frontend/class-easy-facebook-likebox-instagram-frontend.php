@@ -139,7 +139,7 @@ if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
             if ( isset( $fta_settings['plugins']['facebook']['approved_pages'] ) && !empty( $fta_settings['plugins']['facebook']['approved_pages'] ) ) {
                 $approved_pages = $fta_settings['plugins']['facebook']['approved_pages'];
             }
-            if ( $approved_pages ) {
+            if ( isset( $approved_pages ) && !empty( $approved_pages ) ) {
                 foreach ( $approved_pages as $key => $approved_page ) {
                     if ( isset( $approved_page['instagram_connected_account']->id ) ) {
                         if ( $approved_page['instagram_connected_account']->id == $user_id ) {
@@ -167,10 +167,20 @@ if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
                     $remote_url = "https://graph.facebook.com/v4.0/{$user_id}/media?fields=thumbnail_url,children{permalink,thumbnail_url,media_url,media_type},media_type,caption,comments_count,id,ig_id,like_count,is_comment_enabled,media_url,owner,permalink,shortcode,timestamp,username,comments{id,hidden,like_count,media,text,timestamp,user,username,replies{hidden,id,like_count,media,text,timestamp,user,username}}&limit=" . $feeds_per_page . '&access_token=' . $access_token;
                 }
                 $decoded_data = $this->esf_insta_get_data( $remote_url );
+                if ( isset( $decoded_data->paging->next ) && !empty( $decoded_data->paging->next ) ) {
+                    $next_page = $decoded_data->paging->next;
+                } else {
+                    $next_page = '';
+                }
+                if ( isset( $decoded_data->data ) && !empty( $decoded_data->data ) ) {
+                    $decoded_data_items = $decoded_data->data;
+                } else {
+                    $decoded_data_items = array();
+                }
                 if ( !isset( $decoded_data->error ) && !empty( $decoded_data->data ) ) {
                     $decoded_data = (object) array(
-                        'pagination' => $decoded_data->paging->next,
-                        'data'       => $decoded_data->data,
+                        'pagination' => $next_page,
+                        'data'       => $decoded_data_items,
                     );
                     if ( !$test_mode ) {
                         set_transient( $mif_user_slug, wp_json_encode( $decoded_data ), $cache_seconds );
@@ -183,6 +193,9 @@ if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
                 }
                 if ( isset( $decoded_data->data ) && !empty( $decoded_data->data ) ) {
                     $decoded_data = array_slice( $decoded_data->data, $current_item, $feeds_per_page );
+                }
+                if ( isset( $decoded_data->data ) && empty( $decoded_data->data ) ) {
+                    $decoded_data = array();
                 }
                 $decoded_data = (object) array(
                     'pagination' => $decoded_data_pag,
@@ -216,20 +229,24 @@ if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
             $self_decoded_data = get_transient( $mif_bio_slug );
             $self_decoded_data = json_decode( $self_decoded_data );
             if ( !$self_decoded_data || '' == $self_decoded_data ) {
-                $mif_personal_connected_accounts = $fta_settings['plugins']['instagram']['instagram_connected_account'];
+                if ( isset( $fta_settings['plugins']['instagram']['instagram_connected_account'] ) && !empty( $fta_settings['plugins']['instagram']['instagram_connected_account'] ) ) {
+                    $mif_personal_connected_accounts = $fta_settings['plugins']['instagram']['instagram_connected_account'];
+                } else {
+                    $mif_personal_connected_accounts = array();
+                }
                 if ( esf_insta_instagram_type() == 'personal' && isset( $mif_personal_connected_accounts ) && !empty( $mif_personal_connected_accounts ) && is_array( $mif_personal_connected_accounts ) ) {
                     $access_token = $mif_personal_connected_accounts[$user_id]['access_token'];
                     $mif_bio_url = 'https://graph.instagram.com/me?fields=id,username,media_count,account_type&access_token=' . $access_token;
-                } else {
+                } elseif ( isset( $access_token ) && !empty( $access_token ) ) {
                     $mif_bio_url = "https://graph.facebook.com/v4.0/{$user_id}/?fields=biography,followers_count,follows_count,id,ig_id,media_count,name,profile_picture_url,username,website&access_token=" . $access_token;
                 }
                 /*
                  * Getting the decoded data of authenticated user from instagram.
                  */
                 $self_decoded_data = $this->esf_insta_get_data( $mif_bio_url );
-                if ( 400 !== $self_decoded_data->meta->code && !isset( $self_decoded_data->error ) ) {
+                if ( isset( $self_decoded_data->meta->code ) && 400 !== $self_decoded_data->meta->code && !isset( $self_decoded_data->error ) ) {
                 }
-                if ( 400 !== $self_decoded_data->meta->code && !isset( $self_decoded_data->error ) ) {
+                if ( isset( $self_decoded_data->meta->code ) && 400 !== $self_decoded_data->meta->code && !isset( $self_decoded_data->error ) ) {
                     set_transient( $mif_bio_slug, wp_json_encode( $self_decoded_data ), $cache_seconds );
                 }
             }

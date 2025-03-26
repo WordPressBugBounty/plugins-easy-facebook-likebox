@@ -46,9 +46,6 @@ esc_attr_e( $default_page_id );
 									class="dashicons dashicons-admin-page right"></span>
 						</a>
 					</div>
-					<?php 
-esc_html_e( $efbl_default_likebox_notice );
-?>
 					<h5 class="efbl_more_head"><?php 
 esc_html_e( 'Need More Options?', 'easy-facebook-likebox' );
 ?></h5>

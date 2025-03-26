@@ -98,6 +98,25 @@ function acp_update_alpha_value_on_alpha_slider(alpha, $alphaSlider) {
 }
 
 /**
+ * Add alphaColorPicker method for compatibility with the Insiro theme
+ * This will be used as a jQuery plugin method
+ */
+jQuery.fn.alphaColorPicker = function() {
+  return this.each(function() {
+    // If element already has alpha color picker initialized, skip it
+    if (jQuery(this).hasClass('alpha-color-control-initialized')) {
+      return;
+    }
+
+    // Add the alpha-color-control class so our existing code will handle it
+    jQuery(this).addClass('alpha-color-control');
+    
+    // Mark as initialized to avoid double initialization
+    jQuery(this).addClass('alpha-color-control-initialized');
+  });
+};
+
+/**
  * Initialization trigger.
  */
 jQuery(document).ready(function($) {

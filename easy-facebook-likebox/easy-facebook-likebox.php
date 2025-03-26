@@ -4,7 +4,7 @@
  * Plugin Name: Easy Social Feed
  * Plugin URI:        https://wordpress.org/plugins/easy-facebook-likebox
  * Description:       Formerly "Easy Facebook Like Box and Custom Facebook Feed" plugin allows you to easily display custom facebook feed, custom Instagram photos and videos feed, page plugin (like box) on your website using either widget or shortcode to increase facbook fan page likes. You can use the shortcode generator. Additionally, it also now allows you to display the customized facebook feed on your website using the same color scheme of your website. Its completely customizable with lots of optional settings. Its also responsive facebook like box at the same time.
- * Version:           6.6.4
+ * Version:           6.6.6
  * Author:            Easy Social Feed
  * Author URI:        https://easysocialfeed.com/
  * Text Domain:       easy-facebook-likebox
@@ -25,7 +25,7 @@ if ( function_exists( 'efl_fs' ) ) {
             global $efl_fs;
             if ( !isset( $efl_fs ) ) {
                 // Include Freemius SDK.
-                require_once dirname( __FILE__ ) . '/freemius/start.php';
+                require_once __DIR__ . '/vendor/freemius/start.php';
                 $efl_fs = fs_dynamic_init( array(
                     'id'              => '4142',
                     'slug'            => 'easy-facebook-likebox',
@@ -58,8 +58,8 @@ if ( function_exists( 'efl_fs' ) ) {
     //======================================================================
     // Code for the Main structure
     //======================================================================
-    $options = get_option( 'fta_settings' );
-    $fb_status = $options['plugins']['facebook']['status'];
+    $options = get_option( 'fta_settings', array() );
+    $fb_status = ( isset( $options['plugins']['facebook']['status'] ) ? $options['plugins']['facebook']['status'] : 'activated' );
     if ( isset( $options['plugins']['facebook'] ) ) {
         $fb = $options['plugins']['facebook'];
     } else {
@@ -80,7 +80,7 @@ if ( function_exists( 'efl_fs' ) ) {
 
         add_action( 'widgets_init', 'register_fblx_widget' );
     }
-    $insta_status = $options['plugins']['instagram']['status'];
+    $insta_status = ( isset( $options['plugins']['instagram']['status'] ) ? $options['plugins']['instagram']['status'] : 'activated' );
     if ( isset( $options['plugins']['instagram'] ) ) {
         $insta = $options['plugins']['instagram'];
     } else {
@@ -99,7 +99,7 @@ if ( function_exists( 'efl_fs' ) ) {
     }
     if ( !class_exists( 'Feed_Them_All' ) ) {
         class Feed_Them_All {
-            public $version = '6.6.4';
+            public $version = '6.6.6';
 
             public $fta_slug = 'easy-facebook-likebox';
 
@@ -205,11 +205,10 @@ if ( function_exists( 'efl_fs' ) ) {
              * fta_plugins Holds all the FTA plugins data
              */
             public function fta_plugins() {
-                $Feed_Them_All = new Feed_Them_All();
-                $fb_status = $Feed_Them_All->fta_get_settings();
-                $fb_status = $fb_status['plugins']['facebook']['status'];
-                $insta_status = $Feed_Them_All->fta_get_settings();
-                $insta_status = $insta_status['plugins']['instagram']['status'];
+                $feed_them_all = new Feed_Them_All();
+                $settings = $feed_them_all->fta_get_settings();
+                $fb_status = ( isset( $settings['plugins']['facebook']['status'] ) ? $settings['plugins']['facebook']['status'] : 'activated' );
+                $insta_status = ( isset( $settings['plugins']['instagram']['status'] ) ? $settings['plugins']['instagram']['status'] : 'activated' );
                 if ( empty( $fb_status ) ) {
                     $fb_status = 'activated';
                 }
@@ -245,7 +244,7 @@ if ( function_exists( 'efl_fs' ) ) {
              */
             public function fta_get_settings( $key = null ) {
                 $fta_settings = get_option( 'fta_settings', false );
-                if ( $key ) {
+                if ( $key && isset( $fta_settings[$key] ) ) {
                     $fta_settings = $fta_settings[$key];
                 }
                 return $fta_settings;

@@ -22,7 +22,7 @@ $fta_settings = $FTA->fta_get_settings();
 									class="icons efbl_moderate_page_id">
 								<?php
 								$type = 'page';
-								if ( $fta_settings['plugins']['facebook']['approved_pages'] ) {
+								if ( isset( $fta_settings['plugins']['facebook']['approved_pages'] ) && ! empty( $fta_settings['plugins']['facebook']['approved_pages'] ) ) {
 									$i = 0;
 									foreach ( $fta_settings['plugins']['facebook']['approved_pages'] as $efbl_page ) {
 										$i++;

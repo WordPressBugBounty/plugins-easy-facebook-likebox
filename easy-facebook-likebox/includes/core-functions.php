@@ -29,11 +29,13 @@ if ( ! function_exists( 'esf_is_elementor_preview' ) ) {
  */
 if ( ! function_exists( 'esf_convert_to_hyperlinks' ) ) {
 	function esf_convert_to_hyperlinks(
-		$value, $protocols = array(
+		$value,
+		$protocols = array(
 			'http',
 			'mail',
 			'https',
-		), array $attributes = array()
+		),
+		array $attributes = array()
 	) {
 		// Link attributes
 		$attr = '';
@@ -143,7 +145,6 @@ if ( ! function_exists( 'esf_get_uploads_directory' ) ) {
 		$upload_dir = wp_upload_dir();
 		$upload_dir = $upload_dir['basedir'];
 		return $upload_dir . '/esf-' . esc_attr( $module );
-
 	}
 }
 if ( ! function_exists( 'esf_serve_media_locally' ) ) {
@@ -167,7 +168,7 @@ if ( ! function_exists( 'esf_serve_media_locally' ) ) {
 
 		$upload_dir = wp_upload_dir();
 		$upload_url = $upload_dir['baseurl'];
-		$img_url   = $upload_url . '/esf-' . esc_attr( $module ) . '/' . esc_attr( $id ) . '.jpg';
+		$img_url    = $upload_url . '/esf-' . esc_attr( $module ) . '/' . esc_attr( $id ) . '.jpg';
 
 		if ( ! file_exists( $file ) ) {
 			$response = wp_remote_get( $url );
@@ -242,19 +243,19 @@ if ( ! function_exists( 'esf_sort_by_created_time' ) ) {
 	 */
 	function esf_sort_by_created_time( $data = null ) {
 
-		if( ! $data ) {
+		if ( ! $data ) {
 			return false;
 		}
 		$order = array();
-		foreach ( $data as $single_post ){
-			$order[] = strtotime($single_post->created_time);
+		foreach ( $data as $single_post ) {
+			$order[] = strtotime( $single_post->created_time );
 		}
-		array_multisort($order, SORT_DESC, $data);
+		array_multisort( $order, SORT_DESC, $data );
 		return $data;
 	}
 }
 
-if( ! function_exists( 'esf_check_ajax_referer' ) ) {
+if ( ! function_exists( 'esf_check_ajax_referer' ) ) {
 	/**
 	 * Check ajax referer
 	 *
@@ -262,9 +263,8 @@ if( ! function_exists( 'esf_check_ajax_referer' ) ) {
 	 */
 	function esf_check_ajax_referer() {
 		if ( ! check_ajax_referer( 'esf-ajax-nonce', 'nonce', false ) || ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( "Nonce not verified or you don't have appropriate permissions", "easy-facebook-likebox" ) );
+			wp_send_json_error( __( "Nonce not verified or you don't have appropriate permissions", 'easy-facebook-likebox' ) );
 		}
-
 	}
 }
 
@@ -283,5 +283,22 @@ if ( ! function_exists( 'esf_get_design_value' ) ) {
 			return $default;
 		}
 		return isset( $skin['design'][ $key ] ) ? $skin['design'][ $key ] : $default;
+	}
+}
+/**
+ * Safe wrapper for esf_safe_strpos() that handles null values
+ *
+ * @param mixed $haystack The string to search in
+ * @param string $needle The string to search for
+ * @param int $offset The optional offset parameter
+ */
+if ( ! function_exists( 'esf_safe_strpos' ) ) {
+	function esf_safe_strpos( $haystack, $needle, $offset = 0 ) {
+		// Check if haystack is null or not a string or not defined
+		if ( ! isset( $haystack ) || $haystack === null || ! is_string( $haystack ) ) {
+			return false;
+		}
+
+		return strpos( $haystack, $needle, $offset );
 	}
 }

@@ -5,7 +5,7 @@
 	<div class="esf-insta-d-flex esf-insta-justify-content-between">
 		<div class="esf-insta-reacted esf-insta-d-flex esf-insta-align-items-center">
 
-			<?php if ( $feed->like_count && $feed->like_count > 0 && $mif_values['show_likes'] ) { ?>
+			<?php if ( isset( $feed->like_count ) && $feed->like_count > 0 && $mif_values['show_likes'] ) { ?>
 
 				<div class="esf-insta-reacted-item emotis">
 
@@ -17,7 +17,7 @@
 
 			<?php } ?>
 
-			<?php if ( $feed->comments_count && $feed->comments_count > 0 && $mif_values['show_comments'] ) { ?>
+			<?php if ( isset( $feed->comments_count ) && $feed->comments_count > 0 && $mif_values['show_comments'] ) { ?>
 
 				<div class="esf-insta-reacted-item">
 

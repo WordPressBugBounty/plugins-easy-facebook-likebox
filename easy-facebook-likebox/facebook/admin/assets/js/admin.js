@@ -335,7 +335,8 @@ jQuery( document ).ready(
 
 			var data = {
 				action: 'efbl_get_moderate_feed',
-				feed_type: feed_type,
+				feed_type: "page",
+      			page_id: page_id,
 				nonce: efbl.nonce,
 			};
 

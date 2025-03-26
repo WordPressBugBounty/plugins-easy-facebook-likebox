@@ -15,6 +15,10 @@ $FTA = new Feed_Them_All();
 $fta_settings = $FTA->fta_get_settings();
 $mif_skin_default_id = $fta_settings['plugins']['instagram']['default_skin_id'];
 $insta_settings = $fta_settings['plugins']['instagram'];
+if ( !esf_insta_has_connected_account() ) {
+    echo '<div id="esf-insta-feed" class="esf-insta-wrap esf_insta_feed_wraper"><p class="esf_insta_error_msg">' . __( 'Whoops! No connected account found. Try connecting an account first.', 'easy-facebook-likebox' ) . '</p></div>';
+    return;
+}
 if ( is_customize_preview() && isset( $post->ID ) && $post->ID == $esf_insta_demo_page_id ) {
     $skin_id = get_option( 'mif_skin_id', false );
     $user_id = get_option( 'mif_account_id', false );
@@ -107,6 +111,9 @@ if ( $is_shoppable ) {
 } else {
     $is_shoppable = '';
 }
+if ( !isset( $profile_picture ) || empty( $profile_picture ) ) {
+    $profile_picture = '';
+}
 ?>
 
 <div id="esf-insta-feed"
@@ -120,31 +127,31 @@ echo esc_attr( intval( $skin_id ) );
 echo esc_attr( $mif_ver );
 ?>">
 	<?php 
-/*
- * Getting user data
- */
-$esf_insta_user_data = $this->esf_insta_get_bio( intval( $user_id ) );
-if ( $mif_instagram_type !== 'personal' ) {
-    $profile_picture = esf_insta_get_logo( $user_id );
-    if ( !$profile_picture ) {
-        $profile_picture = $esf_insta_user_data->profile_picture_url;
-    }
-}
-if ( !$is_moderate && !$is_shoppable ) {
-    if ( $mif_values['show_header'] && !$esf_insta_multifeed ) {
-        /*
-         * Load header template if avaiable in active theme
-         * Header template can be overriden by "{your-theme}/easy-facebook-likebox/instagram/frontend/views/html-feed-header.php"
-         */
-        if ( $esf_insta_header_templateurl = locate_template( array('easy-facebook-likebox/instagram/frontend/views/html-feed-header.php') ) ) {
-            $esf_insta_header_templateurl = $esf_insta_header_templateurl;
-        } else {
-            $esf_insta_header_templateurl = ESF_INSTA_PLUGIN_DIR . '/frontend/views/html-feed-header.php';
-        }
-        include $esf_insta_header_templateurl;
-    }
-}
 if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !isset( $esf_insta_feed->data->error ) ) {
+    /*
+     * Getting user data
+     */
+    $esf_insta_user_data = $this->esf_insta_get_bio( intval( $user_id ) );
+    if ( $mif_instagram_type !== 'personal' ) {
+        $profile_picture = esf_insta_get_logo( $user_id );
+        if ( !$profile_picture ) {
+            $profile_picture = $esf_insta_user_data->profile_picture_url;
+        }
+    }
+    if ( !$is_moderate && !$is_shoppable ) {
+        if ( $mif_values['show_header'] && !$esf_insta_multifeed ) {
+            /*
+             * Load header template if avaiable in active theme
+             * Header template can be overriden by "{your-theme}/easy-facebook-likebox/instagram/frontend/views/html-feed-header.php"
+             */
+            if ( $esf_insta_header_templateurl = locate_template( array('easy-facebook-likebox/instagram/frontend/views/html-feed-header.php') ) ) {
+                $esf_insta_header_templateurl = $esf_insta_header_templateurl;
+            } else {
+                $esf_insta_header_templateurl = ESF_INSTA_PLUGIN_DIR . '/frontend/views/html-feed-header.php';
+            }
+            include $esf_insta_header_templateurl;
+        }
+    }
     $carousel_class = null;
     $carousel_atts = null;
     ?>
@@ -165,11 +172,18 @@ if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !iss
         ?>
 
 				<div class="esf-insta-grid-skin">
-					<div class="esf-insta-row e-outer <?php 
-        echo esc_attr( $moderate_class );
-        ?> <?php 
-        echo esc_attr( $shoppable_class );
-        ?>">
+					<div class="esf-insta-row e-outer 
+					<?php 
+        if ( isset( $moderate_class ) ) {
+            echo esc_attr( $moderate_class );
+        }
+        ?>
+					<?php 
+        if ( isset( $shoppable_class ) ) {
+            echo esc_attr( $shoppable_class );
+        }
+        ?>
+">
 
 						<?php 
     }
@@ -177,17 +191,27 @@ if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !iss
     if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) ) {
         foreach ( $esf_insta_feed->data as $feed ) {
             $caption = '';
-            $created_time = $feed->timestamp;
+            if ( isset( $feed->timestamp ) && !empty( $feed->timestamp ) ) {
+                $created_time = $feed->timestamp;
+            } else {
+                $created_time = '';
+            }
             $story_id = $feed->id;
-            $profile_picture = $esf_insta_user_data->profile_picture_url;
+            if ( isset( $esf_insta_user_data->profile_picture_url ) && !empty( $esf_insta_user_data->profile_picture_url ) ) {
+                $profile_picture = $esf_insta_user_data->profile_picture_url;
+            } else {
+                $profile_picture = '';
+            }
             $permalink = $feed->permalink;
             $link_text = __( 'View on Instagram', 'easy-facebook-likebox' );
             $click_behaviour = 'direct_link';
             $source = 'caption';
-            if ( $feed->timestamp ) {
+            if ( isset( $feed->timestamp ) && !empty( $feed->timestamp ) ) {
                 $feed_time = esf_insta_readable_time( $feed->timestamp );
+            } else {
+                $feed_time = '';
             }
-            if ( $feed->caption ) {
+            if ( isset( $feed->caption ) && !empty( $feed->caption ) ) {
                 $caption = $feed->caption;
                 if ( str_word_count( $caption ) <= $caption_words ) {
                     $esf_insta_caption_trimmed = false;
@@ -197,6 +221,8 @@ if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !iss
                 }
                 $caption = esf_convert_to_hyperlinks( $caption );
                 $caption = nl2br( esf_insta_convert_to_hashtag( $caption ) );
+            } else {
+                $caption = '';
             }
             if ( $feed->media_type == 'VIDEO' ) {
                 $thumbnail_url = $feed->thumbnail_url;
@@ -278,7 +304,7 @@ if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !iss
     }
     ?>
 			</div>
-			<?php 
+		<?php 
     if ( !$is_moderate && !$is_shoppable ) {
         /*
          * Load Feed footer template if avaiable in active theme
@@ -291,6 +317,12 @@ if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !iss
         }
         include $esf_feed_footer_url;
     }
+} else {
+    ?>
+		<p class="esf_insta_error_msg"><?php 
+    echo __( 'Error: No data found, Try connecting an account first and make sure you have posts on your account.', 'easy-facebook-likebox' );
+    ?>
+	<?php 
 }
 if ( isset( $esf_insta_feed->error ) || isset( $esf_insta_feed->data->error->message ) ) {
     ?>
