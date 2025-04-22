@@ -360,9 +360,17 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			$install_date  = $Feed_Them_All->fta_get_settings( 'installDate' );
 			$fta_settings  = $Feed_Them_All->fta_get_settings();
 			$display_date  = date( 'Y-m-d h:i:s' );
-			$datetime1     = new DateTime( $install_date );
-			$datetime2     = new DateTime( $display_date );
-			$diff_intrval  = round( ( $datetime2->format( 'U' ) - $datetime1->format( 'U' ) ) / ( 60 * 60 * 24 ) );
+			if ( ! is_string( $install_date ) || empty( $install_date ) ) {
+				$install_date = $display_date;
+			}
+
+			$datetime1    = new DateTime( $install_date );
+			$datetime2    = new DateTime( $display_date );
+			$diff_intrval = round( ( $datetime2->format( 'U' ) - $datetime1->format( 'U' ) ) / ( 60 * 60 * 24 ) );
+
+			if ( empty( $diff_intrval ) ) {
+				$diff_intrval = 0;
+			}
 			if ( $diff_intrval >= 6 && get_site_option( 'fta_supported' ) !== 'yes' ) { ?>
 
 				<div style="position:relative;padding-right:80px;background: #fff;" class="update-nag fta_msg fta_review">
@@ -415,7 +423,8 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 				</script>
 				<?php
 			}
-			if ( get_site_option( 'fta_bfcm_sale' ) !== 'yes' ) { ?>
+			if ( get_site_option( 'fta_bfcm_sale' ) !== 'yes' ) {
+				?>
 				<div style="position:relative;padding-right:80px;background: #fff;" class="update-nag fta_msg fta_sale">
 					<p style="margin-right: 40px;">
 						<b><?php esc_html_e( '17% OFF Easy Social Feed ', 'easy-facebook-likebox' ); ?></b>
@@ -424,7 +433,7 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 						<?php esc_html_e( 'before the sale ends!', 'easy-facebook-likebox' ); ?>
 					</p>
 					<div class="fl_support_btns">
-						<a href="<?php echo admin_url( 'admin.php?page=feed-them-all-pricing' ) ?>"
+						<a href="<?php echo admin_url( 'admin.php?page=feed-them-all-pricing' ); ?>"
 							class="esf_hide_sale button button-primary">
 							<?php esc_html_e( 'Checkout Now', 'easy-facebook-likebox' ); ?>
 						</a>
@@ -453,7 +462,7 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 						});
 						});
 				</script>
-			<?php
+				<?php
 			}
 			return false;
 		}
