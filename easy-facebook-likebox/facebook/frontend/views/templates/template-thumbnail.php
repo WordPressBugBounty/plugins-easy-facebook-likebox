@@ -53,35 +53,29 @@ if ( $is_album_feed ) {
 
 							<a href="<?php 
                 echo admin_url( 'admin-ajax.php' );
-                ?>?action=efbl_generate_popup_html" 
-												<?php 
-                esc_attr_e( $efbl_free_popup_type );
+                ?>?action=efbl_generate_popup_html" <?php 
+                echo esc_attr_e( $efbl_free_popup_type );
                 ?>
-							 data-storylink="
-							<?php 
+							   data-storylink="<?php 
                 echo esc_url( $story_link );
-                ?>
-							" data-linktext="
-							<?php 
-                echo __( 'Read full story', 'easy-facebook-likebox' );
-                ?>
-							" data-caption="
-							<?php 
-                echo wp_kses_post( htmlentities( $post_text ) );
-                ?>
-							" data-itemnumber="
-							<?php 
-                echo esc_attr_e( $pi );
-                ?>
-							" class="efbl_feed_popup 
-							<?php 
-                echo esc_attr_e( $efbl_free_popup_class );
-                ?>
-							 efbl-cff-item_number-
-							<?php 
-                echo esc_attr_e( $pi );
-                ?>
-							">
+                ?>"
+							   rel="nofollow"
+							   data-linktext="<?php 
+                echo esc_attr( __( 'Read full story', 'easy-facebook-likebox' ) );
+                ?>"
+							   data-caption="<?php 
+                // Sanitize post_text to prevent XSS while preserving safe HTML
+                $sanitized_caption = $this->esf_sanitize_content( $post_text );
+                echo esc_attr( $sanitized_caption );
+                ?>"
+							   data-itemnumber="<?php 
+                esc_attr_e( $pi );
+                ?>"
+							   class="efbl_feed_popup <?php 
+                esc_attr_e( $efbl_free_popup_class );
+                ?> efbl-cff-item_number-<?php 
+                esc_attr_e( $pi );
+                ?>">
 								<div class="efbl-overlay">
 
 									<?php 
@@ -494,10 +488,12 @@ if ( $is_album_feed ) {
             ?>"
 						   rel="nofollow"
 						   data-linktext="<?php 
-            echo __( 'Read full story', 'easy-facebook-likebox' );
+            echo esc_attr( __( 'Read full story', 'easy-facebook-likebox' ) );
             ?>"
 						   data-caption="<?php 
-            echo wp_kses_post( htmlentities( $post_text ) );
+            // Sanitize post_text to prevent XSS while preserving safe HTML
+            $sanitized_caption = $this->esf_sanitize_content( $post_text );
+            echo esc_attr( $sanitized_caption );
             ?>"
 						   data-itemnumber="<?php 
             esc_attr_e( $pi );

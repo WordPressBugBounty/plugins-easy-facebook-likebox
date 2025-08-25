@@ -57,11 +57,13 @@ if ( $is_album_feed ) {
                 ?>
 							" data-linktext="
 							<?php 
-                echo __( 'Read full story', 'easy-facebook-likebox' );
+                echo esc_attr( __( 'Read full story', 'easy-facebook-likebox' ) );
                 ?>
 							" data-caption="
 							<?php 
-                echo htmlentities( $post_text );
+                // Sanitize post_text to prevent XSS while preserving safe HTML
+                $sanitized_caption = $this->esf_sanitize_content( $post_text );
+                echo esc_attr( $sanitized_caption );
                 ?>
 							" data-itemnumber="
 							<?php 
@@ -491,10 +493,12 @@ if ( $is_album_feed ) {
             echo esc_url( $story_link );
             ?>"
 						   data-linktext="<?php 
-            echo __( 'Read full story', 'easy-facebook-likebox' );
+            echo esc_attr( __( 'Read full story', 'easy-facebook-likebox' ) );
             ?>"
 						   data-caption="<?php 
-            echo htmlentities( $post_text );
+            // Sanitize post_text to prevent XSS while preserving safe HTML
+            $sanitized_caption = $this->esf_sanitize_content( $post_text );
+            echo esc_attr( $sanitized_caption );
             ?>"
 						   data-itemnumber="<?php 
             esc_attr_e( $pi );

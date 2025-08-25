@@ -29,6 +29,44 @@ jQuery(document).ready(function($) {
     }
   }
 
+  // Sanitize content to prevent XSS attacks
+  function sanitizeContent(content) {
+    if (!content) return '';
+    
+    // Create a temporary div to safely parse and sanitize HTML
+    var tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    
+    // Remove script tags and event handlers
+    var scripts = tempDiv.querySelectorAll('script');
+    for (var i = 0; i < scripts.length; i++) {
+      scripts[i].parentNode.removeChild(scripts[i]);
+    }
+    
+    // Remove event handlers from all elements
+    var allElements = tempDiv.querySelectorAll('*');
+    for (var i = 0; i < allElements.length; i++) {
+      var element = allElements[i];
+      var attributes = element.attributes;
+      for (var j = attributes.length - 1; j >= 0; j--) {
+        var attr = attributes[j];
+        if (attr.name.toLowerCase().startsWith('on') || 
+            attr.name.toLowerCase() === 'javascript:' ||
+            attr.value.toLowerCase().includes('javascript:')) {
+          element.removeAttribute(attr.name);
+        }
+      }
+    }
+    
+    // Escape HTML entities for safe insertion
+    return tempDiv.innerHTML
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  }
+
   // Magic function that will prepare and render markup.
   function efbl_render_poup_markup(object) {
 
@@ -79,10 +117,14 @@ jQuery(document).ready(function($) {
     $('.efbl_feed_wraper #item_number').val($itemnumber);
 
     if ($caption) {
+      // Sanitize caption and link text to prevent XSS
+      var sanitizedCaption = sanitizeContent($caption);
+      var sanitizedLinkText = sanitizeContent($story_link_text);
+      
       $('#efblcf_holder .efbl_popupp_footer').
           html(
-              '<p>' + $caption + ' <br> <a class="efbl_popup_readmore" href="' +
-              $story_link + '" target="_blank">' + $story_link_text +
+              '<p>' + sanitizedCaption + ' <br> <a class="efbl_popup_readmore" href="' +
+              $story_link + '" target="_blank">' + sanitizedLinkText +
               '</a></p>');
       $('#efblcf_holder .efbl_popupp_footer').css('display', 'block');
     }

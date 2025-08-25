@@ -539,6 +539,39 @@ class Easy_Facebook_Likebox {
         return $returner;
     }
 
+    /**
+     * Sanitize content for data attributes to prevent XSS attacks
+     * while preserving safe HTML formatting.
+     *
+     * @param string $content The content to sanitize
+     * @return string Sanitized content safe for data attributes
+     */
+    public function esf_sanitize_content( $content ) {
+        if ( empty( $content ) ) {
+            return '';
+        }
+        // Allow only safe HTML tags and attributes
+        $allowed_html = array(
+            'br'     => array(),
+            'p'      => array(),
+            'strong' => array(),
+            'em'     => array(),
+            'u'      => array(),
+            'a'      => array(
+                'href'   => array(),
+                'title'  => array(),
+                'target' => array(),
+            ),
+        );
+        // Sanitize the content using wp_kses
+        $sanitized_content = wp_kses( $content, $allowed_html );
+        // Additional security: remove any remaining script-like content
+        $sanitized_content = preg_replace( '/<script[^>]*>.*?<\\/script>/is', '', $sanitized_content );
+        $sanitized_content = preg_replace( '/javascript:/i', '', $sanitized_content );
+        $sanitized_content = preg_replace( '/on\\w+\\s*=/i', '', $sanitized_content );
+        return $sanitized_content;
+    }
+
 }
 
 $efbl = new Easy_Facebook_Likebox();
