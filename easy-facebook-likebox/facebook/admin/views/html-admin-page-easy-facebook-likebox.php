@@ -102,14 +102,15 @@ if ( isset( $_GET['tab'] ) ) {
 						</li>
 					</ul>
 
-					<?php if ( ( $fta_settings['plugins']['instagram']['status'] ) && ( 'activated' == $fta_settings['plugins']['instagram']['status'] ) ) { ?>
-
-						<div class="efbl_tabs_right">
-							<a class=""
-							   href="<?php echo esc_url( admin_url( 'admin.php?page=mif' ) ); ?>"><?php esc_html_e( 'Instagram', 'easy-facebook-likebox' ); ?></a>
-						</div>
-
-					<?php } ?>
+					<div class="efbl_tabs_right">
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=esf-settings&tab=gdpr' ) ); ?>"><?php esc_html_e( 'GDPR', 'easy-facebook-likebox' ); ?></a>
+						<span class="efbl_tabs_right_sep" aria-hidden="true">|</span>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=esf-settings&tab=translation' ) ); ?>"><?php esc_html_e( 'Translation', 'easy-facebook-likebox' ); ?></a>
+						<?php if ( ( $fta_settings['plugins']['instagram']['status'] ) && ( 'activated' == $fta_settings['plugins']['instagram']['status'] ) ) { ?>
+							<span class="efbl_tabs_right_sep" aria-hidden="true">|</span>
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=mif' ) ); ?>"><?php esc_html_e( 'Instagram', 'easy-facebook-likebox' ); ?></a>
+						<?php } ?>
+					</div>
 				</div>
 			</div>
 			<?php do_action( 'efbl_admin_after_tabs', $fta_settings ); ?>
@@ -547,3 +548,4 @@ if ( efl_fs()->is_free_plan() || efl_fs()->is_plan( 'instagram_premium', true ) 
 	</div>
 </div>
 <div class="esf-notification-holder"><?php esc_html_e( 'Copied', 'easy-facebook-likebox' ); ?></div>
+</div>

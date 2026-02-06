@@ -16,7 +16,7 @@ if ( !defined( 'ABSPATH' ) ) {
  */
 $instance = apply_filters( 'efbl_feed_shortcode_params', $instance );
 if ( !efbl_has_connected_account() ) {
-    echo '<div class="efbl_feed_wraper"><p class="efbl_error_msg">' . __( 'Whoops! No connected account found. Try connecting an account first.', 'easy-facebook-likebox' ) . '</p></div>';
+    echo '<div class="efbl_feed_wraper"><p class="efbl_error_msg">' . __( esf_get_translated_string( 'no_connected_account' ), 'easy-facebook-likebox' ) . '</p></div>';
     return;
 }
 global $post;
@@ -56,7 +56,15 @@ if ( isset( $efbl_queried_data['transient_name'] ) && !empty( $efbl_queried_data
 }
 $cache_seconds = efbl_get_cache_seconds( $instance );
 global $efbl_skins;
-$selected_skin = $efbl_skins[$skin_id]['layout'];
+if ( (efl_fs()->is_free_plan() || efl_fs()->is_plan( 'instagram_premium', true )) && $is_moderate ) {
+    $selected_skin = 'grid';
+    $skin_id = '';
+    $layout = 'grid';
+} else {
+    $selected_skin = $efbl_skins[$skin_id]['layout'];
+    $efbl_skin_values = $efbl_skins[$skin_id];
+    $layout = $efbl_skin_values['layout'];
+}
 if ( isset( $efbl_queried_data['public_page'] ) && !empty( $efbl_queried_data['public_page'] ) ) {
     $is_public_page = $efbl_queried_data['public_page'];
 } else {
@@ -74,9 +82,6 @@ if ( is_customize_preview() && isset( $post->ID ) && $post->ID == $efbl_demo_pag
     if ( !$layout ) {
         $layout = $efbl_skin_values['design']['layout_option'];
     }
-} else {
-    $efbl_skin_values = $efbl_skins[$skin_id];
-    $layout = $efbl_skin_values['layout'];
 }
 if ( $layout == 'half' ) {
     $layout = 'halfwidth';
@@ -87,6 +92,9 @@ if ( $layout == 'full' ) {
 $FTA = new Feed_Them_All();
 $fta_settings = $FTA->fta_get_settings();
 $fb_settings = $fta_settings['plugins']['facebook'];
+// Determine GDPR mode (global setting) and whether it is active.
+$fb_gdpr_mode = ( isset( $fta_settings['gdpr'] ) ? $fta_settings['gdpr'] : 'auto' );
+$gdpr_active = ESF_GDPR_Integrations::is_gdpr_active( $fta_settings );
 if ( isset( $fb_settings['approved_pages'] ) && !empty( $fb_settings['approved_pages'] ) ) {
     $approved_pages = $fb_settings['approved_pages'];
 } else {
@@ -100,11 +108,30 @@ if ( isset( $efbl_queried_data['efbl_queried_data'] ) ) {
 }
 $rand_id = wp_rand( 1, 10 );
 // phpcs:ignore Squiz.PHP.DisallowInlineConditionals,Squiz.WhiteSpace.SeparatorSpacing
+$gdpr_container_attrs = '';
+$gdpr_flags = array();
+// For "yes", GDPR is always enforced regardless of consent state.
+if ( 'yes' === $fb_gdpr_mode ) {
+    $gdpr_flags = array('gdpr', 'gdpr_yes');
+} elseif ( 'auto' === $fb_gdpr_mode && $gdpr_active ) {
+    // For "auto", only enforce GDPR if a compatible consent plugin is active.
+    $gdpr_flags = array('gdpr', 'gdpr_auto');
+}
+// In customizer preview, disable GDPR so the feed behaves as normal (real images).
+if ( is_customize_preview() ) {
+    $gdpr_flags = array();
+    $gdpr_active = false;
+}
+if ( !empty( $gdpr_flags ) ) {
+    $gdpr_container_attrs = ' data-esf-flags="' . esc_attr( implode( ',', $gdpr_flags ) ) . '" data-esf-module="facebook"';
+}
 ?>
 <div class="efbl_feed_wraper efbl_skin_<?php 
 esc_attr_e( $skin_id );
 do_action( 'efbl_feed_wrapper_custom_class' );
-?>" <?php 
+?>"<?php 
+echo $gdpr_container_attrs;
+?> <?php 
 do_action( 'efbl_feed_wrapper_custom_attrs' );
 ?>>
 
@@ -130,6 +157,7 @@ if ( isset( $efbl_skin_values['design']['show_header'] ) && !empty( $efbl_skin_v
 // If posts found
 if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
     $i = 0;
+    $processed_count = 0;
     $pi = 1;
     $carousel_class = null;
     $carousel_atts = null;
@@ -171,6 +199,7 @@ if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
         }
         // Loop through each post
         foreach ( $efbl_posts as $story ) {
+            ++$processed_count;
             $efbl_comments_count = 0;
             $post_text = null;
             $story_id = $story->id;
@@ -390,6 +419,22 @@ if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
             if ( $feed_type == 'mobile_status_update' && isset( $story->attachments->data[0]->media->image->src ) ) {
                 $feed_img = $story->attachments->data[0]->media->image->src;
             }
+            // Serve feed image locally (download to uploads) when possible.
+            if ( $feed_img ) {
+                $local_feed_img = esf_serve_media_locally( $story_id, $feed_img );
+                if ( $local_feed_img ) {
+                    $feed_img = $local_feed_img;
+                }
+            }
+            // GDPR: replace real image with placeholder and store real URL (skip when image is local).
+            $gdpr_image_class = '';
+            $gdpr_image_attr = '';
+            if ( $gdpr_active && !empty( $feed_img ) && !esf_is_local_media_url( $feed_img, 'facebook' ) ) {
+                $real_feed_img = $feed_img;
+                $feed_img = ESF_GDPR_Integrations::get_placeholder_image();
+                $gdpr_image_class = 'esf-no-consent';
+                $gdpr_image_attr = 'data-image-url="' . esc_url( $real_feed_img ) . '"';
+            }
             if ( isset( $words_limit ) && !empty( $words_limit ) ) {
                 if ( str_word_count( $post_text ) <= $words_limit ) {
                     $efbl_words_trimmed = false;
@@ -477,12 +522,12 @@ if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
 } elseif ( isset( $efbl_queried_data['error'] ) && !empty( $efbl_queried_data['error'] ) ) {
     ?>
 					<p class="efbl_error_msg"> <?php 
-    esc_html_e( $efbl_queried_data['error'] );
+    echo apply_filters( 'efbl_api_error_message', esc_html( $efbl_queried_data['error'] ) );
     ?> </p>
 				<?php 
 } elseif ( $filter ) {
     if ( isset( $events_filter ) && $events_filter == 'upcoming' ) {
-        $events_filter_name = __( 'upcoming', 'easy-facebook-likebox' );
+        $events_filter_name = __( esf_get_translated_string( 'upcoming' ), 'easy-facebook-likebox' );
     } else {
         $events_filter_name = '';
     }
@@ -497,7 +542,7 @@ if ( isset( $efbl_posts ) && !empty( $efbl_posts ) ) {
     ?>
 
 						<p class="efbl_error_msg"><?php 
-    echo apply_filters( 'efbl_error_message', __( 'Whoops! Nothing found according to your query, Try changing fanpage ID.', 'easy-facebook-likebox' ) );
+    echo apply_filters( 'efbl_error_message', __( esf_get_translated_string( 'nothing_found_fanpage' ), 'easy-facebook-likebox' ) );
     ?> </p>
 
 					<?php 

@@ -33,7 +33,13 @@ if ( $is_album_feed ) {
             ?>">
                         <img src="<?php 
             echo esc_url( $feed_img );
-            ?>">
+            ?>"
+                        <?php 
+            echo ( !empty( $gdpr_image_class ) ? 'class="' . esc_attr( $gdpr_image_class ) . '"' : '' );
+            ?>
+                        <?php 
+            echo ( !empty( $gdpr_image_attr ) ? $gdpr_image_attr : '' );
+            ?>>
                         <div class="efbl-overlay">
 
 							<?php 
@@ -66,7 +72,9 @@ if ( $is_album_feed ) {
 				<?php 
         } else {
             ?>
-                    <span class="efbl_feed_fancy_popup efbl-row-box"
+                    <span class="efbl_feed_fancy_popup efbl-row-box <?php 
+            echo ( !empty( $gdpr_image_class ) ? esc_attr( $gdpr_image_class ) : '' );
+            ?>"
                           data-fancybox="efbl_feed_fancy_popup_<?php 
             esc_attr_e( $popup_id );
             ?>"
@@ -75,6 +83,9 @@ if ( $is_album_feed ) {
             esc_attr_e( $efbl_feed_popup_url );
             ?>"
                           href="javascript:;"
+                          <?php 
+            echo ( !empty( $gdpr_image_attr ) ? $gdpr_image_attr : '' );
+            ?>
                           style="background-image: url(<?php 
             echo esc_url( $feed_img );
             ?>)">

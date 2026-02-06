@@ -76,8 +76,11 @@ if ( !isset( $esf_insta_user_data->error ) && empty( $esf_insta_user_data->error
         ?>
 
 							<img src="<?php 
-        echo esc_url( apply_filters( 'esf_insta_feed_header_image', $profile_picture, $esf_insta_user_data ) );
-        ?>"/>
+        echo esc_url( apply_filters( 'esf_insta_feed_header_image', ( isset( $header_img_src ) ? $header_img_src : $profile_picture ), $esf_insta_user_data ) );
+        ?>"<?php 
+        echo ( isset( $header_gdpr_class ) ? ' class="' . esc_attr( $header_gdpr_class ) . '"' : '' );
+        echo ( isset( $header_gdpr_attr ) ? $header_gdpr_attr : '' );
+        ?> />
 
 							<?php 
         if ( $hashtag && !empty( $hashtag ) ) {
@@ -147,7 +150,7 @@ if ( !isset( $esf_insta_user_data->error ) && empty( $esf_insta_user_data->error
 
 							<div class="esf_insta_followers"
 								 title="<?php 
-            echo __( 'Followers', 'easy-facebook-likebox' );
+            echo __( esf_get_translated_string( 'followers' ), 'easy-facebook-likebox' );
             ?>">
 
 								<?php 

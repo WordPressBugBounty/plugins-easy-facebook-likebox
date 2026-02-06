@@ -105,7 +105,7 @@ if ( $efbl_skin_values['design']['show_feed_view_on_facebook'] ) {
     ?>"
 					   rel="nofollow"
 					   class="efbl-view-on-fb no-anchor-style link efbl-mr-1"><?php 
-    echo __( 'View on Facebook', 'easy-facebook-likebox' );
+    echo __( esf_get_translated_string( 'view_on_facebook' ), 'easy-facebook-likebox' );
     ?></a>
 
 				<?php 
@@ -118,7 +118,7 @@ if ( $efbl_skin_values['design']['show_feed_share_button'] ) {
 
 					<div class="esf-share-wrapper">
 						<a href="#" class="no-anchor-style link esf-share"><?php 
-    echo __( 'Share', 'easy-facebook-likebox' );
+    echo __( esf_get_translated_string( 'share' ), 'easy-facebook-likebox' );
     ?></a>
 						<div class="esf-social-share">
 							<button>

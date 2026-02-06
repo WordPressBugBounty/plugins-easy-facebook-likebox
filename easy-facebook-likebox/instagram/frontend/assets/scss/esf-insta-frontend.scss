@@ -1946,6 +1946,9 @@ body {
       padding-right: 0px;
       padding-left: 0px;
       display: inline-flex;
+        img{
+          max-width: 100%;
+        }
     }
 
     .esf-insta-caption {
@@ -1966,7 +1969,6 @@ body {
         bottom: 0;
         height: 15px;
         content: "";
-        background: #fff;
       }
 
       .esf-insta-detail-overflow {

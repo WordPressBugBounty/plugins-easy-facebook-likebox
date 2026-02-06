@@ -257,6 +257,38 @@ if ( ! function_exists( 'esf_insta_readable_count' ) ) {
 
 if ( ! function_exists( 'esf_insta_readable_time' ) ) {
 	function esf_insta_readable_time( $date, $granularity = 2 ) {
+
+		$date_timestamp = strtotime( $date );
+
+		/**
+		 * Filter the readable time format for Instagram posts
+		 *
+		 * Allows developers to customize the time display format.
+		 * By default, it shows relative time like "2 weeks ago".
+		 * Use this filter to display custom formats like "Nov. 10, 2025".
+		 *
+		 * When this filter returns a non-null value, the default relative time
+		 * calculation is skipped entirely for better performance.
+		 *
+		 * @since 6.3.8
+		 *
+		 * @param null|string $custom_time   Return custom formatted time or null to use default
+		 * @param int         $date_timestamp The original date timestamp
+		 * @param int         $granularity    The granularity level for time calculation
+		 *
+		 * @example
+		 * add_filter( 'esf_insta_readable_time', function( $custom_time, $date_timestamp, $granularity ) {
+		 *     return date_i18n( 'M. j, Y', $date_timestamp );
+		 * }, 10, 3 );
+		 */
+		$custom_time = apply_filters( 'esf_insta_readable_time', null, $date_timestamp, $granularity );
+
+		// If custom format is provided, return it immediately without processing
+		if ( null !== $custom_time ) {
+			return $custom_time;
+		}
+
+		// Default relative time calculation
 		$retval            = '';
 		$date_time_strings = array(
 			'second'  => __( 'second', 'easy-facebook-likebox' ),
@@ -278,9 +310,7 @@ if ( ! function_exists( 'esf_insta_readable_time' ) ) {
 
 		$ago_text = __( 'ago', 'easy-facebook-likebox' );
 
-		$date = strtotime( $date );
-
-		$difference = time() - $date;
+		$difference = time() - $date_timestamp;
 
 		$periods = array(
 			'decade' => 315360000,

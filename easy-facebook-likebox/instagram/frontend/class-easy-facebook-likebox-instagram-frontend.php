@@ -41,6 +41,14 @@ if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
                 array('jquery'),
                 true
             );
+            // Shared GDPR consent script (used by Instagram and Facebook modules).
+            wp_enqueue_script(
+                'esf-gdpr-consent',
+                FTA_PLUGIN_URL . 'frontend/assets/js/esf-gdpr-consent.js',
+                array('jquery'),
+                ( defined( 'FTA_VERSION' ) ? FTA_VERSION : '1.0' ),
+                true
+            );
             /*
              * Localizing file for getting the admin ajax url in js file.
              */
@@ -107,7 +115,9 @@ if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
             /*
              * Getting the data from remote URL.
              */
-            $json_data = wp_remote_retrieve_body( wp_remote_get( $url ) );
+            $json_data = wp_remote_retrieve_body( wp_remote_get( $url, array(
+                'timeout' => 120,
+            ) ) );
             /*
              * Decoding the data.
              */
@@ -194,7 +204,8 @@ if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
                 if ( isset( $decoded_data->data ) && !empty( $decoded_data->data ) ) {
                     $decoded_data = array_slice( $decoded_data->data, $current_item, $feeds_per_page );
                 }
-                if ( isset( $decoded_data->data ) && empty( $decoded_data->data ) ) {
+                // Check if array is empty after slice
+                if ( empty( $decoded_data ) ) {
                     $decoded_data = array();
                 }
                 $decoded_data = (object) array(

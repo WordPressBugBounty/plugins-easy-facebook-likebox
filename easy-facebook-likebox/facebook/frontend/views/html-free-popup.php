@@ -1,13 +1,43 @@
-<?php do_action( 'efbl_before_free_popup' ); ?>
+<?php
+do_action( 'efbl_before_free_popup' );
 
-<div id="efblcf_holder" class="white-popup efbl-feed-popup-holder">
+
+$efbl_gdpr_placeholder = '';
+
+if ( class_exists( 'Feed_Them_All' ) && class_exists( 'ESF_GDPR_Integrations' ) ) {
+	$FTA          = new Feed_Them_All();
+	$fta_settings = $FTA->fta_get_settings();
+
+	if ( ESF_GDPR_Integrations::is_gdpr_active( $fta_settings ) ) {
+		$efbl_gdpr_placeholder = ESF_GDPR_Integrations::get_placeholder_image();
+	}
+}
+?>
+
+<div id="efblcf_holder"
+	class="white-popup efbl-feed-popup-holder"
+	<?php if ( ! empty( $efbl_gdpr_placeholder ) ) : ?>
+		data-esf-gdpr-placeholder="<?php echo esc_url( $efbl_gdpr_placeholder ); ?>"
+	<?php endif; ?>
+>
 
 			<div class="efbl_popup_wraper">
 
 				<div class="efbl_popup_left_container">
-				  <img src="" class="efbl_popup_image" />
+				  <img
+					src="<?php echo esc_url( $efbl_gdpr_placeholder ); ?>"
+					class="efbl_popup_image"
+				  />
 				  <iframe src="" class="efbl_popup_if_video" ></iframe>
-				  <video src="" class="efbl_popup_video" id="html_video" controls></video>
+				  <video
+					src=""
+					<?php if ( ! empty( $efbl_gdpr_placeholder ) ) : ?>
+						poster="<?php echo esc_url( $efbl_gdpr_placeholder ); ?>"
+					<?php endif; ?>
+					class="efbl_popup_video"
+					id="html_video"
+					controls
+				  ></video>
 				</div>
 				 <div class="efbl_popupp_footer">
 				 </div>

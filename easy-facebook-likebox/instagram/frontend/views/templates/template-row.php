@@ -16,7 +16,9 @@ if ( $feed->media_url ) {
     if ( !efl_fs()->is_plan( 'instagram_premium', true ) && !efl_fs()->is_plan( 'combo_premium', true ) ) {
         ?>
 
-				<a class="esf_insta_feed_fancy_popup esf-lazyload esf_insta_row_box"
+				<a class="esf_insta_feed_fancy_popup esf-lazyload esf_insta_row_box <?php 
+        echo esc_attr( ( isset( $gdpr_image_class ) ? $gdpr_image_class : '' ) );
+        ?>"
 				   href="<?php 
         echo esc_url( $permalink );
         ?>"
@@ -28,7 +30,9 @@ if ( $feed->media_url ) {
         ?>"
 				   style="background-image: url(<?php 
         echo esc_url( $thumbnail_url );
-        ?>)">
+        ?>)"<?php 
+        echo ( isset( $gdpr_image_attr ) ? $gdpr_image_attr : '' );
+        ?>>
 
 					<div class="esf-insta-overlay">
 

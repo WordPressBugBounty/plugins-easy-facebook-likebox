@@ -255,14 +255,13 @@ jQuery( document ).ready(
 			function() {
 
 				const id   = jQuery( this ).data( 'id' );
-				const data = {'action': 'esf_hide_free_sidebar', 'id' : id };
+				const data = {'action': 'esf_hide_free_sidebar', 'id' : id, 'nonce': fta.nonce };
 				jQuery.ajax(
 					{
 						url: fta.ajax_url,
 						type: 'post',
 						data: data,
 						dataType: 'json',
-						nonce: fta.nonce,
 						async: ! 0,
 						success: function(response) {
 
@@ -398,6 +397,125 @@ jQuery( document ).ready(
 			jQuery( '.efbl-tabs-vertical #' + sub_tab ).addClass( 'active' ).fadeIn( 'slow' );
 
 		}
+
+		/*
+		 * Global GDPR settings (Settings page)
+		 */
+		if ( jQuery( '#esf_gdpr' ).length ) {
+			function esfUpdateGdprDescription() {
+				var mode = jQuery( '#esf_gdpr' ).val();
+				jQuery( '.esf-gdpr-mode-description' ).hide();
+				jQuery( '.esf-gdpr-mode-description[data-mode="' + mode + '"]' ).show();
+				if ( mode === 'auto' ) {
+					jQuery( '.esf-gdpr-plugin-detected' ).show();
+				} else {
+					jQuery( '.esf-gdpr-plugin-detected' ).hide();
+				}
+			}
+			esfUpdateGdprDescription();
+			jQuery( '#esf_gdpr' ).on( 'change', esfUpdateGdprDescription );
+
+			jQuery( document ).on( 'click', '.esf-save-gdpr-settings', function() {
+				var $btn = jQuery( this );
+				var origText = $btn.html();
+				$btn.prop( 'disabled', true ).html( typeof fta !== 'undefined' && fta.saving ? fta.saving : 'Saving…' );
+				jQuery.ajax({
+					url: fta.ajax_url,
+					type: 'POST',
+					data: {
+						action: 'esf_save_gdpr_settings',
+						gdpr: jQuery( '#esf_gdpr' ).val(),
+						nonce: fta.nonce,
+					},
+					dataType: 'json',
+					success: function( response ) {
+						esfShowNotification( response.data || ( response.success ? 'Saved.' : fta.error ), 3000 );
+						if ( response.success ) {
+							jQuery( '#toast-container' ).addClass( 'efbl_green' );
+						} else {
+							jQuery( '#toast-container' ).addClass( 'esf-failed-notification' );
+						}
+						$btn.prop( 'disabled', false ).html( origText );
+					},
+					error: function() {
+						esfShowNotification( fta.error, 3000 );
+						jQuery( '#toast-container' ).addClass( 'esf-failed-notification' );
+						$btn.prop( 'disabled', false ).html( origText );
+					},
+				});
+			});
+
+			var $gdprTooltipTpl = jQuery( '#esf-gdpr-tooltip-template' );
+			var $gdprTooltip;
+			jQuery( document ).on( 'mouseenter', '.esf-gdpr-help-icon', function() {
+				if ( ! $gdprTooltipTpl.length ) { return; }
+				if ( $gdprTooltip ) { $gdprTooltip.remove(); $gdprTooltip = null; }
+				$gdprTooltip = jQuery( '<div class="esf-gdpr-tooltip"></div>' ).html( $gdprTooltipTpl.html() );
+				jQuery( 'body' ).append( $gdprTooltip );
+				var offset = jQuery( this ).offset();
+				$gdprTooltip.css( { top: offset.top + 20, left: offset.left } );
+			});
+			jQuery( document ).on( 'mouseleave', '.esf-gdpr-help-icon', function() {
+				if ( $gdprTooltip ) {
+					setTimeout( function() {
+						if ( $gdprTooltip ) { $gdprTooltip.remove(); $gdprTooltip = null; }
+					}, 150 );
+				}
+			});
+			jQuery( document ).on( 'click', function( e ) {
+				if ( $gdprTooltip && ! jQuery( e.target ).closest( '.esf-gdpr-help-icon, .esf-gdpr-tooltip' ).length ) {
+					$gdprTooltip.remove();
+					$gdprTooltip = null;
+				}
+			});
+
+			jQuery( document ).on( 'click', '.esf-supported-plugins-link', function( e ) {
+				e.preventDefault();
+				if ( jQuery( '#esf_gdpr' ).val() !== 'auto' ) { return; }
+				jQuery( this ).closest( '.esf-gdpr-plugin-detected' ).next( '.esf-supported-plugins-list' ).slideToggle( 'fast' );
+			});
+		}
+
+		/*
+		 * Custom Text / Translation settings (Settings page)
+		 */
+		jQuery( document ).on( 'click', '.esf-save-translation-settings', function() {
+			var $btn = jQuery( this );
+			var origText = $btn.html();
+			$btn.prop( 'disabled', true ).html( typeof fta !== 'undefined' && fta.saving ? fta.saving : 'Saving…' );
+			var trans = {};
+			jQuery( '#esf-settings-translation input[name^="esf_translation["]' ).each( function() {
+				var name = jQuery( this ).attr( 'name' );
+				var match = name && name.match( /esf_translation\[(.+)\]/ );
+				if ( match ) {
+					trans[ match[1] ] = jQuery( this ).val();
+				}
+			} );
+			jQuery.ajax({
+				url: typeof fta !== 'undefined' ? fta.ajax_url : '',
+				type: 'POST',
+				data: {
+					action: 'esf_save_translation_settings',
+					nonce: typeof fta !== 'undefined' ? fta.nonce : '',
+					esf_translation: trans,
+				},
+				dataType: 'json',
+				success: function( response ) {
+					esfShowNotification( response.data || ( response.success ? 'Saved.' : ( typeof fta !== 'undefined' ? fta.error : 'Error' ) ), 3000 );
+					if ( response.success ) {
+						jQuery( '#toast-container' ).addClass( 'efbl_green' );
+					} else {
+						jQuery( '#toast-container' ).addClass( 'esf-failed-notification' );
+					}
+					$btn.prop( 'disabled', false ).html( origText );
+				},
+				error: function() {
+					esfShowNotification( typeof fta !== 'undefined' ? fta.error : 'Something went wrong!', 3000 );
+					jQuery( '#toast-container' ).addClass( 'esf-failed-notification' );
+					$btn.prop( 'disabled', false ).html( origText );
+				},
+			});
+		});
 
 	}
 );

@@ -618,6 +618,90 @@ jQuery(document).ready(function($) {
 
   });
 
+  /**
+   * Instagram Connection Type Selector
+   */
+  // Handle connection type card selection
+  jQuery(document).on('click', '.insta-connection-card', function() {
+    var type = jQuery(this).data('type');
+    jQuery(this).find('input[type="radio"]').prop('checked', true);
+    jQuery('.insta-connection-card').removeClass('selected');
+    jQuery(this).addClass('selected');
+    
+    // Show/hide help links based on selection
+    if (type === 'advanced') {
+      jQuery('.insta-help-links').slideDown(300);
+      // Highlight requirement when Business Advanced is selected
+      jQuery('.feature-requirement').css('animation', 'pulse-warning 0.6s ease-in-out');
+      setTimeout(function() {
+        jQuery('.feature-requirement').css('animation', '');
+      }, 600);
+    } else {
+      jQuery('.insta-help-links').slideUp(300);
+    }
+    
+    // Update button target
+    if (type === 'basic') {
+      jQuery('.insta-proceed-btn').attr('href', '#insta-basic-connect-info').data('target-modal', 'insta-basic-connect-info');
+    } else {
+      jQuery('.insta-proceed-btn').attr('href', '#insta-advanced-connect-info').data('target-modal', 'insta-advanced-connect-info');
+    }
+  });
+  
+  // Handle radio button change
+  jQuery(document).on('change', 'input[name="insta_connection_type"]', function() {
+    var type = jQuery(this).val();
+    jQuery('.insta-connection-card').removeClass('selected');
+    jQuery('.insta-connection-card[data-type="' + type + '"]').addClass('selected');
+    
+    // Show/hide help links based on selection
+    if (type === 'advanced') {
+      jQuery('.insta-help-links').slideDown(300);
+      // Highlight requirement when Business Advanced is selected
+      jQuery('.feature-requirement').css('animation', 'pulse-warning 0.6s ease-in-out');
+      setTimeout(function() {
+        jQuery('.feature-requirement').css('animation', '');
+      }, 600);
+    } else {
+      jQuery('.insta-help-links').slideUp(300);
+    }
+    
+    // Update button target
+    if (type === 'basic') {
+      jQuery('.insta-proceed-btn').attr('href', '#insta-basic-connect-info').data('target-modal', 'insta-basic-connect-info');
+    } else {
+      jQuery('.insta-proceed-btn').attr('href', '#insta-advanced-connect-info').data('target-modal', 'insta-advanced-connect-info');
+    }
+  });
+
+  // Handle Continue button click - close current modal and open target modal
+  jQuery(document).on('click', '.insta-proceed-btn', function(e) {
+    e.preventDefault();
+    var targetModal = jQuery(this).attr('href');
+    
+    // Close the connection type selector modal
+    jQuery('.insta-connection-type-modal').removeClass('open').css('display', 'none');
+    
+    // Open the target permissions modal
+    jQuery(targetModal).addClass('open').css('display', 'block');
+  });
+
+  // Handle Back button click - return to connection type selector
+  jQuery(document).on('click', '.insta-back-btn', function(e) {
+    e.preventDefault();
+    
+    // Close the current permissions modal
+    jQuery('.insta-connect-modal').removeClass('open').css('display', 'none');
+    
+    // Open the connection type selector modal
+    jQuery('.insta-connection-type-modal').addClass('open').css('display', 'block');
+  });
+  
+  // Initialize first card as selected on page load
+  if (jQuery('.insta-connection-card[data-type="basic"]').length > 0) {
+    jQuery('.insta-connection-card[data-type="basic"]').addClass('selected');
+  }
+
   jQuery('#mif-remove-at .mif_delete_at_confirmed').click(function(event) {
 
     event.preventDefault();

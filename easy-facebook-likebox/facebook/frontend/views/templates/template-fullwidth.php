@@ -6,6 +6,29 @@
 if ( !defined( 'ABSPATH' ) ) {
     exit;
 }
+// GDPR: ensure feed image class/attr exist (set by feed.php; default when included elsewhere).
+if ( !isset( $gdpr_image_class ) ) {
+    $gdpr_image_class = '';
+}
+if ( !isset( $gdpr_image_attr ) ) {
+    $gdpr_image_attr = '';
+}
+// GDPR: profile/header image – placeholder + data-image-url when active
+$header_img_src = ( isset( $auth_img_src ) ? $auth_img_src : '' );
+// Serve header profile image locally when possible
+if ( !empty( $header_img_src ) && !empty( $page_id ) ) {
+    $local_header_img = esf_serve_media_locally( $page_id, $header_img_src, 'facebook' );
+    if ( $local_header_img ) {
+        $header_img_src = $local_header_img;
+    }
+}
+$header_img_class = '';
+$header_img_attr = '';
+if ( !empty( $header_img_src ) && isset( $gdpr_active ) && $gdpr_active && !esf_is_local_media_url( $header_img_src, 'facebook' ) ) {
+    $header_img_src = ESF_GDPR_Integrations::get_placeholder_image();
+    $header_img_class = ' esf-no-consent';
+    $header_img_attr = ' data-image-url="' . esc_url( $auth_img_src ) . '"';
+}
 if ( $is_album_feed ) {
 } else {
     $efbl_ver = 'free';
@@ -57,7 +80,7 @@ if ( $is_album_feed ) {
                 ?>
 							" data-linktext="
 							<?php 
-                echo esc_attr( __( 'Read full story', 'easy-facebook-likebox' ) );
+                echo esc_attr( __( esf_get_translated_string( 'read_full_story' ), 'easy-facebook-likebox' ) );
                 ?>
 							" data-caption="
 							<?php 
@@ -109,8 +132,14 @@ if ( $is_album_feed ) {
                 esc_attr_e( $story_name );
                 ?>"
 									 src="<?php 
-                echo esc_url( $story->attachments->data[0]->media->image->src );
-                ?>"/>
+                echo esc_url( $feed_img );
+                ?>"
+									 class="<?php 
+                echo esc_attr( $gdpr_image_class );
+                ?>"
+									 <?php 
+                echo $gdpr_image_attr;
+                ?>/>
 								<div class="efbl-overlay">
 
 
@@ -177,8 +206,14 @@ if ( $is_album_feed ) {
                 esc_attr_e( $story_name );
                 ?>"
 											 src="<?php 
-                echo esc_url( $auth_img_src );
-                ?>"/></a>
+                echo esc_url( $header_img_src );
+                ?>"
+											 class="<?php 
+                echo esc_attr( trim( $header_img_class ) );
+                ?>"
+											 <?php 
+                echo $header_img_attr;
+                ?>/></a>
 								</div>
 
 							<?php 
@@ -329,8 +364,14 @@ if ( $is_album_feed ) {
                 esc_attr_e( $story_name );
                 ?>"
 								src="<?php 
-                echo esc_url( $story->full_picture );
-                ?>"/>
+                echo esc_url( $feed_img );
+                ?>"
+								class="<?php 
+                echo esc_attr( $gdpr_image_class );
+                ?>"
+								<?php 
+                echo $gdpr_image_attr;
+                ?>/>
 						<?php 
             }
             ?>
@@ -369,8 +410,14 @@ if ( $is_album_feed ) {
                 esc_attr_e( $story_name );
                 ?>"
 											 src="<?php 
-                echo esc_url( $auth_img_src );
-                ?>"/></a>
+                echo esc_url( $header_img_src );
+                ?>"
+											 class="<?php 
+                echo esc_attr( trim( $header_img_class ) );
+                ?>"
+											 <?php 
+                echo $header_img_attr;
+                ?>/></a>
 								</div>
 
 							<?php 
@@ -493,7 +540,7 @@ if ( $is_album_feed ) {
             echo esc_url( $story_link );
             ?>"
 						   data-linktext="<?php 
-            echo esc_attr( __( 'Read full story', 'easy-facebook-likebox' ) );
+            echo esc_attr( __( esf_get_translated_string( 'read_full_story' ), 'easy-facebook-likebox' ) );
             ?>"
 						   data-caption="<?php 
             // Sanitize post_text to prevent XSS while preserving safe HTML
@@ -511,7 +558,12 @@ if ( $is_album_feed ) {
 							<img src="<?php 
             echo esc_url( $feed_img );
             ?>"
-								 class="img-responsive"
+								 class="img-responsive <?php 
+            echo esc_attr( $gdpr_image_class );
+            ?>"
+								 <?php 
+            echo $gdpr_image_attr;
+            ?>
 								 alt="<?php 
             esc_attr_e( $story_from_name );
             ?>"/>
@@ -580,8 +632,14 @@ if ( $is_album_feed ) {
                 esc_attr_e( $story_name );
                 ?>"
 											 src="<?php 
-                echo esc_url( $auth_img_src );
-                ?>"/></a>
+                echo esc_url( $header_img_src );
+                ?>"
+											 class="<?php 
+                echo esc_attr( trim( $header_img_class ) );
+                ?>"
+											 <?php 
+                echo $header_img_attr;
+                ?>/></a>
 								</div>
 
 							<?php 
@@ -722,8 +780,14 @@ if ( $is_album_feed ) {
 					<div class="efbl-col-12">
 
 						<img src="<?php 
-                echo esc_url( $story->attachments->data[0]->media->image->src );
-                ?>"/></a>
+                echo esc_url( $feed_img );
+                ?>"
+							 class="<?php 
+                echo esc_attr( $gdpr_image_class );
+                ?>"
+							 <?php 
+                echo $gdpr_image_attr;
+                ?>/>
 
 					</div>
 				<?php 
@@ -756,8 +820,14 @@ if ( $is_album_feed ) {
                     esc_attr_e( $story_name );
                     ?>"
 											 src="<?php 
-                    echo esc_url( $auth_img_src );
-                    ?>"/></a>
+                    echo esc_url( $header_img_src );
+                    ?>"
+											 class="<?php 
+                    echo esc_attr( trim( $header_img_class ) );
+                    ?>"
+											 <?php 
+                    echo $header_img_attr;
+                    ?>/></a>
 								</div>
 
 							<?php 

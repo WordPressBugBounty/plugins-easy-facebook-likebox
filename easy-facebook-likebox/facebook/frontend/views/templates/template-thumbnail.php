@@ -61,7 +61,7 @@ if ( $is_album_feed ) {
                 ?>"
 							   rel="nofollow"
 							   data-linktext="<?php 
-                echo esc_attr( __( 'Read full story', 'easy-facebook-likebox' ) );
+                echo esc_attr( __( esf_get_translated_string( 'read_full_story' ), 'easy-facebook-likebox' ) );
                 ?>"
 							   data-caption="<?php 
                 // Sanitize post_text to prevent XSS while preserving safe HTML
@@ -103,12 +103,28 @@ if ( $is_album_feed ) {
                 }
                 ?>
 								</div>
+								<?php 
+                $thumb_img_src = $story->attachments->data[0]->media->image->src;
+                $thumb_img_class = '';
+                $thumb_img_attr = '';
+                if ( !empty( $gdpr_active ) && !empty( $thumb_img_src ) && !esf_is_local_media_url( $thumb_img_src, 'facebook' ) ) {
+                    $thumb_img_attr = ' data-image-url="' . esc_url( $thumb_img_src ) . '"';
+                    $thumb_img_src = ESF_GDPR_Integrations::get_placeholder_image();
+                    $thumb_img_class = 'esf-no-consent';
+                }
+                ?>
 								<img alt="<?php 
                 esc_attr_e( $story_name );
                 ?>"
 									 src="<?php 
-                echo esc_url( $story->attachments->data[0]->media->image->src );
-                ?>"/>
+                echo esc_url( $thumb_img_src );
+                ?>"
+									 class="<?php 
+                echo esc_attr( $thumb_img_class );
+                ?>"
+									 <?php 
+                echo $thumb_img_attr;
+                ?>/>
 								<div class="efbl-overlay">
 
 
@@ -319,6 +335,16 @@ if ( $is_album_feed ) {
             if ( efl_fs()->is_free_plan() || efl_fs()->is_plan( 'instagram_premium', true ) ) {
                 ?>
 
+					<?php 
+                $thumb_img_src = $story->full_picture;
+                $thumb_img_class = '';
+                $thumb_img_attr = '';
+                if ( !empty( $gdpr_active ) && !empty( $thumb_img_src ) && !esf_is_local_media_url( $thumb_img_src, 'facebook' ) ) {
+                    $thumb_img_attr = ' data-image-url="' . esc_url( $thumb_img_src ) . '"';
+                    $thumb_img_src = ESF_GDPR_Integrations::get_placeholder_image();
+                    $thumb_img_class = 'esf-no-consent';
+                }
+                ?>
 					<a href="<?php 
                 echo esc_url( $story->attachments->data['0']->url );
                 ?>"
@@ -330,8 +356,14 @@ if ( $is_album_feed ) {
                 esc_attr_e( $story_name );
                 ?>"
 								src="<?php 
-                echo esc_url( $story->full_picture );
-                ?>"/>
+                echo esc_url( $thumb_img_src );
+                ?>"
+								class="<?php 
+                echo esc_attr( $thumb_img_class );
+                ?>"
+								<?php 
+                echo $thumb_img_attr;
+                ?>/>
 
 						<?php 
             }
@@ -488,7 +520,7 @@ if ( $is_album_feed ) {
             ?>"
 						   rel="nofollow"
 						   data-linktext="<?php 
-            echo esc_attr( __( 'Read full story', 'easy-facebook-likebox' ) );
+            echo esc_attr( __( esf_get_translated_string( 'read_full_story' ), 'easy-facebook-likebox' ) );
             ?>"
 						   data-caption="<?php 
             // Sanitize post_text to prevent XSS while preserving safe HTML
@@ -530,13 +562,28 @@ if ( $is_album_feed ) {
             }
             ?>
 							</div>
+							<?php 
+            $thumb_img_src = $feed_img;
+            $thumb_img_class = 'img-responsive';
+            $thumb_img_attr = '';
+            if ( !empty( $gdpr_active ) && !empty( $thumb_img_src ) && !esf_is_local_media_url( $thumb_img_src, 'facebook' ) ) {
+                $thumb_img_attr = ' data-image-url="' . esc_url( $thumb_img_src ) . '"';
+                $thumb_img_src = ESF_GDPR_Integrations::get_placeholder_image();
+                $thumb_img_class .= ' esf-no-consent';
+            }
+            ?>
 							<img src="<?php 
-            echo esc_url( $feed_img );
+            echo esc_url( $thumb_img_src );
             ?>"
-								 class="img-responsive"
+								 class="<?php 
+            echo esc_attr( $thumb_img_class );
+            ?>"
 								 alt="<?php 
             esc_attr_e( $story_from_name );
-            ?>"/>
+            ?>"
+								 <?php 
+            echo $thumb_img_attr;
+            ?>/>
 						</a>
 
 					<?php 
@@ -712,11 +759,27 @@ if ( $is_album_feed ) {
 					<?php 
             if ( $story->attachments->data[0]->media->image->src ) {
                 ?>
+					<?php 
+                $thumb_img_src = $story->attachments->data[0]->media->image->src;
+                $thumb_img_class = '';
+                $thumb_img_attr = '';
+                if ( !empty( $gdpr_active ) && !empty( $thumb_img_src ) && !esf_is_local_media_url( $thumb_img_src, 'facebook' ) ) {
+                    $thumb_img_attr = ' data-image-url="' . esc_url( $thumb_img_src ) . '"';
+                    $thumb_img_src = ESF_GDPR_Integrations::get_placeholder_image();
+                    $thumb_img_class = 'esf-no-consent';
+                }
+                ?>
 					<div class="efbl-col-4">
 
 						<img src="<?php 
-                echo esc_url( $story->attachments->data[0]->media->image->src );
-                ?>"/></a>
+                echo esc_url( $thumb_img_src );
+                ?>"
+							 class="<?php 
+                echo esc_attr( $thumb_img_class );
+                ?>"
+							 <?php 
+                echo $thumb_img_attr;
+                ?>/>
 
 					</div>
 				<?php 

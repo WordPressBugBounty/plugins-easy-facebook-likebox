@@ -6,6 +6,27 @@ if ( $efbl_bio_data ) {
 		$page_meta = '';
 	}
 	do_action( 'efbl_before_feed_header', $page_meta );
+
+	// Serve header/profile image locally when possible, same as feed/popup.
+	if ( ! empty( $auth_img_src ) && isset( $efbl_bio_data->id ) ) {
+		$local_header_img = esf_serve_media_locally( $efbl_bio_data->id, $auth_img_src, 'facebook' );
+		if ( $local_header_img ) {
+			$auth_img_src = $local_header_img;
+		}
+	}
+
+	// GDPR: same as grid – placeholder + data-image-url when active, so JS can swap on consent.
+	$header_img_src   = $auth_img_src;
+	$header_img_class = '';
+	$header_img_attr  = '';
+	if ( ! empty( $auth_img_src ) && ! empty( $efbl_skin_values['design']['show_dp'] ) ) {
+		// Skip GDPR placeholder when image is already served from local uploads.
+		if ( isset( $gdpr_active ) && $gdpr_active && ! esf_is_local_media_url( $auth_img_src, 'facebook' ) ) {
+			$header_img_src   = ESF_GDPR_Integrations::get_placeholder_image();
+			$header_img_class = ' esf-no-consent';
+			$header_img_attr  = ' data-image-url="' . esc_url( $auth_img_src ) . '"';
+		}
+	}
 	?>
 
 	<div class="efbl_header">
@@ -15,7 +36,8 @@ if ( $efbl_bio_data ) {
 
 				<div class="efbl_header_img">
 					<a href="https://www.facebook.com/<?php echo esc_attr( $efbl_bio_data->id ); ?>"
-						target="_blank" rel="nofollow"><img alt="" src="<?php echo esc_attr( $auth_img_src ); ?>"/>
+						target="_blank" rel="nofollow"><img alt="" src="<?php echo esc_url( $header_img_src ); ?>"
+						class="<?php echo esc_attr( trim( $header_img_class ) ); ?>"<?php echo $header_img_attr; ?>/>
 					</a>
 				</div>
 

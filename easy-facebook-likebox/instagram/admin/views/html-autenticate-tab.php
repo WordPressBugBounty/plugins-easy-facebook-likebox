@@ -229,46 +229,257 @@ if ( ( isset( $_GET['access_token'] ) && ! empty( $_GET['access_token'] ) ) || (
 		</div>
 	</div>
 
-	<p class="mif-notice"><?php esc_html_e( 'Please note: This does not give us permission to manage your Instagram accounts, It simply allows the plugin to retrieve access token and show feeds to your website.', 'easy-facebook-likebox' ); ?></p>
+
 </div>
-<div id="mif-authentication-modal" class="mif-authentication-modal esf-modal fadeIn">
+<!-- Connection Type Selector Modal -->
+<div id="mif-authentication-modal" class="insta-connection-type-modal esf-modal fadeIn">
 	<div class="modal-content">
-
+		<span class="mif-close-modal modal-close"><span class="dashicons dashicons-no-alt"></span></span>
 		<div class="mif-modal-content">
-			<h6><?php esc_html_e( 'Are you connecting a Personal or Business Instagram Profile?', 'easy-facebook-likebox' ); ?></h6>
+			<h5><?php esc_html_e( 'What connection type do you need?', 'easy-facebook-likebox' ); ?></h5>
+			
+			<div class="insta-connection-cards">
+				<!-- Business Basic Card -->
+				<div class="insta-connection-card" data-type="basic">
+					<div class="insta-card-header">
+						<input type="radio" name="insta_connection_type" id="insta_basic_radio" value="basic" checked>
+						<label for="insta_basic_radio">
+							<strong><?php esc_html_e( 'Business Basic', 'easy-facebook-likebox' ); ?></strong>
+						</label>
+					</div>
+					<div class="insta-card-subtitle">
+						<?php esc_html_e( 'Connects via Instagram', 'easy-facebook-likebox' ); ?>
+					</div>
+					<ul class="insta-card-features">
+						<li class="feature-available">
+							<span class="dashicons dashicons-yes"></span>
+							<?php esc_html_e( 'Requires Instagram Creator or Business account', 'easy-facebook-likebox' ); ?>
+						</li>
+						<li class="feature-available">
+							<span class="dashicons dashicons-yes"></span>
+							<?php esc_html_e( 'Display profile info, avatars, and posts', 'easy-facebook-likebox' ); ?>
+						</li>
+						<li class="feature-available">
+							<span class="dashicons dashicons-yes"></span>
+							<?php esc_html_e( 'Connect your Instagram account', 'easy-facebook-likebox' ); ?>
+						</li>
+						<li class="feature-unavailable">
+							<span class="dashicons dashicons-no"></span>
+							<?php esc_html_e( 'Does not require a Facebook page', 'easy-facebook-likebox' ); ?>
+						</li>
+						<li class="feature-unavailable">
+							<span class="dashicons dashicons-no"></span>
+							<?php esc_html_e( 'Does not display Hashtag or Mentions feeds', 'easy-facebook-likebox' ); ?>
+						</li>
+					</ul>
+				</div>
 
-			<div class="mif-auth-btn-holder">
-
-				<input class="with-gap" name="mif_login_type"
-						data-url="<?php echo esc_url( $personal_auth_url ); ?>"
-						value="basic" type="radio" id="mif_basic_type" checked/>
-				<label for="mif_basic_type"><?php esc_html_e( 'Personal', 'easy-facebook-likebox' ); ?></label>
-				<a href="#" class="mif_info_link">
-					<span class="dashicons dashicons-info-outline"></span>
-				</a>
-				<div class="mif_auth_info_holder">
-					<p><?php esc_html_e( 'The "Personal" option can display feeds from personal Instagram account. It is limited to display only pictures, videos, username and caption.', 'easy-facebook-likebox' ); ?></p>
+				<!-- Business Advanced Card -->
+				<div class="insta-connection-card" data-type="advanced">
+					<div class="insta-card-header">
+						<input type="radio" name="insta_connection_type" id="insta_advanced_radio" value="advanced">
+						<label for="insta_advanced_radio">
+							<strong><?php esc_html_e( 'Business Advanced', 'easy-facebook-likebox' ); ?></strong>
+						</label>
+					</div>
+					<div class="insta-card-subtitle">
+						<?php esc_html_e( 'Connects via Facebook', 'easy-facebook-likebox' ); ?>
+					</div>
+					<ul class="insta-card-features">
+						<li class="feature-available">
+							<span class="dashicons dashicons-yes"></span>
+							<?php esc_html_e( 'Requires Instagram Creator or Business account', 'easy-facebook-likebox' ); ?>
+						</li>
+						<li class="feature-available">
+							<span class="dashicons dashicons-yes"></span>
+							<?php esc_html_e( 'Display profile info, avatars, and posts', 'easy-facebook-likebox' ); ?>
+						</li>
+						<li class="feature-available">
+							<span class="dashicons dashicons-yes"></span>
+							<?php esc_html_e( 'Connect multiple Instagram accounts', 'easy-facebook-likebox' ); ?>
+						</li>
+						<li class="feature-available">
+							<span class="dashicons dashicons-yes"></span>
+							<?php esc_html_e( 'Displays Hashtag or Mentions feeds', 'easy-facebook-likebox' ); ?>
+						</li>
+						<li class="feature-warning feature-requirement">
+							<span class="dashicons dashicons-warning"></span>
+							<div>
+								<strong><?php esc_html_e( 'Requirements: Convert your Instagram to a Creator/Business account, then connect it to a Facebook page', 'easy-facebook-likebox' ); ?></strong>
+								<span class="feature-requirement-note"><?php esc_html_e( 'If already done, you can proceed. See helpful links below for step-by-step guides.', 'easy-facebook-likebox' ); ?></span>
+							</div>
+						</li>
+					</ul>
 				</div>
 			</div>
-			<div class="mif-auth-btn-holder">
-				<input class="with-gap" name="mif_login_type"
-						data-url="<?php echo esc_url( $auth_url ); ?>" value="business"
-						type="radio" id="mif_business_type"/>
-				<label for="mif_business_type"><?php esc_html_e( 'Business', 'easy-facebook-likebox' ); ?></label>
-				<a href="#" class="mif_info_link">
-					<span class="dashicons dashicons-info-outline"></span>
+
+			<div class="insta-connection-actions">
+				<a href="#insta-basic-connect-info" class="btn insta-proceed-btn" data-target="basic">
+					<?php esc_html_e( 'Continue', 'easy-facebook-likebox' ); ?>
+					<span class="dashicons dashicons-arrow-right-alt2"></span>
 				</a>
-				<div class="mif_auth_info_holder">
-					<p><?php esc_html_e( 'Used for displaying a user feed from a "Business" or "Creator" Instagram account. A Business or Creator account is required for displaying avatar,bio,comments and likes. See this ', 'easy-facebook-likebox' ); ?>
-						<a href="<?php echo esc_url( 'https://easysocialfeed.com/documentation/how-to-connect-instagram-account-with-facebook-page/' ); ?>"
-							target="_blank"> <?php esc_html_e( 'support guide', 'easy-facebook-likebox' ); ?> </a><?php esc_html_e( 'to convert personal account to business account.', 'easy-facebook-likebox' ); ?>
+			</div>
+
+			<div class="insta-help-links">
+				<p>
+					<a href="https://help.instagram.com/502981923235522" target="_blank" rel="noopener">
+						<span class="dashicons dashicons-external"></span>
+						<?php esc_html_e( 'How to convert to a Professional Account', 'easy-facebook-likebox' ); ?>
+					</a>
+				</p>
+				<p>
+					<a href="https://www.facebook.com/business/help/connect-instagram-to-page" target="_blank" rel="noopener">
+						<span class="dashicons dashicons-external"></span>
+						<?php esc_html_e( 'How to connect Instagram to Facebook Page', 'easy-facebook-likebox' ); ?>
+					</a>
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Basic Connection Permissions Modal -->
+<div id="insta-basic-connect-info" class="esf-modal insta-connect-modal fadeIn">
+	<div class="modal-content">
+		<span class="mif-close-modal modal-close"><span class="dashicons dashicons-no-alt"></span></span>
+		<div class="mif-modal-content">
+			<h6 class="insta-modal-title"><?php esc_html_e( 'Business Basic Connection', 'easy-facebook-likebox' ); ?></h6>
+			
+			<div class="insta-connect-actions insta-connect-actions-top">
+				<a class="btn mif_auth_btn insta-connect-primary" href="<?php echo esc_url( $personal_auth_url ); ?>">
+					<img src="<?php echo ESF_INSTA_PLUGIN_URL; ?>/admin/assets/images/insta-logo.png"/>
+					<?php esc_html_e( 'Connect My Instagram Account', 'easy-facebook-likebox' ); ?>
+				</a>
+				<a href="#" class="insta-back-btn">
+					<span class="dashicons dashicons-arrow-left-alt2"></span>
+					<?php esc_html_e( 'Change Connection Type', 'easy-facebook-likebox' ); ?>
+				</a>
+			</div>
+
+			<div class="insta-login-warning">
+				<span class="dashicons dashicons-info"></span>
+				<p><?php esc_html_e( 'Trouble connecting? Please ', 'easy-facebook-likebox' ); ?>
+					<a href="https://www.instagram.com/" target="_blank"><?php esc_html_e( 'log in to instagram.com', 'easy-facebook-likebox' ); ?></a>
+					<?php esc_html_e( ' with your Instagram account before clicking the connect button.', 'easy-facebook-likebox' ); ?>
+				</p>
+			</div>
+
+			<div class="insta-permissions-section">
+				<h6><?php esc_html_e( 'Permissions Needed', 'easy-facebook-likebox' ); ?></h6>
+				<p class="insta-permissions-intro"><?php esc_html_e( 'This is the permission that would be granted once you connect your user account:', 'easy-facebook-likebox' ); ?></p>
+
+				<ul class="insta-permissions-list">
+					<li>
+						<span class="insta-permission-icon"><span class="dashicons dashicons-admin-network"></span></span>
+						<div class="insta-permission-content">
+							<strong>instagram_business_basic</strong>
+							<p><?php esc_html_e( 'This permission is used to retrieve the name, statistics, post content, and other information of the Instagram account associated with the account you authorized.', 'easy-facebook-likebox' ); ?></p>
+						</div>
+					</li>
+				</ul>
+			</div>
+
+			<div class="insta-connect-description">
+				<p><?php esc_html_e( 'This does not give us permission to manage your Instagram account, it simply allows the plugin to see your profile information and retrieve public content from the API.', 'easy-facebook-likebox' ); ?></p>
+				<p class="insta-terms-note">
+					<?php esc_html_e( 'Use of this plugin is subject to', 'easy-facebook-likebox' ); ?>
+					<a href="https://developers.facebook.com/terms" target="_blank"><?php esc_html_e( 'Facebook\'s Platform Terms', 'easy-facebook-likebox' ); ?></a>
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Advanced Connection Permissions Modal -->
+<div id="insta-advanced-connect-info" class="esf-modal insta-connect-modal fadeIn">
+	<div class="modal-content">
+		<span class="mif-close-modal modal-close"><span class="dashicons dashicons-no-alt"></span></span>
+		<div class="mif-modal-content">
+			<h6 class="insta-modal-title"><?php esc_html_e( 'Business Advanced Connection', 'easy-facebook-likebox' ); ?></h6>
+			
+			<div class="insta-important-note">
+				<span class="insta-note-icon"><span class="dashicons dashicons-warning"></span></span>
+				<div class="insta-note-content">
+					<strong><?php esc_html_e( 'Important:', 'easy-facebook-likebox' ); ?></strong>
+					<p><?php esc_html_e( 'When connecting to Facebook, you will see an "Edit requested access" option. Please ensure that your Business Manager is selected and all Instagram pages associated with it have all permissions enabled. If any Business Manager or specific permissions are deselected, the plugin features will not work properly.', 'easy-facebook-likebox' ); ?></p>
+					<p class="insta-reconnect-note">
+						<strong><?php esc_html_e( 'Already connected?', 'easy-facebook-likebox' ); ?></strong>
+						<?php esc_html_e( 'If you see "You previously logged into Easy Social Feed", you can manage your connection by deleting it from the "Connected Instagram Account" section above, or ', 'easy-facebook-likebox' ); ?>
+						<a href="https://www.facebook.com/settings/?tab=business_tools" target="_blank" rel="noopener"><?php esc_html_e( 'manage it in Facebook Business Integrations', 'easy-facebook-likebox' ); ?></a>
+						<?php esc_html_e( ' to add/remove accounts.', 'easy-facebook-likebox' ); ?>
 					</p>
 				</div>
 			</div>
-			<a href="<?php echo esc_url( $personal_auth_url ); ?>"
-				class=" btn mif-auth-modal-btn"><?php esc_html_e( 'Connect', 'easy-facebook-likebox' ); ?></a>
 
+			<div class="insta-connect-actions insta-connect-actions-top">
+				<a class="btn mif_auth_btn insta-connect-primary" href="<?php echo esc_url( $auth_url ); ?>">
+					<img class="efb_icon left" src="<?php echo EFBL_PLUGIN_URL; ?>/admin/assets/images/facebook-icon.png"/>
+					<?php esc_html_e( 'Connect My Instagram Account', 'easy-facebook-likebox' ); ?>
+				</a>
+				<a href="#" class="insta-back-btn">
+					<span class="dashicons dashicons-arrow-left-alt2"></span>
+					<?php esc_html_e( 'Change Connection Type', 'easy-facebook-likebox' ); ?>
+				</a>
+			</div>
+
+			<div class="insta-permissions-section">
+				<h6><?php esc_html_e( 'Permissions Needed', 'easy-facebook-likebox' ); ?></h6>
+				<p class="insta-permissions-intro"><?php esc_html_e( 'These are the permissions that would be granted once you connect your user account:', 'easy-facebook-likebox' ); ?></p>
+
+				<ul class="insta-permissions-list">
+					<li>
+						<span class="insta-permission-icon"><span class="dashicons dashicons-list-view"></span></span>
+						<div class="insta-permission-content">
+							<strong>pages_show_list</strong>
+							<p><?php esc_html_e( 'This permission is used to retrieve the name of the Instagram accounts you have access to. This allows you to connect multiple Instagram accounts at once.', 'easy-facebook-likebox' ); ?></p>
+						</div>
+					</li>
+					<li>
+						<span class="insta-permission-icon"><span class="dashicons dashicons-format-image"></span></span>
+						<div class="insta-permission-content">
+							<strong>instagram_basic</strong>
+							<p><?php esc_html_e( 'This permission allows us to show information about the Instagram account you use to connect to our plugin so that it can be displayed in the header above the feed and be used to identify which account was connected.', 'easy-facebook-likebox' ); ?></p>
+						</div>
+					</li>
+					<li>
+						<span class="insta-permission-icon"><span class="dashicons dashicons-admin-comments"></span></span>
+						<div class="insta-permission-content">
+							<strong>instagram_manage_comments</strong>
+							<p><?php esc_html_e( 'This permission is used to show comments for your posts.', 'easy-facebook-likebox' ); ?></p>
+						</div>
+					</li>
+					<li>
+						<span class="insta-permission-icon"><span class="dashicons dashicons-chart-bar"></span></span>
+						<div class="insta-permission-content">
+							<strong>instagram_manage_insights</strong>
+							<p><?php esc_html_e( 'This permission allows us to show information about your Instagram accounts such as the name, bio, and avatar.', 'easy-facebook-likebox' ); ?></p>
+						</div>
+					</li>
+					<li>
+						<span class="insta-permission-icon"><span class="dashicons dashicons-chart-line"></span></span>
+						<div class="insta-permission-content">
+							<strong>pages_read_engagement</strong>
+							<p><?php esc_html_e( 'This permission allows us to see data related to the number of followers, read content of the page, and other metrics.', 'easy-facebook-likebox' ); ?></p>
+						</div>
+					</li>
+					<li>
+						<span class="insta-permission-icon"><span class="dashicons dashicons-businessman"></span></span>
+						<div class="insta-permission-content">
+							<strong>business_management</strong>
+							<p><?php esc_html_e( 'This permission is used to retrieve the names of the Instagram accounts you have access to. It\'s required in combination with other permissions.', 'easy-facebook-likebox' ); ?></p>
+						</div>
+					</li>
+				</ul>
+			</div>
+
+			<div class="insta-connect-description">
+				<p><?php esc_html_e( 'This does not give us permission to manage your Instagram account or Facebook pages, it simply allows the plugin to see a list of them and retrieve their public content from the API.', 'easy-facebook-likebox' ); ?></p>
+				<p class="insta-terms-note">
+					<?php esc_html_e( 'Use of this plugin is subject to', 'easy-facebook-likebox' ); ?>
+					<a href="https://developers.facebook.com/terms" target="_blank"><?php esc_html_e( 'Facebook\'s Platform Terms', 'easy-facebook-likebox' ); ?></a>
+				</p>
+			</div>
 		</div>
 	</div>
-
 </div>
+

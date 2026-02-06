@@ -144,17 +144,15 @@ if ( efl_fs()->is_free_plan() || efl_fs()->is_plan( 'facebook_premium', true ) )
 						</li>
 
 					</ul>
-					<?php
-
-					if ( $fta_settings['plugins']['facebook']['status'] && 'activated' == $fta_settings['plugins']['facebook']['status'] ) {
-						?>
-
-						<div class="mif_tabs_right">
-							<a class=""
-								href="<?php echo esc_url( admin_url( 'admin.php?page=easy-facebook-likebox' ) ); ?>"><?php esc_html_e( 'Facebook', 'easy-facebook-likebox' ); ?></a>
-						</div>
-
-					<?php } ?>
+					<div class="mif_tabs_right">
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=esf-settings&tab=gdpr' ) ); ?>"><?php esc_html_e( 'GDPR', 'easy-facebook-likebox' ); ?></a>
+						<span class="mif_tabs_right_sep" aria-hidden="true">|</span>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=esf-settings&tab=translation' ) ); ?>"><?php esc_html_e( 'Translation', 'easy-facebook-likebox' ); ?></a>
+						<?php if ( $fta_settings['plugins']['facebook']['status'] && 'activated' == $fta_settings['plugins']['facebook']['status'] ) { ?>
+							<span class="mif_tabs_right_sep" aria-hidden="true">|</span>
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=easy-facebook-likebox' ) ); ?>"><?php esc_html_e( 'Facebook', 'easy-facebook-likebox' ); ?></a>
+						<?php } ?>
+					</div>
 				</div>
 				<?php do_action( 'esf_insta_admin_after_tabs', $fta_settings ); ?>
 				<div class="mif_tab_c_holder">
@@ -503,3 +501,4 @@ if ( efl_fs()->is_free_plan() || efl_fs()->is_plan( 'facebook_premium', true ) )
 }
 ?>
 <div class="esf-notification-holder"><?php esc_html_e( 'Copied', 'easy-facebook-likebox' ); ?></div>
+</div>

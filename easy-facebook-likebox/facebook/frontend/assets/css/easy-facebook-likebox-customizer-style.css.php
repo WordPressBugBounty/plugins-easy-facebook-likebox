@@ -327,10 +327,200 @@ if ( isset( $efbl_skins ) ) {
 		?>
 .efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo $skin_id; ?> .efbl-d-columns-wrapper {
 		<?php
-		if ( $popup_bg_color = esf_get_design_value( $efbl_skin, 'popup_background_color' ) ) :
+		if ( $popup_bg_color = esf_get_design_value( $efbl_skin, 'popup_sidebar_bg' ) ) :
 			?>
 	background-color: <?php echo $popup_bg_color; ?>;
 <?php endif; ?>
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-d-columns-wrapper, .efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-d-columns-wrapper .efbl-caption .efbl-feed-description, .efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> a, .efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> span {
+	
+		<?php
+		if ( $popup_sidebar_color = esf_get_design_value( $efbl_skin, 'popup_sidebar_color' ) ) {
+			?>
+			color: <?php echo $popup_sidebar_color; ?>;
+
+		<?php } ?>
+
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-d-columns-wrapper .efbl-post-header {
+
+		<?php
+		if ( $popup_show_header = esf_get_design_value( $efbl_skin, 'popup_show_header' ) ) {
+			?>
+			display: flex;
+
+			<?php
+		} else {
+			?>
+			display: none !important;
+
+		<?php } ?>
+
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-d-columns-wrapper .efbl-post-header .efbl-profile-image {
+
+		<?php
+		if ( $popup_show_header_logo = esf_get_design_value( $efbl_skin, 'popup_show_header_logo' ) ) {
+			?>
+			display: block;
+
+			<?php
+		} else {
+			?>
+			display: none;
+
+		<?php } ?>
+
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-d-columns-wrapper .efbl-post-header h2 {
+
+		<?php
+		if ( $popup_header_title_color = esf_get_design_value( $efbl_skin, 'popup_header_title_color' ) ) {
+			?>
+			color: <?php echo $popup_header_title_color; ?>;
+
+		<?php } ?>
+
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-d-columns-wrapper .efbl-post-header span {
+
+		<?php
+		if ( $popup_post_time_color = esf_get_design_value( $efbl_skin, 'popup_post_time_color' ) ) {
+			?>
+			color: <?php echo $popup_post_time_color; ?>;
+
+		<?php } ?>
+
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-feed-description, .efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl_link_text {
+
+		<?php
+		if ( $popup_show_caption = esf_get_design_value( $efbl_skin, 'popup_show_caption' ) ) {
+			?>
+			display: block;
+
+			<?php
+		} else {
+			?>
+			display: none;
+
+		<?php } ?>
+
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-d-columns-wrapper .efbl-reactions-box {
+
+		<?php
+		if ( $popup_show_meta = esf_get_design_value( $efbl_skin, 'popup_show_meta' ) ) {
+			?>
+			display: flex;
+
+			<?php
+		} else {
+			?>	
+			display: none !important;
+
+		<?php } ?>
+				<?php
+				if ( $popup_meta_border_color = esf_get_design_value( $efbl_skin, 'popup_meta_border_color' ) ) {
+					?>
+			border-color: <?php echo $popup_meta_border_color; ?>;
+
+				<?php } ?>
+
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-d-columns-wrapper .efbl-reactions-box .efbl-reactions span {
+
+		<?php
+		if ( $popup_meta_color = esf_get_design_value( $efbl_skin, 'popup_meta_color' ) ) {
+			?>
+			color: <?php echo $popup_meta_color; ?>;
+
+		<?php } ?>
+
+}
+
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-d-columns-wrapper .efbl-reactions-box .efbl-reactions .efbl_popup_likes_main {
+
+		<?php
+		if ( $popup_show_reactions_counter = esf_get_design_value( $efbl_skin, 'popup_show_reactions_counter' ) ) {
+			?>
+			display: flex;
+
+			<?php
+		} else {
+			?>
+			display: none !important;
+
+		<?php } ?>
+
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-d-columns-wrapper .efbl-reactions-box .efbl-reactions .efbl-popup-comments-icon-wrapper {
+
+		<?php
+		if ( $popup_show_comments_counter = esf_get_design_value( $efbl_skin, 'popup_show_comments_counter' ) ) {
+			?>
+			display: flex;
+
+			<?php
+		} else {
+			?>
+			display: none !important;
+
+		<?php } ?>
+
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-commnets, .efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-comments-list {
+
+		<?php
+		if ( $popup_show_comments = esf_get_design_value( $efbl_skin, 'popup_show_comments' ) ) {
+			?>
+			display: block;
+
+			<?php
+		} else {
+			?>
+			display: none;
+
+		<?php } ?>
+
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-action-btn {
+
+		<?php
+		if ( $popup_show_view_fb_link = esf_get_design_value( $efbl_skin, 'popup_show_view_fb_link' ) ) {
+			?>
+			display: block;
+
+			<?php
+		} else {
+			?>
+			display: none;
+
+		<?php } ?>
+
+}
+
+.efbl_feed_popup_container .efbl-post-detail.efbl-popup-skin-<?php echo intval( $skin_id ); ?> .efbl-d-columns-wrapper .efbl-comments-list .efbl-comment-wrap {
+
+		<?php
+		if ( $popup_comments_color = esf_get_design_value( $efbl_skin, 'popup_comments_color' ) ) {
+			?>
+			color: <?php echo $popup_comments_color; ?>;
+
+		<?php } ?>
+
 }
 		<?php
 	}

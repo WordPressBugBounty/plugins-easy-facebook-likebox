@@ -1867,14 +1867,13 @@ body {
         bottom: 0;
         height: 15px;
         content: "";
-        background: #fff;
       }
 
       .efbl-detail-overflow {
         height: 100%;
         overflow-y: auto;
         padding: 15px;
-
+        padding-bottom: 0;
       }
     }
 
@@ -2284,6 +2283,16 @@ html body {
 html {
   body {
     .efbl-popup {
+      // Hide GDPR placeholders until JS swaps them (prevents brief flash when consent is given).
+      .esf-no-consent,
+      .efbl-gdpr-video-placeholder[data-video-iframe-url] {
+        opacity: 0;
+      }
+      // When consent is not given, show placeholders.
+      &.esf-gdpr-placeholders-visible .esf-no-consent,
+      &.esf-gdpr-placeholders-visible .efbl-gdpr-video-placeholder[data-video-iframe-url] {
+        opacity: 1;
+      }
 
       a {
         // color: #ddd;
@@ -2390,6 +2399,7 @@ html {
         > img {
           max-height: calc(100vh - 80px);
           width: auto;
+          max-width: 100%;
         }
 
         .fb-video {
@@ -3264,6 +3274,9 @@ html {
   width: auto;
   display: block;
   margin: 0px auto;
+}
+#efblcf_holder .efbl_popup_image {
+  max-width: 100%;
 }
 
 .efbl_feeds_holder .efbl-load-opacity {

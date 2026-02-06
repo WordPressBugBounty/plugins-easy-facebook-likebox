@@ -1,152 +1,286 @@
-=== Easy Social Feed - Social Photos Gallery - Post Feed - Like Box ===
+=== Easy Social Feed - Social Photos Gallery and Post Feed for WordPress ===
 Contributors: DaNish Ali, maltathemes, sjaved, freemius
 Tags: Instagram feed, Instagram photos, Instagram gallery, Facebook feed, Facebook posts
 Requires at least: 3.3
-Tested up to: 6.7
-Stable tag: 6.6.8
+Tested up to: 6.9
+Stable tag: 6.7.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-It's the easiest plugin to display custom Facebook feed (posts, photos, videos, events), custom Instagram Feed (photos, gallery, and videos) and page plugin (like box).
+Display customizable Instagram & Facebook feeds with photos, videos, reels, events & galleries. Fast, responsive & easy to set up.
 
 == Description ==
-The easiest and user-friendly plugin for **Custom Instagram Feed** (Display photos, gallery, and videos), **Custom Facebook Feed** (posts, links, status, photos, videos, events), **Facebook and Page Plugin** (previously Facebook Like Box).
 
+Easy Social Feed helps you display your latest **Instagram photos, videos and Facebook page posts, albums, photos, videos and events** on your website. It is responsive, SEO-friendly, easy to set up and offers live preview customization for appearance and layout.
+
+
+Connect your account using the latest secure oAuth login and get a shortcode auto-generated. No app review required. Manual access token support is also available for Personal or Business accounts.
+
+You can enable only the module you need (Facebook or Instagram) so unrelated code is not loaded, improving performance.
+
+After connecting your account, **simply copy and paste the shortcode, or use a block or widget**, to embed your feed anywhere on your site.
+
+## Watch how Easy Social Feed works:  
 [youtube https://www.youtube.com/watch?v=9ZvHmlozcHA]
 
+*"**This Plugin Rocks!** I have tried a few other plugins, which either didn’t work right out of the box, or failed to work after a week.
+THIS plugin is like magic. It was simple to install, activate, connect my Facebook pages, and add the widget.
+And, it looks beautiful as can be seen on my page.
+Thank you for making this plugin!"* - [sayhi2lonnie](https://wordpress.org/support/topic/this-plugin-rocks-61/)
 
-*"Easy to use as the description – awesome plugin and excellent support, easy to set up and more function, won’t affect the page speed, GREAT JOB!"* – [alexwee88](https://wordpress.org/support/topic/easy-to-use-as-the-description/)
+See what hundreds of users say, reviews on [WordPress.org:](https://wordpress.org/support/plugin/easy-facebook-likebox/reviews/?filter=5)
 
-### Custom Instagram Feed plugin for WordPress:
+## Instagram Feed
 
-Display your stunning photos and videos from your Instagram account on your site. It’s mobile-friendly (responsive), highly customizable (completely match the look and feel with your site), SEO friendly and has multiple layouts.
+Display photos, videos, reels, stories and gallery posts from your Instagram account in multiple designs with full control over styling.
 
-### FEATURES OF INSTAGRAM FEED PLUGIN:
+### Features
+- **One minute** setup. Easy setup flow to configure and go live in minutes
+- Quick secure oAuth connection (no app review needed)
+- Manual access token support (Personal & Business)
+- Multiple layouts: **Grid, Masonry, Full-width, Half-width, Row, Carousel**
+- Live preview customization of colors, spacing, borders, font sizes, etc 
+- **Load More** button for unlimited posts (Pro) 
+- Header display and Follow button toggle
+- Auto-generated shortcode after connection
+- Powerful **shortcode generator**, you don't need to mess up with shortcode attributes
+- **Multiple-feeds** - There is no limitation to display the number of feeds on your site. Our shortcode and blocks work independently.
+- Popup lightbox for media with navigation (Pro)
+- **Hashtag feed** support (Pro)
+- Featured posts option (Pro)
+- Images and Videos gallery - Display multiple images in a gallery carousel (Pro)
+- Custom links (shoppable posts) option (Pro)
+- **Visual moderation** show or hide posts from feed (Pro)
+- Likes and Comment display in popup (Pro) 
+- Priority support (pro)- Above all, We stand firmly behind our plugin and provide top-notch priority support to the premium plan users via email.
+- And much more in the pack!
+- Many more features to come
 
-- **One minute** setup. Easy setup flow to configure and go live in minutes.
-- **Fully customizable**. Customize the layout and look & feel using the WP Customizer in **real-time**. Yes, no more guessing!
-- Change **number of columns**, colors and borders.
-- Create **multiple skins**. Handy when you need to display the feed on the page as well as in the footer or sidebar, differently.
-- Completely responsive and mobile-friendly.
-- Powerful **shortcode generator**, you don’t need to mess up with shortcode attributes.
-- **Load more** button to display **unlimited photos**.
-- **Follow** using the Instagram button.
-- Display **header** at the top of the feed.
-- Dynamically load more photos - Display more photos and videos with the click of a button.
-- **Multiple-feeds​** (pro)- There is no limitation to display the number of feeds on your site. Our shortcode and widgets work independently. Which means you can add the feed from multiple pages wherever you want, whenever you want.​
-- Advanced PopUp (pro)- Display photos in advanced and super-fast PopUp. Give your feed a look like Instagram so your users do not leave your site ever.
-- Images gallery (pro)- Display multiple images in a gallery carousel. Perfect way to display multiple photos in an attractive and user-friendly way.
-- Videos gallery (pro)- Display multiple videos in a gallery carousel. Yepp! Your visitors can play videos right inside the popup. Cool!
-- Comments (pro)- Display comments on posts on your site in popup. Also, display replies on comments in thread.
-- Hearts (pro)- Display how many times your photo was loved by your followers right on your site.
-- Layouts (pro)- Select layouts for your photos feed in full-width, half-width and masonry.
-- Image filters (pro)- Apply cool filters to make your photos even more stunning. Available filters are grayscale, saturate, sepia, hue, invert, brightness
-- Animate filters (pro)- Confused what filter you want to use? Then no worries, just select animate filters to animate and apply all filters in a loop on your images.
-- Fully customizable layouts (pro)- Change colors, padding or even enable and disable the elements.
-- Priority support (pro)- Above all, I stand firmly behind my plugin and provide top-notch priority support to the premium plan users via email.
-- Much More Awesome and Cool Stuff To Come…
+[Demo](https://easysocialfeed.com/my-instagram-feed-demo)
 
+*"**Much better than the others** - I’m really happy with this – and it’s better than the other plugins I’ve tried that offer the same thing. Thank you!" [sarahtaylor777](https://wordpress.org/support/topic/much-better-than-the-others-2/)
 
-[Easy Custom Instagram Demo](https://easysocialfeed.com/my-instagram-feed-demo)
+## Facebook Feed
+Display Facebook page posts including images, videos, links, status, albums, events and more - fully styled and responsive.
 
-*"Much better than the others –I’m really happy with this – and it’s better than the other plugins I’ve tried that offer the same thing. Thank you!"* – [sarahtaylor777](https://wordpress.org/support/topic/much-better-than-the-others-2/)
-
-### Custom Facebook Feed for WordPress:
-
-Display a customizable (completely match the look and feel with your site), mobile-friendly (responsive) and SEO friendly feed of your Facebook posts on your site in minutes. Supports all types of posts, including images, videos, status, and links.
-
-### FEATURES OF CUSTOM FACEBOOK FEED:
-
-- Support fully **customizable** facebook feed. Match the look and feel of the feed with your website using WordPress **customizer** (yes, no more guessing)
-- **Responsive** - It's responsive and mobile-friendly. Easy Social Post feed WordPress plugin is designed from scratch to make sure your content looks and works stunning on all devices and screens.
+### Features
+- Support for posts, photos, videos, links, status updates and albums
+- Event feed display with details (Pro)
+- **Responsive** layouts for all devices
+- **Live preview** customization for styles
+- Multiple layout options: Full-width, Half-width, Thumbnail, Row, Grid, Masonry, Carousel
 - Caption words limit - Limit the number of words to display in the story on your site
-- **PopUp** - Display images, videos, and albums in the advanced popup so your users never leave your site again. ​Also, navigate between post images using next and previous links in the popup
-- **Super fast​** - Cache - It caches the posts, images and other content from Facebook and Instagram to minimize external requests to load the page faster. ​It caches the posts, images and other content from Facebook and Instagram to minimize external requests to load the page faster. You can set the interval to check for new posts every second, minute, hour or days. The choice is yours!
-- **Multiple-feeds​** - There is no limitation to display the number of feeds on your site. Our shortcode and widgets work independently. Which means you can add the feed from multiple pages wherever you want, whenever you want.​
-- **Top-notch customer support​** - We firmly stand behind our plugin. In case you need help, we will be always on the other side of your computer screen to help whenever you need it. ​
-- **Layouts** - Display the feed-in full-width, half-width and in thumbnail views
-- Show/hide page plugin - show or hide the page plugin.
-- Show/hide page header - ability to show or hide the name of the page, information about the page, category of the page and number followers
-- Image size - Select the size of images you want to display in the feed
-- Show or hide the image - Ability to hide or show images in the feed
+- **PopUp** - Display images, videos, and albums in the advanced popup so your users never leave your site again. Also, navigate between post images using next and previous links in the popup
+- **Super fast** - Cache - It caches the posts, images and other content from Facebook and Instagram to minimize external requests to load the page faster.
+- **Multiple-feeds** - There is no limitation to display the number of feeds on your site. Our shortcode and widgets work independently.
+- **Merged Feed** - Display multiple pages feed in a single feed using shortcode or block
+- **Visual moderation** show or hide posts from feed (Pro)
+- Post-type filtering (photos, videos, events, etc.) (Pro)  
+- Auto-generated shortcode + block/widget support
 - Share - Share buttons with each post in your feed to make it even more viral on social media.
 - Read more - Read more button to read the full story on Facebook.
-- Shortcode generator - easily generate shortcode to display feed wherever you want
-- Widget - dedicated widget to display the feed in sidebar or footer.
-- And much more in the pack…
-- Post filter (pro)- Filter the posts in feed based on the type of the post for example images, videos, and events.
-- **More layouts** (pro)- Display the feed-in grid, masonry or carousel layouts.
-- Any page post feed (pro)- You can display posts from any public page even if you don't manage it.
-- Post images gallery (pro)- Display all images and videos in the gallery carousel in PopUp.
-- Advanced PopUp (pro)- Replaces the current PopUp with advanced and super-fast PopUp. Give your feed a look like FB so your users do not leave your site ever.
-- Albums feed (pro)- Display albums of any page on your site. Good to reduce the effort of uploading images on the site again.
-- Events (pro)- Display events of your page on your site. It syncs the events you share on Facebook to keep your site visitors stay up to date.
-- Comment replies (pro)- Display threads of comments reply in the separate fancy popup.
-- Comments media (pro)- Display images and videos added on your posts in the comments by your followers in fancy popup.
-- Likes popup (pro)- Display likes and reactions in the popup. Also, it will help you filter the reactions on a post like Facebook.
-- Fully customizable layouts (pro)- Change colors, padding or even enable and disable the elements.
+- Powerful **shortcode generator**, you don't need to mess up with shortcode attributes
+- Post images & videos gallery - Display all images and videos in the gallery carousel in PopUp (Pro)
+- Advanced PopUp (pro)- Replaces the current PopUp with advanced and super-fast PopUp. Give your feed a look like FB so your users do not leave your site ever
+- Display Likes and Comments
+- Featured posts option (Pro)
+- And much more in the pack!
+- Many more features to come
 
-[Easy Custom Facebook Feed Demo](https://easysocialfeed.com/custom-facebook-feed/)
+[Demo](https://easysocialfeed.com/custom-facebook-feed/)
 
-### Facebook Page plugin for WordPress:
+## Facebook Page Plugin (Like Box)
+Embed the Facebook Page Plugin to display page likes, faces, timeline or events using shortcode and widget.
 
-Displays a Facebook Page Plugin (previously Facebook Like Box). The Facebook Page Plugin is a social plugin that enables Facebook Page owners to attract and gain Likes from their own website. Easy facebook like box display fan page posts, like button, and connections on your website using widget, shortcode or in Auto PopUp.
+### Features:
+- Responsive and mobile friendly  
+- Show or hide faces and header  
+- Custom width and height settings  
+- Support for 75+ locales  
+- Timeline, Events and Messages tabs (Pro)
 
-### FEATURES OF FACEBOOK PAGE PLUGIN:
+[Demo](https://easysocialfeed.com/faceook-page-plugin)
 
-- Show or hide faces/connections.
-- Show or hide header.
-- Show or hide the latest facebook fan page posts.
-- Now support optional **responsive** layout.
-- Page plugin tabs (pro) - Use tabs to display events, timeline, and messages in the Likebox or Page plugin feed
-- Display like box or page plugin in page/post/custom posts using shortcodes easily generated while saving widget or using the shortcode generator on the settings page.
-- Set fixed width and height.
-- Choose your desired language or input your own language (if not in list).
-- Support 75 different locales
-- **Top-notch customer support​** - We firmly stand behind our plugin. In case you need help, we will be always on the other side of your computer screen to help whenever you need it. ​
+---
 
-[Facebook Page Plugin Demo](https://easysocialfeed.com/faceook-page-plugin)
+*"**Easy to use as the description** - awesome plugin and excellent support, easy to set up and more function, won't affect the page speed, GREAT JOB!"* [alexwee88](https://wordpress.org/support/topic/easy-to-use-as-the-description/)
 
-DEMOS:
-- [Custom Facebook Feed Pro](https://easysocialfeed.com/custom-facebook-feed/)
-- [Custom Instagram Feed Pro](https://easysocialfeed.com/my-instagram-feed-demo/)
+## Performance & Settings
+- Smart caching for posts & media to minimize API calls and improve speed  
+- Lazy loading support
+- Option to load only active modules (disable unused modules for performance)  
+- Configurable feed refresh intervals
+- SEO friendly  
 
-### FEATURES OF AUTO POPUP:
+## TikTok Support (Separate Plugin)
+Looking to embed TikTok videos and galleries on your site? Check out our sister plugin: **[Easy TikTok Feed](https://wordpress.org/plugins/easy-tiktok-feed/)** the easiest way to display TikTok content on WordPress.  
 
-[We have replaced this feature with a stand alone plugin](https://wordpress.org/plugins/wpoptin/)
+---
 
-**Easy Social Post Feed WordPress** plugin is designed to keep beginners in mind from scratch. It has beginner’s friendly workflow to set up Custom Instagram Feed, Custom Facebook Feed, Page Plugin and Auto PopUp in minutes (time is the single most precious commodity in the universe).
+## Embedding Options
+- Gutenberg blocks  
+- Shortcodes  
+- WordPress widget  
+- Compatible with major page builders (Elementor, Divi, WPBakery, etc.)
 
-### HOW TO USE EASY SOCIAL FEED
+---
 
-For more instructions on how to configure and use this plugin please see FAQ section, Screenshots or checkout or extensive [documentation](https://easysocialfeed.com/documentation-category/easy-facebook-likebox/).
+## Compatibility
+- GDPR compliant, only publicly authorized data is displayed  
+- Compatible with all major themes  
+- Multilingual support  
+- Priority support for Pro users
 
-**Need support** feel free to open a support ticket:
-[Support](https://wordpress.org/support/plugin/easy-facebook-likebox "Support")
+### GDPR & cookie consent compatibility
 
-**NOTE**
-Easy Social Feed is the simplest, most beginner-friendly yet powerful and the only plugin with a one-minute setup (or even less).
+Easy Social Feed includes a global GDPR mode that works automatically with the most popular **WordPress cookie consent and GDPR banner plugins**. When a supported cookie plugin is active, the feed will respect your visitors’ consent before loading Facebook or Instagram media, helping you stay compliant with privacy regulations.
 
-Also, I’m the author of [Floating Links](https://wordpress.org/plugins/floating-links) (the easiest to use plugin with 5-star rating and over 800+ active installs)
-Thank you
+Out of the box, the plugin integrates seamlessly with these top cookie / GDPR solutions:
 
-Danish Ali Malik
+- Real Cookie Banner by devowl.io  
+- GDPR Cookie Compliance by Moove Agency  
+- Cookie Notice by dFactory  
+- GDPR Cookie Consent by WebToffee  
+- CookieYes | GDPR Cookie Consent by CookieYes  
+- Cookiebot by Cybot A/S  
+- Complianz by Really Simple Plugins  
+- Borlabs Cookie by Borlabs  
+- WPConsent by the WPConsent team  
 
+Whether you search for an **“Instagram GDPR feed”**, **“Facebook GDPR feed”**, or **“cookie consent friendly social feed plugin”**, Easy Social Feed is built to plug into your existing consent setup instead of replacing it.
 
 == Installation ==
-1. Upload "easy-facebook-likebox" to the "/wp-content/plugins/" directory.
-2. Activate the plugin through the "Plugins" menu in WordPress.
-3. Navigate to "Appearance > Widgets" and drag and drop "Easy Facebook Likebox" in the desired widget area or use the shortcode in page/post generated by widget.
+
+1. Upload the plugin folder to `/wp-content/plugins/`  
+2. Activate the plugin via the WordPress Plugins page  
+3. Go to Easy Social Feed > Facebook / Instagram to connect your account  
+4. Copy the generated shortcode and paste into posts, pages, CPT or anywhere in PHP templates
+
+---
 
 == Frequently Asked Questions ==
-= Width not working =
-If width parameter is not working then it could be due to facebook responsive styling.
 
-= Loading slow =
-If like box loading slow and taking time to populate then make sure you have given right APP ID and url is correct in app settings.
+= How do I connect my Facebook account to the plugin? =
+Navigate to Easy Social Feed > Facebook in your WordPress dashboard. Click on "Connect My Facebook Account" button. A modal will appear explaining the required permissions. Click "Connect to Facebook" and follow the authorization process. Make sure to select your Business Manager and grant all requested permissions for the plugin to work properly.
 
-To submit your feedback, suggestions and features request follow the below link.
-http://wordpress.org/support/topic/need-feed-back-on-plugin-feature/
+= How do I connect my Instagram account? =
+Go to Easy Social Feed > Instagram in your WordPress dashboard. Click "Connect My Instagram Account" and choose between two connection types:
+- **Business Basic**: For simple Instagram feeds from professional accounts
+- **Business Advanced**: For advanced features like hashtag feeds, mentions, and multiple account management
+
+Follow the connection wizard to complete the setup.
+
+= What's the difference between Instagram Business Basic and Business Advanced? =
+**Business Basic** is perfect for displaying your Instagram posts and stories with basic permissions. **Business Advanced** requires connecting your Instagram account to a Facebook Page and provides access to hashtag feeds, mentions feeds, multiple accounts, and advanced insights. Choose based on your needs.
+
+= Why is my feed not displaying or showing "No posts available"? =
+This usually happens when:
+- Your access token has expired. Reconnect your account from the plugin settings.
+- Required permissions were not granted during connection. Reconnect and ensure all permissions are enabled.
+- Your Instagram account is not a Professional (Business or Creator) account for Business connections.
+- Cache needs to be cleared. Go to plugin settings and clear the cache.
+
+= How do I display the feed on my website? =
+After connecting your account:
+1. Go to the "Use (Display)" tab in the plugin settings
+2. Use the shortcode generator to create your custom shortcode
+3. Copy the generated shortcode
+4. Paste it into any page, post, or widget area
+You can also use the dedicated widget from Appearance > Widgets or use WordPress blocks.
+
+= Can I customize the look and feel of my feed? =
+Yes! The plugin includes a powerful real-time customizer. Navigate to the "Customize" or "Skins" section where you can:
+- Change colors, fonts, and spacing
+- Adjust number of columns and layout
+- Enable/disable specific elements
+- Create multiple skins for different pages
+All changes are previewed in real-time using WordPress Customizer.
+
+= How do I display multiple feeds on my site? =
+Simply generate different shortcodes for each feed you want to display. You can:
+- Use different Instagram accounts
+- Display different Facebook pages
+- Apply different skins/layouts
+- Place feeds on multiple pages
+There's no limitation on the number of feeds you can create.
+
+= Why do I need to connect my Instagram to a Facebook Page? =
+For Business Advanced connections, Facebook requires Instagram Business accounts to be connected to a Facebook Page. This is a Meta/Facebook requirement, not a plugin limitation. This connection enables advanced features like hashtag feeds and better API access.
+
+= How often does the feed update? =
+The plugin uses smart caching to optimize performance. You can configure the cache duration in the settings:
+- Minimum recommended: 6 hours
+- Default: 12-24 hours
+- You can manually clear cache anytime from the settings
+This helps reduce API calls and improves your site's loading speed.
+
+= Can I display feeds from accounts I don't own? =
+- No only feeds from accounts you own and have connected
+
+= What permissions does the plugin need and why? =
+**Facebook Permissions:**
+- pages_read_engagement: To read posts and content
+- pages_read_user_content: To display your page content
+- business_management: To access Business Manager accounts
+- pages_show_list: To list available pages
+
+**Instagram Permissions:**
+- instagram_business_basic: Basic profile and posts access
+- instagram_basic: Profile information
+- instagram_manage_insights: Account metrics and statistics
+- pages_show_list: To list connected Instagram accounts
+
+These permissions are read-only and don't allow the plugin to post or modify your content.
+
+= The feed is loading slowly. How can I fix this? =
+1. Enable caching in the plugin settings (recommended: 12-24 hours)
+2. Optimize the number of posts loaded initially
+3. Use "Load More" button instead of displaying all posts at once
+4. Ensure your hosting has good performance
+
+= Can I display Instagram Stories? =
+Yes! Instagram Stories are supported. Make sure you're using a Business connection and have the necessary permissions. Stories are automatically included in your feed and will be displayed for 24 hours as per Instagram's policy.
+
+= How do I display Instagram Hashtag or Mentions feeds? =
+Hashtag and Mentions feeds require the Business Advanced connection. After connecting:
+1. Go to the Moderate or Feeds section
+2. Select "Hashtag" or "Mentions" as the feed type
+3. Enter your hashtag or mentions
+4. Generate and use the shortcode
+
+= Is the plugin GDPR compliant? =
+Yes, the plugin is GDPR compliant. It only fetches public data that you've authorized. No personal data from your site visitors is collected or sent to third parties. The plugin caches content on your server to minimize external API calls.
+
+= Does the plugin work with page builders? =
+Yes! The plugin works with all major page builders including:
+- Gutenberg (WordPress Block Editor)
+- Elementor
+- WPBakery
+- Divi
+- Beaver Builder
+Simply paste the shortcode in a text/shortcode widget or use the dedicated blocks if available.
+
+= Why am I getting "API Rate Limit" errors? =
+API rate limits are set by Facebook/Instagram. To minimize this:
+- Increase cache duration in settings
+- Reduce the frequency of feed updates
+- Don't use too many feeds from the same account
+- The plugin uses smart caching to help prevent rate limit issues
+
+= How do I display the feed in a popup? =
+The plugin includes built-in popup functionality:
+- Posts automatically open in an elegant popup when clicked
+- Navigate between posts using next/previous arrows
+- Pro version includes advanced popup with Instagram-like experience
+No additional configuration needed - it works out of the box!
+
+= Can I filter posts by type (photos, videos, etc.)? =
+Yes, with the Pro version you can filter Facebook posts by:
+- Photos only
+- Videos only
+- Events only
+- Status updates only
+Use the shortcode generator to select your preferred post types.
 
 == Screenshots ==
 1. Custom Facebook Feed with thumbnail
@@ -175,6 +309,34 @@ http://wordpress.org/support/topic/need-feed-back-on-plugin-feature/
 
 == Changelog ==
 
+= 6.7.3 =
+* Added: GDPR option for Facebook and Instagram feeds (Automatic, Always Enabled, or Disabled) to work with popular cookie consent plugins
+* Added: Translation tab under Settings to globally customize static frontend text (buttons, labels, messages) for both Facebook and Instagram feeds
+* Improved: Frontend string handling with request-level caching for faster translation lookups
+* Fixed: Minor issues
+
+= 6.7.2 =
+* Fixed: Instagram Hashtag issue
+* Fixed: Minor issues
+* Added: Custom filter to translate API error messages
+* Tested: Upto 6.9
+
+= 6.7.1 =
+* Fixed: Media lightbox not remembering customizer settings
+* Fixed: Lightbox image size rendering issues
+* Fixed: Instagram "Load More" conflict with Moderate tab
+* Fixed: Facebook post hashtag display issue
+* Added: Filters to customize Facebook and Instagram post date/time display formats
+* Improved: Added pre-connection check to ensure Facebook Page is linked to Instagram account before using Business Advanced connection
+* Improved: Load more feature to avoid rare duplicate issue
+
+= 6.6.9 =
+* Added: New Facebook connection modal that informs users about required permissions and Business Manager settings before connecting their account
+* Added: New Instagram two-step connection flow with Business Basic and Business Advanced options, providing clear guidance on permissions and requirements for each connection type
+* Improved: Enhanced user experience with detailed permission explanations and helpful links for Instagram account setup and Facebook Page connections
+* Updated: Freemius SDK
+* Fixed: Minor issues
+
 = 6.6.8 =
 * Fixed: Security vulnerability
 * Fixed: Warnings in complete detail and minor issues
@@ -182,478 +344,7 @@ http://wordpress.org/support/topic/need-feed-back-on-plugin-feature/
 = 6.6.7 =
 * Fixed: $datetime Fatal error
 
-= 6.6.6 =
-* Fixed: Instagram empty account error handling
-* Fixed: Inspiro theme conflict  
-* Fixed: Warnings in complete detail and minor issues
-* Updated: Freemius SDK and added in the vendor folder
-
-= 6.6.5 =  
-* Updated: Freemius SDK  
-* Fixed: "Get Feed" issue on the Moderate tab (missing `feed_type` definition).
-
-= 6.6.4 =  
-* Fixed: Updated sale coupon code  
-* Fixed: Addressed minor issues
-
-= 6.6.3 =
-* Added: New Instagram API
-* Fixed: Added BFCM sale
-* Fixed: Minor issues
-
-= 6.6.2 =
-* Fixed: Tested upto latest WP version
-* Fixed: Added BFCM sale
-* Fixed: Minor issues
-
-= 6.6.1 =
-* Fixed: PHP Warning with the latest PHP version
-* Fixed: Multifeed profile picture issue
-* Fixed: Multifeed Shoppable settings issue
-* Fixed: Minor issues
-
-= 6.6.0 =
-* Added: Instagram personal account again
-* Fixed: Security issue
-
-= 6.5.9 =
-* Added: Temporary issue with Instagram personal api notice
-* Updated: Freemius SDK
-* Tested: With WordPress 6.6
-* Fixed: Minor issues
-
-= 6.5.8 =
-* Removed: Group feed feature
-* Fixed: Minor issues
-
-= 6.5.7 =
-* Fixed: Security issue
-* Fixed: Minor issues
-
-= 6.5.6 =
-* Fixed: Some important layout issues
-
-= 6.5.5 =
-* Added: New row layout for Facebook and Instagram
-* Fixed: Some minor issues
-* Fixed: Security issue
-
-= 6.5.4 =
-* Fixed: Security issues
-* Tested: With WordPress 6.4
-
-= 6.5.3 =
-* Fixed: Security issues
-* Fixed: Some minor issues
-
-= 6.5.2 =
-* Added: New WP blocks
-* Fixed: App not working issue
-* Fixed: Some minor issues
-
-= 6.5.1 =
-* Fixed: Upcoming events popup issue
-
-= 6.5.0 =
-* Updated: Freemius SDK to the latest version
-* Fixed: Minor issue
-
-= 6.4.9 =
-* Fixed: App A not working issue
-* Fixed: Albums sort by newest first
-* Fixed: Minor issue
-
-= 6.4.8 =
-* Added: New Facebook App
-* Fixed: Multifeed popup issue
-* Fixed: Fatal Error on array_key_exists
-* Fixed: Insta display error message if no media found
-* Fixed: Minor issue
-
-= 6.4.7 =
-* Fixed: Instagram Personal API Node Obsolete issue
-* Added: Shoppable Instagram Feed
-* Fixed: Minor issue
-
-= 6.4.6 =
-* Fixed: Auto cache not working issue
-* Fixed: Serve locally served images multisite issue
-* Fixed: Multifeed addon Instagram compatibility issue
-* Added: Updated Freemius SDK
-
-= 6.4.5 =
-* Added: Dots to loading text
-* Added: Load active tab html only in dashboard
-* Fixed: Loop break issue
-* Fixed: Undefined core functions in use tab
-
-= 6.4.4 =
-* Added: Preload feed data for Instagram in shortcode generator
-* Added: Image lazy loading option
-* Fixed: Facebook templates override issue
-* Added: Carousel display media before caption option
-* Fixed: undefined property media_url issue
-* Fixed: Group Feed warning issue
-* Added: Updated Freemius SDK
-
-= 6.4.3 =
-* Fixed: Carousel responsive issue
-* Fixed: Premium popup filters issue
-* Updated: FS SDK
-
-= 6.4.2 =
-* Fixed: Carousel not working issue
-* Fixed: Undefined jws_fetchUrl function issue in Instagram module
-* Fixed: Posts stream issue in Likebox
-* Fixed: Load more not working issue
-* Fixed: Some minor layout issues
-
-= 6.4.1 =
-* Updated: Freemius SDK
-* Fixed: Minor Issues
-
-= 6.4.0 =
-* Fixed: Security issue
-
-= 6.3.9 =
-* Added: New sale coupon
-* Fixed: Minor issues
-
-= 6.3.8 =
-* Fixed: Elementor Instagram Module conflict
-* Added: Unlimited Albums load more for Facebook
-* Fixed: Optional access token genrator issue
-* Fixed: Minor issues
-
-= 6.3.7 =
-* Fixed: Personal Instagram App authentication issue
-* Fixed: Minor issues
-* Tested: upto v6.0
-
-= 6.3.6 =
-* Fixed: App authentication issue
-* Removed: Easy Social Feed (B) app temporarily
-
-= 6.3.5 =
-* Added: Manually Connection option
-
-= 6.3.3 =
-* Fixed: Minor issues
-* Tested: upto v5.9
-
-= 6.3.2 =
-* Fixed: Instagram carousel issue
-* Removed: Other page ID support(due to Facebook restrictions)
-* Added: Clear all cache button
-* Added: Convert Instagram caption links to permalinks
-
-= 6.3.1 =
-* Fixed: App issue
-* Added: Easy Social Feed (A) App
-
-= 6.3.0 =
-* Fixed: App issue
-* Added: Easy Social Feed (A)/(B) App
-* Added: Elementor compatibility
-* Removed: Third-party api requests
-* Fixed: Free popup issue
-
-= 6.2.9 =
-* Fixed: Shared videos issue
-* Fixed: Minor CSS issues
-
-= 6.2.8 =
-* Removed: Third party libraries from admin
-* Fixed: Minor CSS issues
-
-= 6.2.7 =
-* Fixed: Security issues
-* Fixed: CSS loading everywhere issue
-* Fixed: Changed banner, removed the word Facebook and Instagram
-* Fixed: Minor CSS issues
-
-= 6.2.6 =
-* Tested: Upto v5.8
-* Fixed: Translation string issue
-* Fixed: Minor CSS issues
-
-= 6.2.5 =
-* Fixed: Critical error issue
-* Fixed: Grid images issue
-* Fixed: Minor issues
-
-= 6.2.4 =
-* Added: Featured Post addon support
-* Added: French, German, Spanish, Italian, Portuguese languages support.
-* Fixed: Ipad gallery next previous issue
-* Fixed: Mobile resize image issue
-* Fixed: Events calender issue
-
-= 6.2.3 =
-* Added: Facebook Groups support
-* Added: Visual Moderation
-* Added: Instagram Stories
-* Fixed: Minor issues
-
-= 6.2.2 =
-* Fixed: Template not found issue
-* Fixed: Events Date issue
-* Fixed: Shared story image issue
-* Added: Internationalisation
-* Added: Single Album feed
-* Added: Instagram feed widget
-* Tested: Upto WP v5.7
-
-= 6.2.1 =
-* Fixed: Popup image responsive issue
-* Fixed: Other page ID issue in widget
-* Added: Multifeed Addon compatibility
-* Removed: Auto Popup feature
-* Fixed: Minor issues
-
-= 6.1.0 =
-* Fixed: Conflict with Events plugin
-* Removed: Deprecated jQuery resize function
-* Tested: Upto WP v5.6
-* Fixed: Minor issues
-
-= 6.0.2 =
-* Fixed: Freemius outdated library
-* Fixed: Popup url's issue
-* Fixed: Minor issues
-
-= 6.0.1 =
-* Fixed: Rating notice hide from any dashboard page
-* Fixed: jQuery.fn.load() issue
-* Fixed: font-family issue
-* Fixed: Minor issues
-
-= 6.0.0 =
-* Fixed: Facebook Popup video issue
-* Fixed: See more and see less issue
-* Fixed: Grid height and width issue
-* Fixed: Facebook Popup viewport resize issue
-* Fixed: Logo src expiration issue
-* Removed: Third party libraries
-* Added: New UI/UX for all layouts
-
-= 5.3.1 =
-* Fixed: WP 5.5 conflicts
-
-= 5.3.0 =
-* Fixed: No posts available for this ID issue
-* Removed: Deprecated not required nodes
-
-= 5.2.9 =
-* Fixed: Dashboard tabs and popups conflict
-* Fixed: Minor issues
-
-= 5.2.8 =
-* Added: Instagram Hashtag
-* Fixed: Instagram carousel broken issue
-* Fixed: Minor issues
-
-= 5.2.7 =
-* Fixed: No posts available for this ID error
-
-= 5.2.5 =
-* Added: Ability to display posts from personal Instagram account
-* Fixed: Miscellaneous UI issues
-
-= 5.2.3 =
-* Fixed: Broken Feed logo
-
-= 5.2.2 =
-* Fixed: Critical error if default skin is missing
-* Added: Default page if not authenticated
-
-= 5.2.1 =
-* Fixed: Custom Icons prefix issue
-* Fixed: Instagram Skins
-* Fixed: Minor issues
-
-= 5.2.0 =
-* Fixed: Font Awesome Compatibility issue
-* Fixed: See More issue
-
-= 5.1.9 =
-* Removed: Notices
-* Added: Dismiss buttons to notices
-
-= 5.1.8 =
-* Added: Carousel layout(pro)
-* Fixed: Duplicate demo pages issue
-* Fixed: UI/UX issues
-
-= 5.1.7 =
-* Fixed: Likebox Settings issue
-* Fixed: Minor issues
-
-= 5.1.6 =
-* Fixed: Critical error
-
-= 5.1.5 =
-* Fixed: Added default skins
-* Tested: Upto WP 5.3
-* Fixed: Minor issues
-
-= 5.1.4 =
-* Tested: Upto WP 5.2.4
-* Fixed: Widget responsive issue
-* Fixed: Minor issues
-
-= 5.1.3 =
-* Tested: Compability with other themes
-* Fixed: PHP notices issues
-* Fixed: Minor issues
-
-= 5.1.2 =
-* Fixed: Customizer broken issue
-* Fixed: PHP notices issues
-* Fixed: Minor issues
-
-= 5.1.1 =
-* Fixed: Minor layout bug
-
-= 5.0 =
-* Added: Modren and beginner-freindly UX/UI with new authentication flow.
-* Added: Instagram photos and videos feed module.
-* Added: New shortocde generator.
-* Added: Skins to totaly customize your layouts.
-* Added: Facebook page header.
-* Added: Feed UI customizer using WordPress like customizer
-
-= 4.4.3 =
-* Fixed: CSRF issue
-
-= 4.4.2 =
-* Added: New app to optimize api calls
-* Changed: Plugin name from Easy Facebook Likebox to Easy Social Post Feed to remove their WORDMARK
-* Fixed: Security issues
-* Tested: Upto 5.2.3
-* Fixed: Minor issues
-
-= 4.4.1 =
-* Optimized: API calls
-* Tested: Upto 5.2.2
-* Fixed: Minor issues
-
-= 4.4.0 =
-* Fixed: API rate limit issue
-* Removed: Legacy API version
-* Tested: Upto 5.1.1
-* Fixed: Minor issues
-
-= 4.3.9 =
-* Added: My Plugins Page
-* Tested: Upto 5.0.2
-* Tested: With Gutenberg
-
-= 4.3.8 =
-* Added: Minimum 1 day cache storing (Still working on it and improve more in future).
-* Fixed: Plugin CSS mess up the WordPress admin bar issue.
-* Fixed: Alt attribute missing in feeds.
-
-= 4.3.7 =
-* Added: Clear cache option.
-
-= 4.3.6 =
-* Fixed: Feeds not showing error.
-* Added: Minimum 6 days cache storing.
-
-= 4.3.5 =
-* Fixed: FB not defined issue.
-* Added: Multiple facebook apps to reduce api rate limit error.
-
-= 4.3.4 =
-* Fixed: FB not defined issue.
-* Tested upto WordPress 4.9.1 version.
-
-= 4.3.3 =
-* Fixed: Preloader remove after loading.
-
-= 4.3.2 =
-* Added: Load story in PopUP via ajax.
-* Added: Added some smooth transitions.
-* Fixed: Stretched PopUP images problem.
-
-= 4.3.1 =
-* Added: Next and previous story in popup
-* Added: Some fancy effects to popup
-* Added: Load asynchronously to avoid render blocking
-
-= 4.3.0 =
-* Fixed: Migrating from Facebook API 2.1 to 2.8
-* Some other minor improvements and fixes
-
-= 4.2.6 =
-* Added: Open links in new tab option.
-* Added: Polish translation files (thanks to a user)
-* Stability: Tested up to WordPress version 4.5.3
-* Other optimzation of code to reduce the size.
-
-= 4.2.5 =
-* Mobile_Detect redclare class error.
-* Other optimzation of code to reduce the size.
-
-= 4.2.2 =
-* Delete a unnecessary file
-
-= 4.2.1 =
-* Fixed: Invalid Facebook fan page URL
-* Fixed: Feed not updating while scheduling
-* Fixed: Fullwidth layout issue
-* Fixed: Show page logo not working.
-* Fixed: Show images option not working.
-* Fixed: Show only others posts are also not working.
-* Fixed: Some typos.
-
-= 4.2 =
-* Fixed: Responsive issue
-
-= 4.1 =
-* Fixed: Layout issue
-* Fixed: Missing icon
-
-= 4.0 =
-* Added new custom facebook feed feature upon numerous feature requests.
-* New enhanced backend user enterface.
-* Lots of bug fixes and imporvements.
-
-= 3.1 =
-
-* Added another great feature of Auto PopUp. Now you can display easy facebook like box in PopUp.
-* Tested upto WordPress 4.1
-
-= 3.0 =
-
-* Added another great feature of Auto PopUp. Now you can display easy facebook like box in PopUp.
-* Tested upto WordPress 4.1
-
-= 2.0.0 =
-
-* Added other feild for locale. Input your locale name if you can not find yours in the list.
-
-= 1.2.0 =
-
-* Added other feild for locale. Input your locale name if you can not find yours in the list.
-
-= 1.1.0 =
-
-* Optional responsive like box option is added in this version
-* Multilingual support. Now you can display the like box in over 75 languages by simply selecting from drop down.
-
-= 1.0.2 =
-
-* Updated the plugin with instructions and major bug fix. Must update.
-
-= 1.0.1 =
-
-* Updated the plugin to avoid possible conflict with other plugins. Must update.
-
-= 1.0.0 =
-
-* Initial release.
+Older changelog entries are available on our website:
+https://easysocialfeed.com/changelog
 
 == Upgrade Notice ==
-

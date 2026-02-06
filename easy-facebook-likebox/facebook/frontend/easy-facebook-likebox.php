@@ -29,7 +29,7 @@ class Easy_Facebook_Likebox {
      *
      * @var     string
      */
-    const VERSION = '6.6.5';
+    const VERSION = '6.7.2';
 
     /**
      *
@@ -254,6 +254,14 @@ class Easy_Facebook_Likebox {
             array('jquery', $this->plugin_slug . '-popup-script'),
             self::VERSION
         );
+        // Shared GDPR consent script (used by Facebook, Instagram and future modules).
+        wp_enqueue_script(
+            'esf-gdpr-consent',
+            FTA_PLUGIN_URL . 'frontend/assets/js/esf-gdpr-consent.js',
+            array('jquery'),
+            self::VERSION,
+            true
+        );
         $efbl_is_fb_pro = false;
         if ( efl_fs()->is_plan( 'facebook_premium', true ) or efl_fs()->is_plan( 'combo_premium', true ) ) {
             $efbl_is_fb_pro = true;
@@ -395,7 +403,7 @@ class Easy_Facebook_Likebox {
                   
                </div>
             ';
-        $this->likebox_instance++;
+        ++$this->likebox_instance;
         return $returner;
     }
 
@@ -450,17 +458,15 @@ class Easy_Facebook_Likebox {
             }
         }
         if ( efl_fs()->is_plan( 'facebook_premium', true ) or efl_fs()->is_plan( 'combo_premium', true ) ) {
-        } else {
-            if ( !$page_access_token ) {
-                return apply_filters( 'efbl_query_posts_return', array(
-                    'posts'          => '',
-                    'error'          => __( 'No account found, Please enter the account ID available in the dashboard', 'easy-facebook-likebox' ),
-                    'next_posts_url' => '',
-                    'transient_name' => '',
-                    'is_saved_posts' => '',
-                    'public_page'    => true,
-                ) );
-            }
+        } elseif ( !$page_access_token ) {
+            return apply_filters( 'efbl_query_posts_return', array(
+                'posts'          => '',
+                'error'          => __( esf_get_translated_string( 'no_account_found' ), 'easy-facebook-likebox' ),
+                'next_posts_url' => '',
+                'transient_name' => '',
+                'is_saved_posts' => '',
+                'public_page'    => true,
+            ) );
         }
         // If page is not authenticated use user access token
         if ( !isset( $page_access_token ) && empty( $page_access_token ) ) {
@@ -481,7 +487,7 @@ class Easy_Facebook_Likebox {
         if ( empty( $access_token ) ) {
             return apply_filters( 'efbl_query_posts_return', array(
                 'posts'          => '',
-                'error'          => __( 'No access token found', 'easy-facebook-likebox' ),
+                'error'          => __( esf_get_translated_string( 'no_access_token' ), 'easy-facebook-likebox' ),
                 'next_posts_url' => '',
                 'transient_name' => '',
                 'is_saved_posts' => '',

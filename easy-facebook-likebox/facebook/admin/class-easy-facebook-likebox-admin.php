@@ -51,7 +51,7 @@ if ( !class_exists( 'Easy_Facebook_Likebox_Admin' ) ) {
                 'nonce'           => wp_create_nonce( 'esf-ajax-nonce' ),
                 'version'         => $efbl_ver,
                 'copied'          => __( 'Copied', 'easy-facebook-likebox' ),
-                'error'           => __( 'Something went wrong!', 'easy-facebook-likebox' ),
+                'error'           => __( 'Something went wrong! Please try again.', 'easy-facebook-likebox' ),
                 'saving'          => __( 'Saving', 'easy-facebook-likebox' ),
                 'deleting'        => __( 'Deleting', 'easy-facebook-likebox' ),
                 'generating'      => __( 'Generating Shortcode', 'easy-facebook-likebox' ),

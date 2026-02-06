@@ -45,7 +45,7 @@
 				?>
 
 				<div class="esf-share-wrapper">
-					<a href="#" class="no-anchor-style link esf-share"><?php echo __( 'Share', 'easy-facebook-likebox' ); ?></a>
+					<a href="#" class="no-anchor-style link esf-share"><?php echo __( esf_get_translated_string( 'share' ), 'easy-facebook-likebox' ); ?></a>
 					<div class="esf-social-share">
 						<button>
 							<a class="esf_insta_facebook"

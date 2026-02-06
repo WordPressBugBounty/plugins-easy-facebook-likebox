@@ -13,9 +13,6 @@ if ( $hashtag && !empty( $hashtag ) ) {
     $mif_self_username = 'explore/tags/' . $hashtag;
     $mif_self_name = '#' . $hashtag;
 }
-if ( isset( $insta_settings['moderated'][$user_id]['ids'] ) && !empty( $insta_settings['moderated'][$user_id]['ids'] ) ) {
-    $i = $feeds_per_page;
-}
 ?>
 
 	<div class="esf_insta_load_more_btns_wrap">
@@ -34,7 +31,7 @@ echo esc_attr_e( $mif_self_username );
 esc_attr_e( $link_target );
 ?>"><i
 							class="icon icon-esf-instagram"></i> <?php 
-esc_html_e( 'Follow on Instagram', 'easy-facebook-likebox' );
+esc_html_e( esf_get_translated_string( 'follow_on_instagram' ), 'easy-facebook-likebox' );
 ?>
 				</a>
 			</div>

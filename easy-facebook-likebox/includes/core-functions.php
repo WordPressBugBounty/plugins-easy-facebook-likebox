@@ -189,6 +189,26 @@ if ( ! function_exists( 'esf_serve_media_locally' ) ) {
 	}
 }
 
+if ( ! function_exists( 'esf_is_local_media_url' ) ) {
+	/**
+	 * Check if a URL points to media served from the site's ESF uploads folder.
+	 * Local media does not trigger third-party requests, so GDPR placeholder can be skipped.
+	 *
+	 * @param string $url    Image URL to check.
+	 * @param string $module Module slug (e.g. 'facebook', 'instagram').
+	 * @return bool True if the URL is from this site's uploads/esf-{module} folder.
+	 */
+	function esf_is_local_media_url( $url, $module = 'facebook' ) {
+		if ( empty( $url ) || ! is_string( $url ) ) {
+			return false;
+		}
+		$upload_dir = wp_upload_dir();
+		$baseurl    = untrailingslashit( $upload_dir['baseurl'] );
+		$path       = '/esf-' . $module . '/';
+		return ( strpos( $url, $baseurl . $path ) === 0 );
+	}
+}
+
 if ( ! function_exists( 'esf_delete_media' ) ) {
 	/**
 	 * Delete media locally

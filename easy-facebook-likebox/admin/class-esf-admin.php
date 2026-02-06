@@ -10,6 +10,14 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 
 	class ESF_Admin {
 
+		/**
+		 * Ensure footer review notice hook is only added once,
+		 * even if ESF_Admin is instantiated multiple times.
+		 *
+		 * @var bool
+		 */
+		protected static $footer_review_hook_added = false;
+
 		function __construct() {
 
 			add_action(
@@ -18,6 +26,15 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 					$this,
 					'esf_menu',
 				)
+			);
+
+			add_action(
+				'admin_menu',
+				array(
+					$this,
+					'esf_settings_submenu',
+				),
+				101
 			);
 
 			add_action(
@@ -49,6 +66,22 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 				array(
 					$this,
 					'esf_remove_access_token',
+				)
+			);
+
+			add_action(
+				'wp_ajax_esf_save_gdpr_settings',
+				array(
+					$this,
+					'esf_save_gdpr_settings',
+				)
+			);
+
+			add_action(
+				'wp_ajax_esf_save_translation_settings',
+				array(
+					$this,
+					'esf_save_translation_settings',
 				)
 			);
 
@@ -100,13 +133,16 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 				)
 			);
 
-			add_action(
-				'admin_footer',
-				array(
-					$this,
-					'add_affilates',
-				)
-			);
+			if ( ! self::$footer_review_hook_added ) {
+				add_action(
+					'admin_footer',
+					array(
+						$this,
+						'esf_admin_footer_review_notice',
+					)
+				);
+				self::$footer_review_hook_added = true;
+			}
 
 			add_action(
 				'pre_get_posts',
@@ -118,15 +154,38 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			);
 		}
 
+		/**
+		 * On ESF admin pages, show only notices from this plugin (and Freemius) and hide all others via CSS.
+		 * ESF notices use .fta_msg, Freemius notices use .fs-notice; other plugins use .notice or .update-nag.
+		 */
 		public function esf_hide_notices() {
-
 			$screen = get_current_screen();
-
-			if ( $screen->base === 'admin_page_esf_welcome' ) {
-				remove_all_actions( 'admin_notices' );
+			if ( ! isset( $screen->id ) ) {
+				echo '<style>.toplevel_page_feed-them-all .wp-menu-image img{padding-top: 4px!important;}</style>';
+				return;
 			}
 
-			echo '<style>.toplevel_page_feed-them-all .wp-menu-image img{padding-top: 4px!important;}</style>';
+			$esf_admin_screens = array(
+				'toplevel_page_feed-them-all',
+				'easy-social-feed_page_easy-facebook-likebox',
+				'easy-social-feed_page_mif',
+				'admin_page_esf_welcome',
+				'easy-social-feed_page_feed-them-all-addons',
+				'easy-social-feed_page_esf-settings',
+			);
+
+			if ( in_array( $screen->id, $esf_admin_screens, true ) ) {
+				$body_class = esc_attr( sanitize_html_class( $screen->id ) );
+				echo '<style>';
+				echo ".toplevel_page_feed-them-all .wp-menu-image img{padding-top: 4px!important;}";
+				// Hide other plugins' notices: show only our Freemius (.fs-slug-easy-facebook-likebox) and ESF (.fta_msg).
+				echo "body.{$body_class} .notice:not(.fs-notice){display:none !important;}";
+				echo "body.{$body_class} .fs-notice:not(.fs-slug-easy-facebook-likebox){display:none !important;}";
+				echo "body.{$body_class} .update-nag:not(.fta_msg){display:none !important;}";
+				echo '</style>';
+			} else {
+				echo '<style>.toplevel_page_feed-them-all .wp-menu-image img{padding-top: 4px!important;}</style>';
+			}
 		}
 
 		/**
@@ -141,6 +200,7 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			if ( 'toplevel_page_feed-them-all' !== $hook
 					&& 'easy-social-feed_page_mif' !== $hook
 					&& 'easy-social-feed_page_easy-facebook-likebox' !== $hook
+					&& 'easy-social-feed_page_esf-settings' !== $hook
 					&& 'admin_page_esf_welcome' !== $hook ) {
 					return false;
 			}
@@ -156,6 +216,16 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 				'esf-admin',
 				FTA_PLUGIN_URL . 'admin/assets/css/esf-admin.css'
 			);
+
+			// Settings page reuses Facebook admin tab markup (efbl_wrap, efbl_tabs_*); load its CSS for tab bar styling.
+			if ( 'easy-social-feed_page_esf-settings' === $hook ) {
+				wp_enqueue_style(
+					'efbl-admin-styles',
+					FTA_PLUGIN_URL . 'facebook/admin/assets/css/admin.css',
+					array(),
+					'1.0'
+				);
+			}
 
 			wp_enqueue_script( 'jquery-effects-slide' );
 			wp_enqueue_script(
@@ -179,6 +249,7 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 					'copied'   => __( 'Copied', 'easy-facebook-likebox' ),
 					'deleting' => __( 'Deleting', 'easy-facebook-likebox' ),
 					'error'    => __( 'Something went wrong!', 'easy-facebook-likebox' ),
+					'saving'   => __( 'Saving…', 'easy-facebook-likebox' ),
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'esf-ajax-nonce' ),
 				)
@@ -239,19 +310,25 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 					'esf_welcome_page',
 				)
 			);
+		}
 
-			$token_valid = $this->esf_access_token_valid();
-
-			// If access token is inavlid show the notification counter
-			if ( ! $token_valid['is_valid'] ) {
-				global $menu;
-				$menu_item = wp_list_filter( $menu, array( 2 => 'feed-them-all' ) );
-
-				if ( ! empty( $menu_item ) ) {
-					$menu_item_position              = key( $menu_item );
-					$menu[ $menu_item_position ][0] .= ' <span class="awaiting-mod">1</span>';
-				}
-			}
+		/**
+		 * Add Settings submenu after Facebook and Instagram (runs at priority 101).
+		 *
+		 * @since 6.8.0
+		 */
+		public function esf_settings_submenu() {
+			add_submenu_page(
+				'feed-them-all',
+				__( 'Settings', 'easy-facebook-likebox' ),
+				__( 'Settings', 'easy-facebook-likebox' ),
+				'manage_options',
+				'esf-settings',
+				array(
+					$this,
+					'esf_settings_page',
+				)
+			);
 		}
 
 		/**
@@ -270,6 +347,86 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 		 */
 		function esf_page() {
 			include_once FTA_PLUGIN_DIR . 'admin/views/html-admin-page-easy-social-feed.php';
+		}
+
+		/**
+		 * Settings page (GDPR and other global settings).
+		 *
+		 * @since 6.8.0
+		 */
+		function esf_settings_page() {
+			include_once FTA_PLUGIN_DIR . 'admin/views/html-admin-page-esf-settings.php';
+		}
+
+		/**
+		 * Save global GDPR setting via AJAX.
+		 *
+		 * @since 6.8.0
+		 */
+		public function esf_save_gdpr_settings() {
+			esf_check_ajax_referer();
+
+			$FTA          = new Feed_Them_All();
+			$fta_settings = $FTA->fta_get_settings();
+			$original     = $fta_settings;
+
+			if ( isset( $_POST['gdpr'] ) ) {
+				$gdpr = sanitize_text_field( wp_unslash( $_POST['gdpr'] ) );
+				if ( in_array( $gdpr, array( 'auto', 'yes', 'no' ), true ) ) {
+					$fta_settings['gdpr'] = $gdpr;
+				}
+			}
+
+			if ( $fta_settings === $original ) {
+				wp_send_json_success( __( 'Settings already saved.', 'easy-facebook-likebox' ) );
+			}
+
+			$updated = update_option( 'fta_settings', $fta_settings );
+
+			if ( ! is_wp_error( $updated ) ) {
+				wp_send_json_success( __( 'Settings saved successfully!', 'easy-facebook-likebox' ) );
+			}
+
+			wp_send_json_error( __( 'Something went wrong! Please try again.', 'easy-facebook-likebox' ) );
+		}
+
+		/**
+		 * Save global translation (custom text) settings via AJAX.
+		 *
+		 * @since 6.8.0
+		 */
+		public function esf_save_translation_settings() {
+			esf_check_ajax_referer();
+
+			$FTA          = new Feed_Them_All();
+			$fta_settings = $FTA->fta_get_settings();
+			if ( ! is_array( $fta_settings ) ) {
+				$fta_settings = array();
+			}
+
+			$allowed_keys = array();
+			$all_strings  = ESF_Translation_Strings::get_all_strings();
+			foreach ( $all_strings as $category ) {
+				foreach ( $category['strings'] as $item ) {
+					if ( ! empty( $item['key'] ) ) {
+						$allowed_keys[ $item['key'] ] = true;
+					}
+				}
+			}
+
+			$posted = isset( $_POST['esf_translation'] ) && is_array( $_POST['esf_translation'] ) ? wp_unslash( $_POST['esf_translation'] ) : array();
+			$saved  = array();
+			foreach ( $posted as $key => $value ) {
+				if ( isset( $allowed_keys[ $key ] ) && is_string( $value ) ) {
+					$saved[ sanitize_text_field( $key ) ] = sanitize_text_field( $value );
+				}
+			}
+
+			$fta_settings['translation'] = $saved;
+			update_option( 'fta_settings', $fta_settings );
+
+			// update_option returns false when value is unchanged; that is still success.
+			wp_send_json_success( __( 'Settings saved successfully!', 'easy-facebook-likebox' ) );
 		}
 
 		/**
@@ -423,18 +580,21 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 				</script>
 				<?php
 			}
-			if ( get_site_option( 'fta_bfcm_sale' ) !== 'yes' ) {
-				?>
-				<div style="position:relative;padding-right:80px;background: #fff;" class="update-nag fta_msg fta_sale">
+
+			if ( efl_fs()->is_free_plan() ) {
+				if ( get_site_option( 'fta_bfcm_sale_twentytwentyfive' ) !== 'yes' ) {
+					?>
+				<div style="position:relative;padding-right:80px;background: #000;color: #fff;border-bottom: 5px solid #e91313;" class="update-nag fta_msg fta_sale">
 					<p style="margin-right: 40px;">
-						<b><?php esc_html_e( '17% OFF Easy Social Feed ', 'easy-facebook-likebox' ); ?></b>
+						<b><?php esc_html_e( '49% OFF Easy Social Feed ', 'easy-facebook-likebox' ); ?></b>
 						<?php esc_html_e( 'is just a click away! Use code ', 'easy-facebook-likebox' ); ?>
-						<b><?php esc_html_e( 'ESPF17', 'easy-facebook-likebox' ); ?></b>
+						<b><?php esc_html_e( 'FSBFCM2025', 'easy-facebook-likebox' ); ?></b>
 						<?php esc_html_e( 'before the sale ends!', 'easy-facebook-likebox' ); ?>
 					</p>
 					<div class="fl_support_btns">
 						<a href="<?php echo admin_url( 'admin.php?page=feed-them-all-pricing' ); ?>"
-							class="esf_hide_sale button button-primary">
+							class="esf_hide_sale button button-primary" style="background: #e91313;border-color: #e91313;
+">
 							<?php esc_html_e( 'Checkout Now', 'easy-facebook-likebox' ); ?>
 						</a>
 						<div class="esf_hide_sale" style="position:absolute;right:10px;cursor:pointer;top:4px;color: #029be4;">
@@ -462,7 +622,8 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 						});
 						});
 				</script>
-				<?php
+					<?php
+				}
 			}
 			return false;
 		}
@@ -479,7 +640,7 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 		}
 
 		public function esf_hide_sale_notice() {
-			update_site_option( 'fta_bfcm_sale', 'yes' );
+			update_site_option( 'fta_bfcm_sale_twentytwentyfive', 'yes' );
 			echo wp_json_encode( array( 'success' ) );
 			wp_die();
 		}
@@ -779,6 +940,54 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			}
 
 			return $esf_install_link;
+		}
+
+		/**
+		 * Admin footer small review notice, similar to WP Reset example.
+		 *
+		 * @return void
+		 */
+		public function esf_admin_footer_review_notice() {
+			$screen = get_current_screen();
+
+			// Show only on Easy Social Feed screens.
+			$allowed_screens = array(
+				'toplevel_page_feed-them-all',
+				'easy-social-feed_page_easy-facebook-likebox',
+				'easy-social-feed_page_mif',
+				'admin_page_esf_welcome',
+				'easy-social-feed_page_feed-them-all-addons',
+				'easy-social-feed_page_esf-settings',
+			);
+
+			if ( ! isset( $screen->id ) || ! in_array( $screen->id, $allowed_screens, true ) ) {
+				return;
+			}
+
+			?>
+			<style>
+				.toplevel_page_feed-them-all #wpfooter,
+				.easy-social-feed_page_easy-facebook-likebox #wpfooter,
+				.easy-social-feed_page_mif #wpfooter,
+				.admin_page_esf_welcome #wpfooter,
+				.easy-social-feed_page_feed-them-all-addons #wpfooter,
+				.easy-social-feed_page_esf-settings #wpfooter {
+					display: none;
+				}
+			</style>
+			<div class="esf-admin-footer-review" style="padding: 20px 15px; background: #ffffff; border: 1px solid #e5e5e5; font-size: 12px; color: #555; margin-left: 160px;">
+				<span style="margin-top: 10px;display: block;">
+					<?php esc_html_e( 'Enjoying Easy Social Feed? Please take a moment to', 'easy-facebook-likebox' ); ?>
+					<a href="https://wordpress.org/support/plugin/easy-facebook-likebox/reviews/?filter=5#new-post" target="_blank">
+						<b>
+						<?php esc_html_e( 'rate the plugin', 'easy-facebook-likebox' ); ?>
+						<span style="color:#ffb900;">★★★★★</span>
+						</b>
+					</a>
+					<?php esc_html_e( 'Your feedback truly helps us grow and continue improving Easy Social Feed. Thank you for your support!', 'easy-facebook-likebox' ); ?>
+				</span>
+			</div>
+			<?php
 		}
 
 		/**

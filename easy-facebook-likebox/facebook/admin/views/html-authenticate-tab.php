@@ -127,8 +127,8 @@ $authenticate_url = add_query_arg(
 <div id="efbl-authentication" class="col efbl_tab_c s12 slideLeft <?php echo esc_attr( $active_tab == 'efbl-authentication' ? 'active' : '' ); ?>">
 	<h5><?php esc_html_e( "Let's connect your Facebook account with the plugin.", 'easy-facebook-likebox' ); ?></h5>
 	<p><?php esc_html_e( 'Click the button below, log into your Facebook account and authorize the app to get access token.', 'easy-facebook-likebox' ); ?></p>
-	<a class="efbl_authentication_btn btn"
-	   href="<?php echo esc_url( $authenticate_url ); ?> "><img
+	<a class="efbl_authentication_btn btn esf-modal-trigger"
+	   href="#fta-fb-connect-info"><img
 				class="efb_icon left"
 				src="<?php echo EFBL_PLUGIN_URL; ?>/admin/assets/images/facebook-icon.png"/><?php esc_html_e( 'Connect My Facebook Account', 'easy-facebook-likebox' ); ?>
 	</a>
@@ -234,6 +234,79 @@ $authenticate_url = add_query_arg(
 
 		</div>
 	</div>
-
-	<p class="esf-notice"><?php esc_html_e( 'Please note: This does not give us permission to manage your Facebook pages or groups, it simply allows the plugin to see a list of the pages or groups you approved and retrieve an Access Token.', 'easy-facebook-likebox' ); ?></p>
 </div>
+
+<!-- Facebook Connect Info Modal -->
+<div id="fta-fb-connect-info" class="esf-modal fta-fb-connect-modal fadeIn">
+	<div class="modal-content">
+		<span class="mif-close-modal modal-close"><span class="dashicons dashicons-no-alt"></span></span>
+			<div class="mif-modal-content">
+				<div class="fta-fb-important-note">
+					<span class="fta-note-icon"><span class="dashicons dashicons-warning"></span></span>
+					<div class="fta-note-content">
+						<strong><?php esc_html_e( 'Important:', 'easy-facebook-likebox' ); ?></strong>
+						<p><?php esc_html_e( 'When connecting to Facebook, you will see an "Edit requested access" option. Please ensure that your Business Manager is selected and all pages associated with it have all permissions enabled. If any Business Manager or specific permissions are deselected, the plugin features will not work properly.', 'easy-facebook-likebox' ); ?></p>
+						<p class="fta-fb-reconnect-note">
+							<strong><?php esc_html_e( 'Already connected?', 'easy-facebook-likebox' ); ?></strong>
+							<?php esc_html_e( 'If you see "You previously logged into Easy Social Feed", you can manage your connection by deleting it from the "Approved Page(s)" section above, or ', 'easy-facebook-likebox' ); ?>
+							<a href="https://www.facebook.com/settings/?tab=business_tools" target="_blank" rel="noopener"><?php esc_html_e( 'manage it in Facebook Business Integrations', 'easy-facebook-likebox' ); ?></a>
+							<?php esc_html_e( ' to add/remove pages.', 'easy-facebook-likebox' ); ?>
+						</p>
+					</div>
+				</div>
+
+				<div class="fta-fb-connect-actions fta-fb-connect-actions-top">
+					<a class="btn efbl_authentication_btn fta-fb-connect-primary"
+					   href="<?php echo esc_url( $authenticate_url ); ?>">
+						<img class="efb_icon left" src="<?php echo EFBL_PLUGIN_URL; ?>/admin/assets/images/facebook-icon.png"/>
+						<?php esc_html_e( 'Connect to Facebook', 'easy-facebook-likebox' ); ?>
+					</a>
+				</div>
+
+				<div class="fta-fb-permissions-section">
+				<h6><?php esc_html_e( 'Permissions Needed', 'easy-facebook-likebox' ); ?></h6>
+				<p class="fta-fb-permissions-intro"><?php esc_html_e( 'These are the permissions that would be granted once you connect your user account:', 'easy-facebook-likebox' ); ?></p>
+				
+				<ul class="fta-fb-permissions-list">
+					<li>
+						<span class="fta-permission-icon"><span class="dashicons dashicons-admin-network"></span></span>
+						<div class="fta-permission-content">
+							<strong>business_management</strong>
+							<p><?php esc_html_e( 'This permission is used to retrieve the names of the Facebook pages you have access to. It\'s required in combination with other permissions.', 'easy-facebook-likebox' ); ?></p>
+						</div>
+					</li>
+					<li>
+						<span class="fta-permission-icon"><span class="dashicons dashicons-chart-line"></span></span>
+						<div class="fta-permission-content">
+							<strong>pages_read_engagement</strong>
+							<p><?php esc_html_e( 'This permission allows us to see data related to the number of followers, read content of the page, and other metrics.', 'easy-facebook-likebox' ); ?></p>
+						</div>
+					</li>
+					<li>
+						<span class="fta-permission-icon"><span class="dashicons dashicons-admin-page"></span></span>
+						<div class="fta-permission-content">
+							<strong>pages_read_user_content</strong>
+							<p><?php esc_html_e( 'This permission allows our plugin to read user-generated content on the Facebook page, such as posts, comments and ratings by users or other pages.', 'easy-facebook-likebox' ); ?></p>
+						</div>
+					</li>
+					<li>
+						<span class="fta-permission-icon"><span class="dashicons dashicons-list-view"></span></span>
+						<div class="fta-permission-content">
+							<strong>pages_show_list</strong>
+							<p><?php esc_html_e( 'This permission is used to retrieve the name of the Facebook pages you have access to. This allows you to connect multiple Facebook pages at once.', 'easy-facebook-likebox' ); ?></p>
+						</div>
+					</li>
+				</ul>
+			</div>
+
+				<div class="fta-fb-connect-description">
+					<p><?php esc_html_e( 'This does not give us permission to manage your Facebook pages, it simply allows the plugin to see a list of them and retrieve their public content from the API.', 'easy-facebook-likebox' ); ?></p>
+					<p class="fta-fb-terms-note">
+						<?php esc_html_e( 'Use of this plugin is subject to', 'easy-facebook-likebox' ); ?>
+						<a href="https://developers.facebook.com/terms" target="_blank"><?php esc_html_e( 'Facebook\'s Platform Terms', 'easy-facebook-likebox' ); ?></a>
+					</p>
+				</div>
+		</div>
+	</div>
+</div>
+<!-- End Facebook Connect Info Modal -->

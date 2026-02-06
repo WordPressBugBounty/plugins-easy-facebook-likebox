@@ -15,8 +15,28 @@ $FTA = new Feed_Them_All();
 $fta_settings = $FTA->fta_get_settings();
 $mif_skin_default_id = $fta_settings['plugins']['instagram']['default_skin_id'];
 $insta_settings = $fta_settings['plugins']['instagram'];
+// GDPR: mode and active state (global setting).
+$insta_gdpr_mode = ( isset( $fta_settings['gdpr'] ) ? $fta_settings['gdpr'] : 'auto' );
+$gdpr_active = ESF_GDPR_Integrations::is_gdpr_active( $fta_settings );
+$server_consent = ( 'auto' === $insta_gdpr_mode ? ESF_GDPR_Integrations::has_marketing_consent_server() : false );
+$gdpr_effective = $gdpr_active && !('auto' === $insta_gdpr_mode && $server_consent);
+$gdpr_flags = array();
+$gdpr_container_attrs = '';
+if ( is_customize_preview() ) {
+    $gdpr_active = false;
+    $gdpr_effective = false;
+} else {
+    if ( 'yes' === $insta_gdpr_mode ) {
+        $gdpr_flags = array('gdpr', 'gdpr_yes');
+    } elseif ( 'auto' === $insta_gdpr_mode && $gdpr_active ) {
+        $gdpr_flags = array('gdpr', 'gdpr_auto');
+    }
+    if ( !empty( $gdpr_flags ) ) {
+        $gdpr_container_attrs = ' data-esf-flags="' . esc_attr( implode( ',', $gdpr_flags ) ) . '" data-esf-module="instagram"';
+    }
+}
 if ( !esf_insta_has_connected_account() ) {
-    echo '<div id="esf-insta-feed" class="esf-insta-wrap esf_insta_feed_wraper"><p class="esf_insta_error_msg">' . __( 'Whoops! No connected account found. Try connecting an account first.', 'easy-facebook-likebox' ) . '</p></div>';
+    echo '<div id="esf-insta-feed" class="esf-insta-wrap esf_insta_feed_wraper"><p class="esf_insta_error_msg">' . __( esf_get_translated_string( 'no_connected_account' ), 'easy-facebook-likebox' ) . '</p></div>';
     return;
 }
 if ( is_customize_preview() && isset( $post->ID ) && $post->ID == $esf_insta_demo_page_id ) {
@@ -125,7 +145,9 @@ echo esc_attr( $wrapper_class );
 echo esc_attr( intval( $skin_id ) );
 ?> esf-insta-<?php 
 echo esc_attr( $mif_ver );
-?>">
+?>"<?php 
+echo $gdpr_container_attrs;
+?>>
 	<?php 
 if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !isset( $esf_insta_feed->data->error ) ) {
     /*
@@ -148,6 +170,15 @@ if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !iss
                 $esf_insta_header_templateurl = $esf_insta_header_templateurl;
             } else {
                 $esf_insta_header_templateurl = ESF_INSTA_PLUGIN_DIR . '/frontend/views/html-feed-header.php';
+            }
+            // GDPR: header profile image placeholder when needed.
+            $header_img_src = ( isset( $profile_picture ) ? $profile_picture : '' );
+            $header_gdpr_class = '';
+            $header_gdpr_attr = '';
+            if ( $gdpr_effective && !empty( $header_img_src ) && !esf_is_local_media_url( $header_img_src, 'instagram' ) ) {
+                $header_img_src = ESF_GDPR_Integrations::get_placeholder_image();
+                $header_gdpr_class = 'esf-no-consent';
+                $header_gdpr_attr = ' data-image-url="' . esc_url( $profile_picture ) . '"';
             }
             include $esf_insta_header_templateurl;
         }
@@ -188,8 +219,10 @@ if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !iss
 						<?php 
     }
     $i = 0;
+    $processed_count = 0;
     if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) ) {
         foreach ( $esf_insta_feed->data as $feed ) {
+            ++$processed_count;
             $caption = '';
             if ( isset( $feed->timestamp ) && !empty( $feed->timestamp ) ) {
                 $created_time = $feed->timestamp;
@@ -203,7 +236,7 @@ if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !iss
                 $profile_picture = '';
             }
             $permalink = $feed->permalink;
-            $link_text = __( 'View on Instagram', 'easy-facebook-likebox' );
+            $link_text = __( esf_get_translated_string( 'view_on_instagram' ), 'easy-facebook-likebox' );
             $click_behaviour = 'direct_link';
             $source = 'caption';
             if ( isset( $feed->timestamp ) && !empty( $feed->timestamp ) ) {
@@ -241,6 +274,15 @@ if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !iss
             }
             if ( $thumbnail_url ) {
                 $thumbnail_url = esf_serve_media_locally( $story_id, $thumbnail_url, 'instagram' );
+            }
+            // GDPR: replace real image with placeholder and store real URL (skip when image is local).
+            $gdpr_image_class = '';
+            $gdpr_image_attr = '';
+            if ( $gdpr_effective && !empty( $thumbnail_url ) && !esf_is_local_media_url( $thumbnail_url, 'instagram' ) ) {
+                $real_thumb = $thumbnail_url;
+                $thumbnail_url = ESF_GDPR_Integrations::get_placeholder_image();
+                $gdpr_image_class = 'esf-no-consent';
+                $gdpr_image_attr = ' data-image-url="' . esc_url( $real_thumb ) . '"';
             }
             $esf_insta_feed_popup_url = '';
             $esf_insta_see_more_action = 'esf_insta_load_more_description';
@@ -320,14 +362,14 @@ if ( !isset( $esf_insta_feed->error ) && !empty( $esf_insta_feed->data ) && !iss
 } else {
     ?>
 		<p class="esf_insta_error_msg"><?php 
-    echo __( 'Error: No data found, Try connecting an account first and make sure you have posts on your account.', 'easy-facebook-likebox' );
+    echo __( esf_get_translated_string( 'error_no_data_insta' ), 'easy-facebook-likebox' );
     ?>
 	<?php 
 }
 if ( isset( $esf_insta_feed->error ) || isset( $esf_insta_feed->data->error->message ) ) {
     ?>
 				<p class="esf_insta_error_msg"><?php 
-    echo __( 'Error: ', 'easy-facebook-likebox' );
+    echo __( esf_get_translated_string( 'error_prefix' ), 'easy-facebook-likebox' );
     ?>
 			<?php 
     if ( isset( $esf_insta_feed->error->message ) ) {

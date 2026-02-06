@@ -382,6 +382,262 @@ code{
   }
 }
 
+// Facebook Connect Info Modal
+.fta-fb-connect-modal {
+  .modal-content {
+	width: 50%;
+	max-width: 650px;
+	max-height: 85vh;
+	padding: 30px;
+	text-align: left;
+	overflow-y: auto;
+	display: block;
+
+	@media (max-width: 1024px) {
+	  width: 70%;
+	}
+
+	@media (max-width: 768px) {
+	  width: 90%;
+	  padding: 20px;
+	  max-height: 90vh;
+	}
+
+	@media (max-width: 480px) {
+	  width: 95%;
+	  padding: 18px;
+	}
+  }
+
+  .mif-close-modal {
+	position: absolute;
+	right: 15px;
+	top: 15px;
+	cursor: pointer;
+	z-index: 10;
+
+	.dashicons {
+	  font-size: 24px;
+	  color: #666;
+	  transition: color 0.3s ease;
+
+	  &:hover {
+		color: #000;
+	  }
+	}
+  }
+
+  .mif-modal-content {
+	text-align: left;
+	padding-top: 0;
+
+	h6 {
+	  font-size: 16px;
+	  font-weight: 600;
+	  color: #333;
+	  margin-bottom: 8px;
+	  margin-top: 18px;
+	}
+
+	p {
+	  font-size: 13px;
+	  line-height: 1.5;
+	  color: #555;
+	  margin-bottom: 12px;
+	}
+  }
+
+  .fta-fb-connect-description {
+	background: #f8f9fa;
+	padding: 12px;
+	border-radius: 4px;
+	margin-bottom: 0;
+	border-left: 4px solid #028dd0;
+
+	p {
+	  margin-bottom: 8px;
+	  color: #333;
+	  font-size: 13px;
+	  line-height: 1.5;
+
+	  &:last-child {
+		margin-bottom: 0;
+	  }
+	}
+
+	.fta-fb-terms-note {
+	  font-size: 10px;
+	  color: #999;
+	  margin-top: 8px;
+
+	  a {
+		color: #028dd0;
+		text-decoration: none;
+
+		&:hover {
+		  text-decoration: underline;
+		}
+	  }
+	}
+  }
+
+  .fta-fb-permissions-section {
+	margin-bottom: 18px;
+
+	.fta-fb-permissions-intro {
+	  font-size: 12px;
+	  color: #666;
+	  margin-bottom: 10px;
+	}
+  }
+
+  .fta-fb-permissions-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+
+	li {
+	  display: flex;
+	  align-items: flex-start;
+	  padding: 10px 12px;
+	  margin-bottom: 8px;
+	  background: #f8f9fa;
+	  border-radius: 4px;
+	  border: 1px solid #e9ecef;
+	  transition: all 0.3s ease;
+
+	  &:hover {
+		background: #e9ecef;
+		border-color: #dee2e6;
+	  }
+
+	  .fta-permission-icon {
+		flex-shrink: 0;
+		width: 32px;
+		height: 32px;
+		background: #028dd0;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 12px;
+
+		.dashicons {
+		  color: #fff;
+		  font-size: 16px;
+		  width: 16px;
+		  height: 16px;
+		}
+	  }
+
+	  .fta-permission-content {
+		flex: 1;
+
+		strong {
+		  display: block;
+		  font-size: 13px;
+		  font-weight: 600;
+		  color: #333;
+		  margin-bottom: 3px;
+		}
+
+		p {
+		  font-size: 12px;
+		  color: #666;
+		  line-height: 1.4;
+		  margin-bottom: 0;
+		}
+	  }
+	}
+  }
+
+  .fta-fb-important-note {
+	display: flex;
+	align-items: flex-start;
+	background: #fff3cd;
+	border: 1px solid #ffc107;
+	border-left: 4px solid #ffc107;
+	border-radius: 4px;
+	padding: 12px;
+	margin-bottom: 10px;
+
+	.fta-note-icon {
+	  flex-shrink: 0;
+	  margin-right: 10px;
+
+	  .dashicons {
+		color: #856404;
+		font-size: 20px;
+	  }
+	}
+
+	.fta-note-content {
+	  flex: 1;
+
+	  strong {
+		display: block;
+		font-size: 13px;
+		font-weight: 600;
+		color: #856404;
+		margin-bottom: 5px;
+	  }
+
+	  p {
+		font-size: 12px;
+		color: #856404;
+		line-height: 1.5;
+		margin-bottom: 0;
+	  }
+	}
+  }
+
+  .fta-fb-connect-actions {
+	text-align: center;
+	margin-bottom: 18px;
+	padding-bottom: 15px;
+	border-bottom: 2px solid #e9ecef;
+
+	&.fta-fb-connect-actions-top {
+	  margin-top: 0;
+	  margin-bottom: 18px;
+	  padding-top: 0;
+	  padding-bottom: 18px;
+	}
+
+	.fta-fb-connect-primary {
+	  background: #028dd0;
+	  color: #fff;
+	  padding: 12px 30px;
+	  font-size: 15px;
+	  font-weight: 600;
+	  border-radius: 6px;
+	  text-decoration: none;
+	  display: inline-flex;
+	  align-items: center;
+	  justify-content: center;
+	  transition: all 0.3s ease;
+	  border: none;
+	  cursor: pointer;
+	  width: 100%;
+	  max-width: 280px;
+	  margin: 0 auto;
+
+	  &:hover {
+		background: #0277b8;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(2, 141, 208, 0.3);
+	  }
+
+	  .efb_icon {
+		width: 22px;
+		height: 22px;
+		margin-right: 8px;
+		filter: brightness(0) invert(1);
+	  }
+	}
+  }
+}
+
 .efbl_all_pages {
   a {
 	color: inherit;
@@ -477,7 +733,7 @@ code{
   .fta_sliders_wrap {
 
 	float: left;
-	background-color: #d05d53;
+	background-color: #058135;
 	padding: 11px 80px 10px 80px;
 	cursor: pointer;
 	margin-top: -5px;
@@ -758,7 +1014,7 @@ code{
 	}
 
 	.fta_tabs_header {
-	  background-color: #ed6d62;
+	  background-color: #23a455;
 	  color: #fff;
 	  padding: 5px 0px;
 	  height: 48px;
@@ -921,14 +1177,14 @@ code{
 		}
 
 		.btn {
-		  background: #ed6d62;
+		  background: #23a455;
 		  text-transform: capitalize;
 		  padding: 4px 20px;
 		  margin-top: 15px;
 		  height: auto;
 
 		  &:hover {
-			background-color: #d05d53;
+			background-color: #1a7d40;
 		  }
 		}
 	  }
@@ -1706,5 +1962,305 @@ code{
   }
   .fs-terms, #license_issues_link, .fs-freemium-licensing, .fs-permissions{
 	display: none;
+  }
+}
+
+/* Settings page: tab header color - full selector to override Facebook admin.css */
+.easy-social-feed_page_esf-settings .efbl_wrap .efbl_wrap_inner .efbl_tabs_holder .efbl_tabs_header {
+  background-color: #23a455;
+}
+
+/* Settings page: button colors only inside our main div (.efbl_wrap) */
+.easy-social-feed_page_esf-settings .efbl_wrap {
+  .button-primary,
+  .button.button-primary {
+    background-color: #23a455 !important;
+    border-color: #1e8f4a !important;
+    box-shadow: 0 1px 0 #1e8f4a !important;
+
+    &:hover,
+    &:focus {
+      background-color: #1a7d40 !important;
+      border-color: #166b36 !important;
+      box-shadow: 0 1px 0 #166b36 !important;
+    }
+  }
+
+  .btn,
+  .btn-large {
+    background-color: #23a455;
+
+    &:hover,
+    &:focus {
+      background-color: #1a7d40;
+    }
+  }
+}
+
+/* Settings page: toast and notification holder use same green */
+.easy-social-feed_page_esf-settings {
+  .esf-notification-holder {
+    background: #23a455;
+  }
+
+  #toast-container .toast {
+    background-color: #23a455 !important;
+  }
+
+  /* Modern upgrade notice (settings page only): soft card, always visible for free users */
+  .esf-settings-upgrade-notice {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-left: 4px solid #23a455;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
+  }
+
+  .esf-settings-upgrade-notice__icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    font-size: 28px;
+    color: #23a455;
+    line-height: 1;
+  }
+
+  .esf-settings-upgrade-notice__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .esf-settings-upgrade-notice__title {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+    line-height: 1.4;
+  }
+
+  .esf-settings-upgrade-notice__text {
+    margin: 0;
+    font-size: 13px;
+    color: #50575e;
+    line-height: 1.5;
+
+    code {
+      padding: 2px 6px;
+      font-size: 12px;
+      background: #fff;
+      color: #1d2327;
+      border: 1px solid #dcdcde;
+      border-radius: 3px;
+    }
+  }
+
+  .esf-settings-upgrade-notice__button {
+    flex-shrink: 0;
+    text-decoration: none;
+    white-space: nowrap;
+    background: #23a455 !important;
+    border-color: #1e8f4a !important;
+    color: #fff !important;
+    box-shadow: 0 1px 0 #1e8f4a !important;
+
+    &:hover,
+    &:focus {
+      background: #1a7d40 !important;
+      border-color: #166b36 !important;
+      color: #fff !important;
+    }
+  }
+
+  @media screen and (max-width: 782px) {
+    .esf-settings-upgrade-notice {
+      flex-wrap: wrap;
+    }
+
+    .esf-settings-upgrade-notice__button {
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
+
+/* fta_tabs_header and buttons inside .fta_wrap (main dashboard) use same green */
+.fta_wrap .fta_wrap_inner .fta_tabs_header {
+  background-color: #23a455;
+}
+
+.fta_wrap {
+  .button-primary,
+  .button.button-primary {
+    background-color: #23a455 !important;
+    border-color: #1e8f4a !important;
+    box-shadow: 0 1px 0 #1e8f4a !important;
+
+    &:hover,
+    &:focus {
+      background-color: #1a7d40 !important;
+      border-color: #166b36 !important;
+      box-shadow: 0 1px 0 #166b36 !important;
+    }
+  }
+
+  .fta_tab_c_holder .fta_all_plugs .card .btn,
+  .fta_tab_c_holder .fta_auth_btn_st {
+    background-color: #23a455;
+
+    &:hover {
+      background-color: #1a7d40;
+    }
+  }
+}
+
+/* GDPR / Settings page (global) */
+.esf-settings-page {
+  .esf-gdpr-plugin-detected {
+	margin: 10px 0 0 0;
+	font-size: 13px;
+	line-height: 1.6;
+
+	.dashicons {
+	  font-size: 16px;
+	  width: 16px;
+	  height: 16px;
+	  vertical-align: middle;
+	  margin-right: 5px;
+	}
+
+	&.esf-gdpr-plugin-success {
+	  color: #46b450;
+	}
+
+	&.esf-gdpr-plugin-warning {
+	  color: #d63638;
+	}
+  }
+
+  .esf-gdpr-mode-description {
+	margin-top: 10px;
+  }
+
+  .esf-supported-plugins-list {
+	p {
+	  margin: 0 0 4px 0;
+	  font-size: 12px;
+	}
+	ul {
+	  margin: 0 0 0 18px;
+	  list-style: disc;
+	  li {
+		margin: 0;
+		padding: 0;
+	  }
+	}
+  }
+}
+.esf-gdpr-plugin-detected.esf-gdpr-plugin-warning {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.esf-gdpr-tooltip {
+  position: absolute;
+  z-index: 100000;
+  max-width: 320px;
+  padding: 12px 14px;
+  background: #1d2327;
+  color: #f0f0f1;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  p {
+	margin: 0 0 8px 0;
+	&:last-child {
+	  margin-bottom: 0;
+	}
+  }
+}
+
+/* Translation tab – table layout */
+#esf-settings-translation {
+  .esf-translation-intro {
+	margin-bottom: 16px;
+  }
+  .esf-translation-table {
+	margin-top: 16px;
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 100%;
+	width: 100%;
+	border-collapse: collapse;
+	table-layout: fixed;
+  }
+  .esf-translation-table thead th {
+	padding: 10px 12px;
+	text-align: left;
+	font-weight: 700;
+	font-size: 14px;
+	background: #f6f7f7;
+	border-bottom: 1px solid #c3c4c7;
+  }
+  .esf-translation-col-default {
+	width: 33.33%;
+	padding-right: 12px !important;
+  }
+  .esf-translation-col-input {
+	width: 33.33%;
+	padding-left: 12px !important;
+	padding-right: 12px !important;
+  }
+  .esf-translation-col-context {
+	width: 33.34%;
+	padding-left: 12px !important;
+	color: #646970;
+	font-size: 13px;
+  }
+  .esf-translation-section-row .esf-translation-section {
+	padding: 10px 12px;
+	font-weight: 700;
+	font-size: 13px;
+	background: #f0f0f1;
+	border-top: 1px solid #c3c4c7;
+	border-bottom: 1px solid #c3c4c7;
+  }
+  .esf-translation-section-inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+  }
+  .esf-translation-section-label {
+	flex: 1;
+	min-width: 0;
+  }
+  .esf-translation-section-row .button-small {
+	flex-shrink: 0;
+  }
+  .esf-translation-data-row .esf-translation-col-default {
+	padding: 10px 12px;
+  }
+  .esf-translation-data-row .esf-translation-col-input {
+	padding: 10px 12px;
+  }
+  .esf-translation-data-row .esf-translation-col-context {
+	padding: 10px 12px;
+  }
+  .esf-translation-data-row td {
+	vertical-align: middle;
+  }
+  .esf-translation-data-row .large-text {
+	max-width: 100%;
+  }
+  .submit {
+	margin-top: 20px;
   }
 }
