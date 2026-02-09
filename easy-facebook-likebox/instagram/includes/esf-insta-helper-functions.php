@@ -536,13 +536,21 @@ if ( ! function_exists( 'esf_insta_get_logo' ) ) {
 
 			$auth_img_src = get_transient( $page_logo_trasneint_name );
 
-			$check_status = wp_remote_retrieve_body( wp_remote_get( $auth_img_src ) );
-
-			if ( $check_status == 'URL signature expired' ) {
-				$auth_img_src = '';
+			// If we have a cached URL, ensure it still works (avoids broken logos on page reload).
+			if ( ! empty( $auth_img_src ) && is_string( $auth_img_src ) ) {
+				if ( function_exists( 'esf_is_valid_image_url' ) && ! esf_is_valid_image_url( $auth_img_src ) ) {
+					$auth_img_src = '';
+				}
 			}
 
+			// Use esf_serve_media_locally: serves from local if file exists, otherwise fetches and saves.
 			if ( $auth_img_src && ! empty( $auth_img_src ) && ! isset( $auth_img_src->error ) ) {
+				if ( function_exists( 'esf_serve_media_locally' ) ) {
+					$local_url = esf_serve_media_locally( $id, $auth_img_src, 'instagram' );
+					if ( $local_url ) {
+						return $local_url;
+					}
+				}
 				return $auth_img_src;
 			} else {
 

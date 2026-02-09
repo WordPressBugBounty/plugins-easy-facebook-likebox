@@ -189,6 +189,38 @@ if ( ! function_exists( 'esf_serve_media_locally' ) ) {
 	}
 }
 
+if ( ! function_exists( 'esf_is_valid_image_url' ) ) {
+	/**
+	 * Check if an image URL is reachable (HTTP 200).
+	 *
+	 * Central helper so URL validity checks are consistent across the plugin.
+	 *
+	 * @param string $url Image URL.
+	 * @return bool
+	 */
+	function esf_is_valid_image_url( $url ) {
+		if ( empty( $url ) || ! is_string( $url ) ) {
+			return false;
+		}
+
+		$args = array(
+			'timeout'   => 5,
+			'sslverify' => false,
+			'method'    => 'HEAD',
+		);
+
+		$response = wp_remote_request( $url, $args );
+
+		if ( is_wp_error( $response ) ) {
+			return false;
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+
+		return ( 200 === $code );
+	}
+}
+
 if ( ! function_exists( 'esf_is_local_media_url' ) ) {
 	/**
 	 * Check if a URL points to media served from the site's ESF uploads folder.

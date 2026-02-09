@@ -4,7 +4,7 @@
  * Plugin Name: Easy Social Feed
  * Plugin URI:        https://wordpress.org/plugins/easy-facebook-likebox
  * Description:       Formerly "Easy Facebook Like Box and Custom Facebook Feed" plugin allows you to easily display custom facebook feed, custom Instagram photos and videos feed, page plugin (like box) on your website using either widget or shortcode to increase facbook fan page likes. You can use the shortcode generator. Additionally, it also now allows you to display the customized facebook feed on your website using the same color scheme of your website. Its completely customizable with lots of optional settings. Its also responsive facebook like box at the same time.
- * Version:           6.7.3
+ * Version:           6.7.4
  * Author:            Easy Social Feed
  * Author URI:        https://easysocialfeed.com/
  * Text Domain:       easy-facebook-likebox
@@ -16,8 +16,68 @@ if ( !defined( 'WPINC' ) ) {
 if ( !defined( 'ABSPATH' ) ) {
     exit;
 }
+/**
+ * Run plugin cleanup on uninstall (options, transients, upload folders).
+ * Hooked to Freemius after_uninstall so uninstall feedback is sent first.
+ * Skips cleanup when "Preserve settings on uninstall" is enabled in General settings.
+ *
+ * @since 6.8.0
+ */
+function efl_fs_uninstall_cleanup() {
+    global $wpdb;
+    $fta_settings = get_option( 'fta_settings', array() );
+    if ( !empty( $fta_settings['preserve_settings_on_uninstall'] ) ) {
+        return;
+    }
+    $options = array(
+        'fta_settings',
+        'fta_supported',
+        'efbl_version',
+        'efbl_installDate',
+        'efbl_version_type',
+        'efbl_account_id',
+        'efbl_skin_id',
+        'mif_skin_id',
+        'mif_account_id'
+    );
+    foreach ( $options as $option ) {
+        delete_option( $option );
+    }
+    if ( is_multisite() ) {
+        delete_site_option( 'fta_supported' );
+    }
+    $option_table = $wpdb->options;
+    $wpdb->query( $wpdb->prepare( "DELETE FROM {$option_table} WHERE option_name LIKE %s OR option_name LIKE %s", $wpdb->esc_like( 'efbl_skin_' ) . '%', $wpdb->esc_like( 'mif_skin_' ) . '%' ) );
+    $like_esf = $wpdb->esc_like( '_transient_esf_' ) . '%';
+    $like_esf_timeout = $wpdb->esc_like( '_transient_timeout_esf_' ) . '%';
+    $like_efbl = $wpdb->esc_like( '_transient_efbl_' ) . '%';
+    $like_efbl_timeout = $wpdb->esc_like( '_transient_timeout_efbl_' ) . '%';
+    $wpdb->query( $wpdb->prepare(
+        "DELETE FROM {$option_table} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s",
+        $like_esf,
+        $like_esf_timeout,
+        $like_efbl,
+        $like_efbl_timeout
+    ) );
+    $upload_dir = wp_upload_dir();
+    if ( !empty( $upload_dir['basedir'] ) ) {
+        $base = trailingslashit( $upload_dir['basedir'] );
+        $dirs = array('esf-instagram', 'esf-facebook');
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+        $fs = new WP_Filesystem_Direct(false);
+        foreach ( $dirs as $dir ) {
+            $path = $base . $dir;
+            if ( $fs->exists( $path ) && $fs->is_dir( $path ) ) {
+                $fs->rmdir( $path, true );
+            }
+        }
+    }
+}
+
 if ( function_exists( 'efl_fs' ) ) {
     efl_fs()->set_basename( false, __FILE__ );
+    efl_fs()->add_action( 'after_uninstall', 'efl_fs_uninstall_cleanup' );
 } else {
     if ( !function_exists( 'efl_fs' ) ) {
         // Create a helper function for easy SDK access.
@@ -52,6 +112,7 @@ if ( function_exists( 'efl_fs' ) ) {
 
         // Init Freemius.
         efl_fs();
+        efl_fs()->add_action( 'after_uninstall', 'efl_fs_uninstall_cleanup' );
         // Signal that SDK was initiated.
         do_action( 'efl_fs_loaded' );
     }
@@ -276,12 +337,6 @@ if ( function_exists( 'efl_fs' ) ) {
                     $status = 'activated';
                 }
                 return $status;
-            }
-
-            public function fta_get_image_id( $image_url ) {
-                global $wpdb;
-                $attachment = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE guid='%s';", $image_url ) );
-                return $attachment[0];
             }
 
         }

@@ -11,6 +11,19 @@ if ( !defined( 'ABSPATH' ) ) {
 //======================================================================
 if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
     class ESF_Instagram_Admin {
+        /**
+         * Default HTTP args used for remote requests.
+         *
+         * Kept as a property so the same array instance can be reused
+         * and adjusted in one place if needed.
+         *
+         * @var array
+         */
+        protected $http_args = array(
+            'timeout'   => 150,
+            'sslverify' => false,
+        );
+
         function __construct() {
             add_action( 'admin_menu', array($this, 'esf_insta_menu'), 100 );
             add_action( 'admin_enqueue_scripts', array($this, 'esf_insta_style') );
@@ -259,119 +272,178 @@ if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
             }
         }
 
-        /*
-         * Get the access token and save back into DB
+        /**
+         * Handle Instagram Business access token save.
+         *
+         * Validates the request, fetches connected Facebook pages and their
+         * Instagram Business accounts from the Graph API, updates plugin
+         * settings, and returns the rendered "Connected Instagram Accounts"
+         * HTML as a JSON response.
+         *
+         * @return void Outputs a JSON response and exits.
          */
         public function esf_insta_save_business_access_token() {
-            if ( current_user_can( 'editor' ) || current_user_can( 'administrator' ) ) {
-                $access_token = sanitize_text_field( $_POST['access_token'] );
-                $id = sanitize_text_field( $_POST['id'] );
-                $fta_api_url = 'https://graph.facebook.com/me/accounts?fields=access_token,username,id,name,fan_count,category,about&access_token=' . $access_token;
-                $args = array(
-                    'timeout'   => 150,
-                    'sslverify' => false,
-                );
-                $fta_pages = wp_remote_get( $fta_api_url, $args );
-                if ( is_array( $fta_pages ) && !is_wp_error( $fta_pages ) ) {
-                    $fb_pages = json_decode( $fta_pages['body'] );
-                    $approved_pages = array();
-                    if ( $fb_pages->data ) {
-                        $title = __( 'Connected Instagram Accounts', 'easy-facebook-likebox' );
-                        $efbl_all_pages_html = '<ul class="collection with-header"> <li class="collection-header"><h5>' . $title . '</h5> 
-			<a href="#fta-remove-at" class="modal-trigger fta-remove-at-btn tooltipped" data-position="left" data-delay="50" data-tooltip="' . __( 'Delete Access Token', 'easy-facebook-likebox' ) . '"><span class="dashicons dashicons-trash"></span></a></li>';
-                        foreach ( $fb_pages->data as $efbl_page ) {
-                            $fta_insta_api_url = 'https://graph.facebook.com/v4.0/' . $efbl_page->id . '/?fields=connected_instagram_account,instagram_accounts{username,profile_pic}&access_token=' . $efbl_page->access_token;
-                            $fta_insta_accounts = wp_remote_get( $fta_insta_api_url, $args );
-                            if ( is_array( $fta_insta_accounts ) && !is_wp_error( $fta_insta_accounts ) ) {
-                                $fta_insta_accounts = json_decode( $fta_insta_accounts['body'] );
-                                if ( isset( $fta_insta_accounts->connected_instagram_account ) && !empty( $fta_insta_accounts->connected_instagram_account ) ) {
-                                    $insta_connected_account_id = $fta_insta_accounts->connected_instagram_account->id;
-                                    $fta_insta_connected_api_url = 'https://graph.facebook.com/v4.0/' . $insta_connected_account_id . '/?fields=name,profile_picture_url,ig_id,username&access_token=' . $efbl_page->access_token;
-                                    $fta_insta_connected_account = wp_remote_get( $fta_insta_connected_api_url, $args );
-                                } else {
-                                    $fta_insta_connected_account = '';
-                                }
-                                if ( is_array( $fta_insta_connected_account ) && !is_wp_error( $fta_insta_connected_account ) ) {
-                                    $fta_insta_connected_account = json_decode( $fta_insta_connected_account['body'] );
-                                    if ( 'insta' == $id ) {
-                                        if ( $fta_insta_connected_account->ig_id ) {
-                                            $logo_trasneint_name = 'esf_insta_logo_' . $fta_insta_connected_account->ig_id;
-                                            $auth_img_src = get_transient( $logo_trasneint_name );
-                                            if ( !$auth_img_src || '' == $auth_img_src ) {
-                                                $auth_img_src = 'https://graph.facebook.com/' . $efbl_page->id . '/picture?type=large&redirect=0&access_token=' . $access_token;
-                                                $auth_img_src = wp_remote_get( $auth_img_src, $args );
-                                                if ( is_array( $auth_img_src ) && !is_wp_error( $auth_img_src ) ) {
-                                                    $auth_img_src = json_decode( $auth_img_src['body'] );
-                                                    if ( isset( $auth_img_src->data->url ) && !empty( $auth_img_src->data->url ) ) {
-                                                        $auth_img_src = $auth_img_src->data->url;
-                                                        $local_img = esf_serve_media_locally( $fta_insta_connected_account->ig_id, $auth_img_src, 'instagram' );
-                                                        if ( $local_img ) {
-                                                            $auth_img_src = $local_img;
-                                                        }
-                                                        set_transient( $logo_trasneint_name, $auth_img_src, 30 * 60 * 60 * 24 );
-                                                    }
-                                                }
-                                            }
-                                            if ( isset( $auth_img_src->error ) && !empty( $auth_img_src->error ) ) {
-                                                if ( isset( $fta_insta_connected_account->profile_picture_url ) && !empty( $fta_insta_connected_account->profile_picture_url ) ) {
-                                                    $auth_img_src = $fta_insta_connected_account->profile_picture_url;
-                                                } else {
-                                                    $auth_img_src = '';
-                                                }
-                                            }
-                                            $efbl_all_pages_html .= sprintf(
-                                                '<li class="collection-item avatar fta_insta_connected_account li-' . $fta_insta_connected_account->ig_id . '">
-					 
-					<a href="https://www.instagram.com/' . $fta_insta_connected_account->username . '" target="_blank">
-							  <img src="%2$s" alt="" class="circle">
-					</a>  
-					<div class="esf-bio-wrap">        
-							  <span class="title">%1$s</span>
-							 <p>%5$s <br> %6$s %3$s <span class="dashicons dashicons-admin-page efbl_copy_id tooltipped" data-position="right" data-clipboard-text="%3$s" data-delay="100" data-tooltip="%7$s"></span></p></div>
-					 </li>',
-                                                $fta_insta_connected_account->name,
-                                                $auth_img_src,
-                                                $fta_insta_connected_account->id,
-                                                __( 'Instagram account connected with ' . $efbl_page->name . '', 'easy-facebook-likebox' ),
-                                                $fta_insta_connected_account->username,
-                                                __( 'ID:', 'easy-facebook-likebox' ),
-                                                __( 'Copy', 'easy-facebook-likebox' )
-                                            );
+            // Verify AJAX nonce when available.
+            if ( function_exists( 'esf_check_ajax_referer' ) ) {
+                esf_check_ajax_referer();
+            }
+            // Capability check.
+            if ( !(current_user_can( 'editor' ) || current_user_can( 'administrator' )) ) {
+                wp_send_json_error( __( 'You do not have permission to perform this action.', 'easy-facebook-likebox' ) );
+            }
+            $access_token = ( isset( $_POST['access_token'] ) ? sanitize_text_field( wp_unslash( $_POST['access_token'] ) ) : '' );
+            $connection_type = ( isset( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '' );
+            if ( '' === $access_token || '' === $connection_type ) {
+                wp_send_json_error( __( 'Invalid request. Missing required parameters.', 'easy-facebook-likebox' ) );
+            }
+            // Reuse a shared set of HTTP arguments for all remote requests.
+            $http_args = $this->http_args;
+            $pages_api_url = 'https://graph.facebook.com/me/accounts?fields=access_token,username,id,name,fan_count,category,about&access_token=' . $access_token;
+            $pages_api_response = wp_remote_get( $pages_api_url, $http_args );
+            if ( is_wp_error( $pages_api_response ) ) {
+                $error_msg = $pages_api_response->get_error_message();
+                if ( !$error_msg ) {
+                    $error_msg = __( 'Something went wrong! Refresh the page and try again', 'easy-facebook-likebox' );
+                }
+                wp_send_json_error( $error_msg );
+            }
+            if ( !is_array( $pages_api_response ) ) {
+                wp_send_json_error( __( 'Unexpected response from Facebook.', 'easy-facebook-likebox' ) );
+            }
+            $pages_body = wp_remote_retrieve_body( $pages_api_response );
+            if ( '' === $pages_body ) {
+                wp_send_json_error( __( 'Empty response from Facebook.', 'easy-facebook-likebox' ) );
+            }
+            $pages_data = json_decode( $pages_body );
+            if ( empty( $pages_data ) || !isset( $pages_data->data ) || !is_array( $pages_data->data ) || empty( $pages_data->data ) ) {
+                wp_send_json_error( __( 'No page found', 'easy-facebook-likebox' ) );
+            }
+            $approved_pages = array();
+            $title = __( 'Connected Instagram Accounts', 'easy-facebook-likebox' );
+            $efbl_all_pages_html = '<ul class="collection with-header"> <li class="collection-header"><h5>' . esc_html( $title ) . '</h5> ';
+            $efbl_all_pages_html .= '<a href="#fta-remove-at" class="modal-trigger fta-remove-at-btn tooltipped" data-position="left" data-delay="50" data-tooltip="' . esc_attr__( 'Delete Access Token', 'easy-facebook-likebox' ) . '"><span class="dashicons dashicons-trash"></span></a></li>';
+            // Collect list items separately for slightly more efficient concatenation.
+            $efbl_list_items = array();
+            // In-request logo cache to avoid repeated remote calls for the same Instagram ID.
+            $logo_cache = array();
+            foreach ( $pages_data->data as $page ) {
+                if ( !isset( $page->id, $page->access_token ) ) {
+                    continue;
+                }
+                $page_id = $page->id;
+                $page_token = $page->access_token;
+                $instagram_accounts_api_url = 'https://graph.facebook.com/v4.0/' . rawurlencode( $page_id ) . '/?fields=connected_instagram_account,instagram_accounts{username}&access_token=' . $page_token;
+                $instagram_accounts_api_response = wp_remote_get( $instagram_accounts_api_url, $http_args );
+                if ( is_wp_error( $instagram_accounts_api_response ) || !is_array( $instagram_accounts_api_response ) ) {
+                    continue;
+                }
+                $instagram_accounts_body = wp_remote_retrieve_body( $instagram_accounts_api_response );
+                if ( '' === $instagram_accounts_body ) {
+                    continue;
+                }
+                $instagram_accounts = json_decode( $instagram_accounts_body );
+                $instagram_business_account = null;
+                if ( isset( $instagram_accounts->connected_instagram_account ) && !empty( $instagram_accounts->connected_instagram_account->id ) ) {
+                    $instagram_account_id = $instagram_accounts->connected_instagram_account->id;
+                    $instagram_account_api_url = 'https://graph.facebook.com/v4.0/' . rawurlencode( $instagram_account_id ) . '/?fields=name,profile_picture_url,ig_id,username&access_token=' . $page_token;
+                    $instagram_account_api_result = wp_remote_get( $instagram_account_api_url, $http_args );
+                    if ( is_array( $instagram_account_api_result ) && !is_wp_error( $instagram_account_api_result ) ) {
+                        $instagram_account_body = wp_remote_retrieve_body( $instagram_account_api_result );
+                        if ( '' !== $instagram_account_body ) {
+                            $instagram_business_account = json_decode( $instagram_account_body );
+                        }
+                    }
+                }
+                if ( 'insta' === $connection_type && is_object( $instagram_business_account ) && !empty( $instagram_business_account->ig_id ) ) {
+                    $instagram_ig_id = $instagram_business_account->ig_id;
+                    $username = ( isset( $instagram_business_account->username ) ? $instagram_business_account->username : '' );
+                    $display_name = ( isset( $instagram_business_account->name ) ? $instagram_business_account->name : '' );
+                    $instagram_user_id = ( isset( $instagram_business_account->id ) ? $instagram_business_account->id : '' );
+                    $logo_trasneint_name = 'esf_insta_logo_' . $instagram_ig_id;
+                    // Try to use in-request cache first.
+                    if ( isset( $logo_cache[$instagram_ig_id] ) ) {
+                        $auth_img_src = $logo_cache[$instagram_ig_id];
+                    } else {
+                        $auth_img_src = get_transient( $logo_trasneint_name );
+                        // If a local/transient URL exists but is no longer valid (404),
+                        // treat it as empty so we can regenerate or fall back gracefully.
+                        if ( !empty( $auth_img_src ) && function_exists( 'esf_is_valid_image_url' ) && !esf_is_valid_image_url( $auth_img_src ) ) {
+                            $auth_img_src = '';
+                        }
+                        if ( empty( $auth_img_src ) ) {
+                            $auth_img_src_url = 'https://graph.facebook.com/' . rawurlencode( $page_id ) . '/picture?type=large&redirect=0&access_token=' . $access_token;
+                            $auth_img_src_response = wp_remote_get( $auth_img_src_url, $http_args );
+                            if ( is_array( $auth_img_src_response ) && !is_wp_error( $auth_img_src_response ) ) {
+                                $auth_img_src_body = wp_remote_retrieve_body( $auth_img_src_response );
+                                if ( '' !== $auth_img_src_body ) {
+                                    $auth_img_src_decoded = json_decode( $auth_img_src_body );
+                                    if ( isset( $auth_img_src_decoded->data->url ) && !empty( $auth_img_src_decoded->data->url ) ) {
+                                        $auth_img_src = $auth_img_src_decoded->data->url;
+                                        $local_logo_url = esf_serve_media_locally( $instagram_ig_id, $auth_img_src, 'instagram' );
+                                        if ( $local_logo_url ) {
+                                            $auth_img_src = $local_logo_url;
                                         }
+                                        set_transient( $logo_trasneint_name, $auth_img_src, 30 * 60 * 60 * 24 );
                                     }
                                 }
-                                $efbl_page = (array) $efbl_page;
-                                $approved_pages[$efbl_page['id']] = $efbl_page;
-                                $approved_pages[$efbl_page['id']]['instagram_accounts'] = $fta_insta_accounts;
-                                $approved_pages[$efbl_page['id']]['instagram_connected_account'] = $fta_insta_connected_account;
                             }
                         }
-                        $efbl_all_pages_html .= '</ul>';
-                        $FTA = new Feed_Them_All();
-                        $fta_settings = $FTA->fta_get_settings();
-                        $fta_settings['plugins']['facebook']['approved_pages'] = $approved_pages;
-                        $fta_settings['plugins']['facebook']['access_token'] = $access_token;
-                        $fta_self_url = 'https://graph.facebook.com/me?fields=id,name&access_token=' . $access_token;
-                        $fta_self_data = wp_remote_get( $fta_self_url, $args );
-                        if ( is_array( $fta_self_data ) && !is_wp_error( $fta_self_data ) ) {
-                            $fta_self_data = json_decode( $fta_self_data['body'] );
-                            $fta_settings['plugins']['facebook']['author'] = $fta_self_data;
+                        // Fallback to Instagram profile picture if page picture failed or is empty.
+                        if ( empty( $auth_img_src ) && isset( $instagram_business_account->profile_picture_url ) && !empty( $instagram_business_account->profile_picture_url ) ) {
+                            $auth_img_src = $instagram_business_account->profile_picture_url;
                         }
-                        $fta_settings['plugins']['instagram']['selected_type'] = 'business';
-                        update_option( 'fta_settings', $fta_settings );
-                        wp_send_json_success( array(__( 'Successfully Authenticated!', 'easy-facebook-likebox' ), $efbl_all_pages_html) );
-                    } else {
-                        wp_send_json_error( __( 'No page found', 'easy-facebook-likebox' ) );
+                        // Cache the result for this request (including empty string).
+                        $logo_cache[$instagram_ig_id] = $auth_img_src;
                     }
-                } else {
-                    if ( $fta_pages->get_error_message() ) {
-                        $error_msg = $fta_pages->get_error_message();
-                    } else {
-                        $error_msg = __( 'Something went wrong! Refresh the page and try again', 'easy-facebook-likebox' );
+                    if ( '' !== $instagram_user_id ) {
+                        $efbl_list_items[] = sprintf(
+                            '<li class="collection-item avatar fta_insta_connected_account li-%1$s">
+					 
+					<a href="https://www.instagram.com/%2$s" target="_blank">
+							  <img src="%3$s" alt="" class="circle">
+					</a>  
+					<div class="esf-bio-wrap">        
+							  <span class="title">%4$s</span>
+							 <p>%5$s <br> %6$s %7$s <span class="dashicons dashicons-admin-page efbl_copy_id tooltipped" data-position="right" data-clipboard-text="%7$s" data-delay="100" data-tooltip="%8$s"></span></p></div>
+					 </li>',
+                            esc_attr( $instagram_ig_id ),
+                            esc_attr( $username ),
+                            esc_url( $auth_img_src ),
+                            esc_html( $display_name ),
+                            esc_html( $username ),
+                            esc_html__( 'ID:', 'easy-facebook-likebox' ),
+                            esc_html( $instagram_user_id ),
+                            esc_attr__( 'Copy', 'easy-facebook-likebox' )
+                        );
                     }
-                    wp_send_json_error( $error_msg );
+                }
+                // Store raw data for settings so other parts of the plugin keep working.
+                $page_array = (array) $page;
+                $approved_pages[$page_array['id']] = $page_array;
+                $approved_pages[$page_array['id']]['instagram_accounts'] = ( isset( $instagram_accounts ) ? $instagram_accounts : null );
+                $approved_pages[$page_array['id']]['instagram_connected_account'] = ( isset( $instagram_business_account ) ? $instagram_business_account : null );
+            }
+            // Append any collected list items to the wrapper.
+            if ( !empty( $efbl_list_items ) ) {
+                $efbl_all_pages_html .= implode( '', $efbl_list_items );
+            }
+            $efbl_all_pages_html .= '</ul>';
+            $feed_them_all = new Feed_Them_All();
+            $settings = $feed_them_all->fta_get_settings();
+            $settings['plugins']['facebook']['approved_pages'] = $approved_pages;
+            $settings['plugins']['facebook']['access_token'] = $access_token;
+            $author_api_url = 'https://graph.facebook.com/me?fields=id,name&access_token=' . $access_token;
+            $author_api_response = wp_remote_get( $author_api_url, $http_args );
+            if ( is_array( $author_api_response ) && !is_wp_error( $author_api_response ) ) {
+                $author_body = wp_remote_retrieve_body( $author_api_response );
+                if ( '' !== $author_body ) {
+                    $author_data = json_decode( $author_body );
+                    $settings['plugins']['facebook']['author'] = $author_data;
                 }
             }
+            $settings['plugins']['instagram']['selected_type'] = 'business';
+            update_option( 'fta_settings', $settings );
+            wp_send_json_success( array(__( 'Successfully Authenticated!', 'easy-facebook-likebox' ), $efbl_all_pages_html) );
         }
 
         /*

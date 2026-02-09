@@ -3,7 +3,7 @@ Contributors: DaNish Ali, maltathemes, sjaved, freemius
 Tags: Instagram feed, Instagram photos, Instagram gallery, Facebook feed, Facebook posts
 Requires at least: 3.3
 Tested up to: 6.9
-Stable tag: 6.7.3
+Stable tag: 6.7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -309,6 +309,10 @@ Use the shortcode generator to select your preferred post types.
 
 == Changelog ==
 
+= 6.7.4 =
+* Fixed: Instagram Business connection failing due to deprecated `profile_pic` field in the Graph API, replaced with supported fields to restore authentication.
+* Fixed: Minor issues
+
 = 6.7.3 =
 * Added: GDPR option for Facebook and Instagram feeds (Automatic, Always Enabled, or Disabled) to work with popular cookie consent plugins
 * Added: Translation tab under Settings to globally customize static frontend text (buttons, labels, messages) for both Facebook and Instagram feeds
@@ -348,3 +352,6 @@ Older changelog entries are available on our website:
 https://easysocialfeed.com/changelog
 
 == Upgrade Notice ==
+
+= 6.7.4 =
+Important fix for Instagram Business connection. Update recommended.

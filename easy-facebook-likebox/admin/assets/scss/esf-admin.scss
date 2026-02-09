@@ -168,14 +168,6 @@ h5{
   text-align: center;
   position: relative;
 
-.esf-hide-free-sidebar{
-  position: absolute;
-  right: 5px;
-  font-size: 22px;
-  cursor: pointer;
-  top: 5px;
-}
-
   b {
 	text-shadow: 3px 2px #d25d53;
   }
@@ -720,9 +712,6 @@ code{
 .fta_wrap_outer{
   float: left;
   width: 98%;
-}
-.esf-sidebar-is-hide{
-  width: 98% !important;
 }
 .fta_wrap {
 
@@ -1739,7 +1728,7 @@ code{
 
 .toplevel_page_feed-them-all {
 
-  .fta_wrap, .fta-other-plugins-sidebar {
+  .fta_wrap {
 	margin-top: 20px !important;
   }
 
@@ -1811,88 +1800,6 @@ code{
   height: 100% !important;
 }
 
-.fta-other-plugins-sidebar{
-  float: left;
-  width: 21%;
-  margin-left: 5px;
-  margin-top: 40px;
-  .fta-other-plugins-wrap {
-	float: left;
-	width: 100%;
-	background: #fff;
-	text-align: center;
-
-	.fta-other-plugins-head {
-	  background-color: #ed6d62;
-	  color: #fff;
-	  padding: 5px 2px;
-	  position: relative;
-	}
-
-	.fta-plugins-carousel {
-
-	  padding: 0px 10px;
-
-	  h2 {
-		font-size: 1.8rem;
-		margin: 0;
-	  }
-
-	  p {
-		letter-spacing: .5px;
-		line-height: 1.5;
-		font-size: 15px;
-	  }
-
-	  .stars {
-		color: #ffb900;
-		font-size: 15px;
-	  }
-
-	  .fta-carousel-actions {
-		margin-top: 20px;
-		float: left;
-		width: 100%;
-
-		a {
-		  background-color: #ff8c00;
-		  padding: 10px 18px;
-		  font-size: 16px;
-		  float: left;
-		  color: #fff;
-		  &:hover{
-			opacity: .9;
-		  }
-		}
-
-
-		a.right {
-		  background-color: #0693e3;
-		}
-	  }
-
-	  li {
-		min-height: auto;
-	  }
-
-
-
-	  .indicators {
-		bottom: -10px;
-
-		.indicator-item {
-		  background-color: #ed6d62;
-		}
-
-		.indicator-item.active {
-		  background-color: #feb901;
-		}
-	  }
-
-	}
-  }
-}
-
 .fta-partners-wrap{
   margin-top: 5px;
 
@@ -1909,39 +1816,6 @@ code{
 }
 
 
-.easy-social-feed_page_easy-facebook-likebox .fta-other-plugins-wrap {
-  .fta-other-plugins-head {
-	background-color: #018fd0;
-	position: relative;
-	.esf-hide-free-sidebar{
-	  position: absolute;
-	  right: 5px;
-	  font-size: 22px;
-	  cursor: pointer;
-	}
-  }
-
-  .indicators .indicator-item {
-	background-color: #018fd0;
-  }
-}
-
-.esf-hide-free-sidebar{
-  position: absolute;
-  right: 5px;
-  font-size: 22px;
-  cursor: pointer;
-}
-
-.easy-social-feed_page_mif .fta-other-plugins-wrap {
-  .fta-other-plugins-head {
-	background-color: #d23167;
-  }
-
-  .indicators .indicator-item {
-	background-color: #d23167;
-  }
-}
 #fs_connect {
   float: none;
   margin: 150px auto !important;
@@ -2006,84 +1880,132 @@ code{
   #toast-container .toast {
     background-color: #23a455 !important;
   }
+}
 
-  /* Modern upgrade notice (settings page only): soft card, always visible for free users */
-  .esf-settings-upgrade-notice {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-top: 24px;
-    padding: 16px 20px;
-    background: #f6f7f7;
-    border: 1px solid #dcdcde;
-    border-left: 4px solid #23a455;
-    border-radius: 4px;
-    box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
-  }
+/* Upgrade notice: shared on settings, Facebook, Instagram, and main ESF pages */
+.esf-settings-upgrade-notice {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px 20px;
+  background: #f6f7f7;
+  border: 1px solid #dcdcde;
+  border-left: 4px solid #23a455;
+  border-radius: 4px;
+  box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
+}
 
-  .esf-settings-upgrade-notice__icon {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    font-size: 28px;
-    color: #23a455;
-    line-height: 1;
-  }
+.esf-settings-upgrade-notice__icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  font-size: 28px;
+  color: #23a455;
+  line-height: 1;
+}
 
-  .esf-settings-upgrade-notice__content {
-    flex: 1;
-    min-width: 0;
-  }
+.esf-settings-upgrade-notice__content {
+  flex: 1;
+  min-width: 0;
+}
 
-  .esf-settings-upgrade-notice__title {
-    margin: 0 0 4px 0;
-    font-size: 14px;
-    font-weight: 600;
+.esf-settings-upgrade-notice__title {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d2327;
+  line-height: 1.4;
+}
+
+.esf-settings-upgrade-notice__text {
+  margin: 0;
+  font-size: 13px;
+  color: #50575e;
+  line-height: 1.5;
+
+  code {
+    padding: 2px 6px;
+    font-size: 12px;
+    background: #fff;
     color: #1d2327;
-    line-height: 1.4;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
   }
+}
 
-  .esf-settings-upgrade-notice__text {
-    margin: 0;
-    font-size: 13px;
-    color: #50575e;
-    line-height: 1.5;
+.esf-settings-upgrade-notice__button {
+  flex-shrink: 0;
+  text-decoration: none;
+  white-space: nowrap;
+  background: #23a455 !important;
+  border-color: #1e8f4a !important;
+  color: #fff !important;
+  box-shadow: 0 1px 0 #1e8f4a !important;
 
-    code {
-      padding: 2px 6px;
-      font-size: 12px;
-      background: #fff;
-      color: #1d2327;
-      border: 1px solid #dcdcde;
-      border-radius: 3px;
-    }
+  &:hover,
+  &:focus {
+    background: #1a7d40 !important;
+    border-color: #166b36 !important;
+    color: #fff !important;
+  }
+}
+
+@media screen and (max-width: 782px) {
+  .esf-settings-upgrade-notice {
+    flex-wrap: wrap;
   }
 
   .esf-settings-upgrade-notice__button {
-    flex-shrink: 0;
-    text-decoration: none;
-    white-space: nowrap;
-    background: #23a455 !important;
-    border-color: #1e8f4a !important;
-    color: #fff !important;
-    box-shadow: 0 1px 0 #1e8f4a !important;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Facebook page: blue accent (#018fd0) for upgrade notice */
+.easy-social-feed_page_easy-facebook-likebox {
+  .esf-settings-upgrade-notice {
+    border-left-color: #018fd0;
+  }
+
+  .esf-settings-upgrade-notice__icon {
+    color: #018fd0;
+  }
+
+  .esf-settings-upgrade-notice__button {
+    background: #018fd0 !important;
+    border-color: #0172b3 !important;
+    box-shadow: 0 1px 0 #0172b3 !important;
 
     &:hover,
     &:focus {
-      background: #1a7d40 !important;
-      border-color: #166b36 !important;
+      background: #01608f !important;
+      border-color: #014d6e !important;
       color: #fff !important;
     }
   }
+}
 
-  @media screen and (max-width: 782px) {
-    .esf-settings-upgrade-notice {
-      flex-wrap: wrap;
-    }
+/* Instagram page: pink accent (#d23167) for upgrade notice */
+.easy-social-feed_page_mif {
+  .esf-settings-upgrade-notice {
+    border-left-color: #d23167;
+  }
 
-    .esf-settings-upgrade-notice__button {
-      width: 100%;
-      text-align: center;
+  .esf-settings-upgrade-notice__icon {
+    color: #d23167;
+  }
+
+  .esf-settings-upgrade-notice__button {
+    background: #d23167 !important;
+    border-color: #b82a5a !important;
+    box-shadow: 0 1px 0 #b82a5a !important;
+
+    &:hover,
+    &:focus {
+      background: #a0264d !important;
+      border-color: #7d1d3b !important;
+      color: #fff !important;
     }
   }
 }

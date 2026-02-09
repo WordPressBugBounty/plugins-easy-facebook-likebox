@@ -251,31 +251,6 @@ jQuery( document ).ready(
 			}
 		);
 
-		jQuery( '.esf-hide-free-sidebar' ).click(
-			function() {
-
-				const id   = jQuery( this ).data( 'id' );
-				const data = {'action': 'esf_hide_free_sidebar', 'id' : id, 'nonce': fta.nonce };
-				jQuery.ajax(
-					{
-						url: fta.ajax_url,
-						type: 'post',
-						data: data,
-						dataType: 'json',
-						async: ! 0,
-						success: function(response) {
-
-							if (response.success) {
-								jQuery( '.esf-hide-' + id ).slideUp( 'fast' );
-							} else {
-								esfShowNotification( response.data, 4000 );
-							}
-						},
-					}
-				);
-			}
-		);
-
 		jQuery( '.esf_hide_updated_notice' ).click(
 			function() {
 
@@ -397,6 +372,39 @@ jQuery( document ).ready(
 			jQuery( '.efbl-tabs-vertical #' + sub_tab ).addClass( 'active' ).fadeIn( 'slow' );
 
 		}
+
+		/*
+		 * General settings (Settings page) - preserve settings on uninstall
+		 */
+		jQuery( document ).on( 'click', '.esf-save-general-settings', function() {
+			var $btn = jQuery( this );
+			var origText = $btn.html();
+			$btn.prop( 'disabled', true ).html( typeof fta !== 'undefined' && fta.saving ? fta.saving : 'Saving…' );
+			jQuery.ajax({
+				url: typeof fta !== 'undefined' ? fta.ajax_url : '',
+				type: 'POST',
+				data: {
+					action: 'esf_save_general_settings',
+					preserve_settings_on_uninstall: jQuery( '#esf_preserve_settings_on_uninstall' ).is( ':checked' ) ? '1' : '0',
+					nonce: typeof fta !== 'undefined' ? fta.nonce : '',
+				},
+				dataType: 'json',
+				success: function( response ) {
+					esfShowNotification( response.data || ( response.success ? 'Saved.' : ( typeof fta !== 'undefined' ? fta.error : 'Error' ) ), 3000 );
+					if ( response.success ) {
+						jQuery( '#toast-container' ).addClass( 'efbl_green' );
+					} else {
+						jQuery( '#toast-container' ).addClass( 'esf-failed-notification' );
+					}
+					$btn.prop( 'disabled', false ).html( origText );
+				},
+				error: function() {
+					esfShowNotification( typeof fta !== 'undefined' ? fta.error : 'Something went wrong.', 3000 );
+					jQuery( '#toast-container' ).addClass( 'esf-failed-notification' );
+					$btn.prop( 'disabled', false ).html( origText );
+				},
+			});
+		});
 
 		/*
 		 * Global GDPR settings (Settings page)

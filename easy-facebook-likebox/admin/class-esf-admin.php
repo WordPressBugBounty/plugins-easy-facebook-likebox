@@ -70,6 +70,14 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			);
 
 			add_action(
+				'wp_ajax_esf_save_general_settings',
+				array(
+					$this,
+					'esf_save_general_settings',
+				)
+			);
+
+			add_action(
 				'wp_ajax_esf_save_gdpr_settings',
 				array(
 					$this,
@@ -102,26 +110,10 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			);
 
 			add_action(
-				'wp_ajax_esf_hide_sale_notice',
-				array(
-					$this,
-					'esf_hide_sale_notice',
-				)
-			);
-
-			add_action(
 				'wp_ajax_esf_hide_row_notice',
 				array(
 					$this,
 					'hide_row_notice',
-				)
-			);
-
-			add_action(
-				'wp_ajax_esf_hide_free_sidebar',
-				array(
-					$this,
-					'hide_free_sidebar',
 				)
 			);
 
@@ -359,6 +351,29 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 		}
 
 		/**
+		 * Save global General settings (e.g. preserve on uninstall) via AJAX.
+		 *
+		 * @since 6.8.0
+		 */
+		public function esf_save_general_settings() {
+			esf_check_ajax_referer();
+
+			$FTA          = new Feed_Them_All();
+			$fta_settings = $FTA->fta_get_settings();
+			if ( ! is_array( $fta_settings ) ) {
+				$fta_settings = array();
+			}
+
+			$preserve = isset( $_POST['preserve_settings_on_uninstall'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['preserve_settings_on_uninstall'] ) );
+			$fta_settings['preserve_settings_on_uninstall'] = $preserve ? 1 : 0;
+
+			update_option( 'fta_settings', $fta_settings );
+
+			// update_option returns false when value is unchanged; that is still success.
+			wp_send_json_success( __( 'Settings saved successfully!', 'easy-facebook-likebox' ) );
+		}
+
+		/**
 		 * Save global GDPR setting via AJAX.
 		 *
 		 * @since 6.8.0
@@ -581,50 +596,6 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 				<?php
 			}
 
-			if ( efl_fs()->is_free_plan() ) {
-				if ( get_site_option( 'fta_bfcm_sale_twentytwentyfive' ) !== 'yes' ) {
-					?>
-				<div style="position:relative;padding-right:80px;background: #000;color: #fff;border-bottom: 5px solid #e91313;" class="update-nag fta_msg fta_sale">
-					<p style="margin-right: 40px;">
-						<b><?php esc_html_e( '49% OFF Easy Social Feed ', 'easy-facebook-likebox' ); ?></b>
-						<?php esc_html_e( 'is just a click away! Use code ', 'easy-facebook-likebox' ); ?>
-						<b><?php esc_html_e( 'FSBFCM2025', 'easy-facebook-likebox' ); ?></b>
-						<?php esc_html_e( 'before the sale ends!', 'easy-facebook-likebox' ); ?>
-					</p>
-					<div class="fl_support_btns">
-						<a href="<?php echo admin_url( 'admin.php?page=feed-them-all-pricing' ); ?>"
-							class="esf_hide_sale button button-primary" style="background: #e91313;border-color: #e91313;
-">
-							<?php esc_html_e( 'Checkout Now', 'easy-facebook-likebox' ); ?>
-						</a>
-						<div class="esf_hide_sale" style="position:absolute;right:10px;cursor:pointer;top:4px;color: #029be4;">
-							<div style="font-weight:bold;" class="dashicons dashicons-no-alt"></div>
-							<span style="margin-left: 2px;">
-								<?php esc_html_e( 'Dismiss', 'easy-facebook-likebox' ); ?>
-							</span>
-						</div>
-					</div>
-				</div>
-				<script>
-					jQuery('.esf_hide_sale').click(function() {
-					var data = {'action': 'esf_hide_sale_notice'};
-						jQuery.ajax({
-								url: "<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>",
-								type: 'post',
-								data: data,
-								dataType: 'json',
-								async: !0,
-								success: function(e) {
-								if(e === 'success'){
-									jQuery('.fta_sale').slideUp('fast');
-								}
-								},
-						});
-						});
-				</script>
-					<?php
-				}
-			}
 			return false;
 		}
 
@@ -639,12 +610,6 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			wp_die();
 		}
 
-		public function esf_hide_sale_notice() {
-			update_site_option( 'fta_bfcm_sale_twentytwentyfive', 'yes' );
-			echo wp_json_encode( array( 'success' ) );
-			wp_die();
-		}
-
 		/**
 		 * Hide row layout notice permenately
 		 */
@@ -652,53 +617,6 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			update_site_option( 'fta_row_layout_notice', 'yes' );
 			echo wp_json_encode( array( 'success' ) );
 			wp_die();
-		}
-
-		/**
-		 * Hide sidebar for free users
-		 *
-		 * @since 6.2.3
-		 */
-		public function hide_free_sidebar() {
-
-			esf_check_ajax_referer();
-
-			$FTA                           = new Feed_Them_All();
-			$fta_settings                  = $FTA->fta_get_settings();
-			$id                            = sanitize_text_field( $_POST['id'] );
-			$fta_settings[ 'hide_' . $id ] = true;
-			$updated                       = update_option( 'fta_settings', $fta_settings );
-			if ( isset( $updated ) && ! is_wp_error( $updated ) ) {
-				wp_send_json_success( __( 'Updated!', 'easy-facebook-likebox' ) );
-			} else {
-				wp_send_json_error( __( 'Something went wrong! Please try again', 'easy-facebook-likebox' ) );
-			}
-		}
-
-
-		/**
-		 * Returns plugin install link
-		 *
-		 * @since 1.0.0
-		 *
-		 * @param $slug
-		 *
-		 * @return string
-		 */
-		function esf_get_plugin_install_link( $slug ) {
-			$action       = 'install-plugin';
-			$install_link = wp_nonce_url(
-				add_query_arg(
-					array(
-						'action' => $action,
-						'plugin' => $slug,
-					),
-					admin_url( 'update.php' )
-				),
-				$action . '_' . $slug
-			);
-
-			return $install_link;
 		}
 
 		/**
@@ -868,33 +786,6 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			return $return_arr;
 		}
 
-		public function mt_plugins_info() {
-
-			$plugins = array();
-
-			$plugins['floating-links'] = array(
-				'name'            => 'Floating Links',
-				'description'     => 'Displays social sharing icons along with fancy floating back to top and go to bottom links along with go to next post, previous post and random post links on post detail pages. Its tested and works with custom post types too. 
-											Easy and free social media integration plugin to make your posts viral on the social network. It’s highly customisable, professional and responsive.',
-				'active_installs' => '700+',
-
-			);
-			$plugins['wpoptin'] = array(
-				'name'            => 'WPOptin',
-				'description'     => 'The easiest and beginner friendly opt-in plugin to grow email subscribers list, sell more, get more phone calls, increase Facebook fan page likes and get more leads faster than ever.',
-				'active_installs' => '200+',
-
-			);
-			$plugins['easy-tiktok-feed'] = array(
-				'name'            => 'Easy TikTok Feed',
-				'description'     => 'The easiest and beginner friendly TikTok feed plugin to display SEO friendly, responsive and highly customizeable videos from your TikTok account or Hashtag on your WordPress site. 
-											A perfect way to monetise your TikTok videos on your website through Google Adsense and affiliates.',
-				'active_installs' => 'Just Released',
-
-			);
-
-			return $plugins;
-		}
 
 		/**
 		 * Get upgrade banner info from main site
@@ -916,30 +807,6 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 				);
 
 				return $banner_info;
-		}
-
-		function mt_plugin_install_link( $slug ) {
-
-			if ( ! is_plugin_active( $slug . '/' . $slug . '.php' ) ) {
-
-				$esf_install_link = wp_nonce_url(
-					add_query_arg(
-						array(
-							'action' => 'install-plugin',
-							'plugin' => $slug,
-						),
-						admin_url( 'update.php' )
-					),
-					'install-plugin' . '_' . $slug
-				);
-
-			} else {
-
-				$esf_install_link = '#';
-
-			}
-
-			return $esf_install_link;
 		}
 
 		/**
@@ -990,64 +857,6 @@ if ( ! class_exists( 'ESF_Admin' ) ) {
 			<?php
 		}
 
-		/**
-		 * Add affilate on the addons page
-		 *
-		 * @return false|void
-		 */
-		public function add_affilates() {
-			$screen = get_current_screen();
-
-			if ( $screen->id !== 'easy-social-feed_page_feed-them-all-addons' ) {
-				return false;
-			}
-			?>
-			<div class="esf-affilates-wrap" style="display: none;">
-				<div class="esf-affilates">
-					<div class="esf-affilates__logo">
-						<img src="<?php echo FTA_PLUGIN_URL . 'admin/assets/images/accessibe-logo.svg'; ?>" alt="Affilates Logo">
-					</div>
-					<div class="esf-affilates__content">
-						<h1 class="esf-affilates__title"><?php esc_html_e( 'Website Accessibility', 'easy-facebook-likebox' ); ?></h1>
-						<p class="esf-affilates__desc"><?php esc_html_e( 'Fully automated web accessibility technology that complies with the WCAG 2.1 and keeps your website accessible at all times', 'easy-facebook-likebox' ); ?></p>
-						<a class="button button-primary" href="https://accessibe.com/a/a2fxxop" target="_blank"><?php esc_html_e( 'Get it', 'easy-facebook-likebox' ); ?></a>
-					</div>
-				</div>
-			</div>
-			<script>
-				jQuery(document).ready(function ($) {
-					const html =  $('.esf-affilates-wrap').html();
-					$('.easy-social-feed_page_feed-them-all-addons #poststuff').prepend(html);
-				});
-			</script>
-			<style>
-				.easy-social-feed_page_feed-them-all-addons #poststuff {
-					display: flex;
-				}
-				.easy-social-feed_page_feed-them-all-addons .esf-affilates {
-					max-width: 300px;
-					padding: 20px;
-					background-color: #fff;
-					text-align: center;
-					margin-top: 13px;
-				}
-				.easy-social-feed_page_feed-them-all-addons .esf-affilates .esf-affilates__title {
-					font-weight: bold;
-				}
-				.easy-social-feed_page_feed-them-all-addons .esf-affilates .esf-affilates__logo,
-				.easy-social-feed_page_feed-them-all-addons .esf-affilates .esf-affilates__title,
-				.easy-social-feed_page_feed-them-all-addons .esf-affilates .esf-affilates__desc {
-					padding-bottom: 20px;
-					margin: 0;
-				}
-				.easy-social-feed_page_feed-them-all-addons .esf-affilates .esf-affilates__logo {
-					max-width: 150px;
-					float: none;
-					margin: 0 auto;
-				}
-			</style>
-			<?php
-		}
 	}
 
 	new ESF_Admin();

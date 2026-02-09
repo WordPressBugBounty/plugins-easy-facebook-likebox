@@ -6,29 +6,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$FTA = new Feed_Them_All();
+$FTA        = new Feed_Them_All();
+$ESF_Admin  = new ESF_Admin();
+$banner_info = $ESF_Admin->esf_upgrade_banner();
 
 $fta_all_plugs = $FTA->fta_plugins();
 $fta_settings  = $FTA->fta_get_settings();
-if ( isset( $fta_settings['hide_plugin'] ) ) {
-	$hide_plugin = $fta_settings['hide_plugin'];
-}
 
-if ( isset( $fta_settings['hide_upgrade'] ) ) {
-	$hide_upgrade = $fta_settings['hide_upgrade'];
-}
-
-if ( isset( $hide_plugin ) && isset( $hide_upgrade ) ) {
-	$hide_sidebar_class = 'esf-sidebar-is-hide';
-} else {
-	$hide_sidebar_class = '';
-}
 ?>
-	<div class="fta_wrap_outer <?php esc_attr_e( $hide_sidebar_class ); ?>" 
-		<?php
-		if ( efl_fs()->is_free_plan() ) {
-		?>
-    style="width: 78%" <?php } ?>>
+	<div class="fta_wrap_outer">
 		<h1 class="esf-main-heading">
 			<?php esc_html_e( 'Easy Social Feed (Previously Easy Facebook Likebox)', 'easy-facebook-likebox' ); ?>
 		</h1>
@@ -159,143 +145,7 @@ if ( isset( $hide_plugin ) && isset( $hide_upgrade ) ) {
 			</div>
 		</div>
 	</div>
-
+	<?php require_once FTA_PLUGIN_DIR . 'admin/views/html-upgrade-notice.php'; ?>
 	</div>
-
-<?php
-if ( efl_fs()->is_free_plan() ) {
-	if ( ! isset( $hide_plugin ) || ! isset( $hide_upgrade ) ) {
-		$mt_plugins = $this->mt_plugins_info();
-		?>
-
-	<div class="fta-other-plugins-sidebar">
-
-		<?php
-		$banner_info = $this->esf_upgrade_banner();
-		if ( ! isset( $fta_settings['hide_upgrade'] ) ) {
-			?>
-
-			<div class="espf-upgrade z-depth-2 esf-hide-upgrade">
-				<div class="dashicons dashicons-no-alt esf-hide-free-sidebar" data-id="upgrade"></div>
-				<h2>
-				<?php
-				if ( $banner_info['name'] ) {
-						esc_html_e( $banner_info['name'] );
-				}
-				if ( $banner_info['bold'] ) {
-					?>
-						<b>
-					<?php esc_html_e( $banner_info['bold'] ); ?>
-						</b>
-                    <?php } ?>
-				</h2>
-				<?php if ( $banner_info['fb-description'] ) { ?>
-					<p><?php esc_html_e( $banner_info['fb-description'] ); ?></p>
-				<?php } ?>
-				<p>
-					<?php
-					if ( $banner_info['discount-text'] ) {
-						esc_html_e( $banner_info['discount-text'] );
-					}
-					if ( $banner_info['coupon'] ) {
-						?>
-					    <code><?php esc_html_e( $banner_info['coupon'] ); ?></code>
-					<?php } ?>
-				</p>
-				<a href="<?php echo esc_url( $banner_info['button-url'] ); ?>"
-					<?php if ( $banner_info['target'] ) { ?>
-						target="<?php esc_attr_e( $banner_info['target'] ); ?>"
-					<?php } ?>
-                    class="btn">
-                    <span class="dashicons dashicons-unlock right"></span>
-					<?php esc_html_e( $banner_info['button-text'] ); ?>
-				</a>
-			</div>
-
-		<?php } ?>
-
-		<?php if ( $mt_plugins ) { ?>
-
-	<div class="fta-other-plugins-wrap z-depth-1 esf-hide-plugin">
-
-		<div class="fta-other-plugins-head">
-			<div class="dashicons dashicons-no-alt esf-hide-free-sidebar" data-id="plugin"></div>
-			<h5><?php esc_html_e( 'Love this plugin?', 'easy-facebook-likebox' ); ?></h5>
-			<p><?php esc_html_e( 'Then why not try our other FREE plugins.', 'easy-facebook-likebox' ); ?></p>
-		</div>
-
-		<div class="fta-plugins-carousel" id="esf-carousel-wrap">
-			<ul class="esf-carousel">
-
-						<?php
-						foreach ( $mt_plugins as $slug => $mt_plugin ) {
-
-							$install_link = $this->mt_plugin_install_link( $slug );
-							?>
-
-					<li href="<?php esc_attr_e( $slug ); ?>">
-
-							<?php if ( $mt_plugin['name'] ) { ?>
-
-							<h2><?php esc_html_e( $mt_plugin['name'] ); ?></h2>
-
-						<?php } ?>
-
-							<?php if ( $mt_plugin['description'] ) { ?>
-
-							<p><?php echo nl2br( esc_html( $mt_plugin['description'] ) ); ?></p>
-
-						<?php } ?>
-
-							<?php if ( $mt_plugin['active_installs'] ) { ?>
-
-							<p>
-								<?php
-								if ( esf_safe_strpos( $mt_plugin['active_installs'], 'Just' ) !== false ) {
-									esc_html_e( $mt_plugin['active_installs'] );
-								} else {
-									esc_html_e( 'Active Installs: ', 'easy-facebook-likebox' );
-									esc_html_e( $mt_plugin['active_installs'] );
-								}
-								?>
-								</p>
-
-						<?php } ?>
-
-						<span title="<?php esc_html_e( '5-Star Rating', 'easy-facebook-likebox' ); ?>"
-							    class="stars">★ ★ ★ ★ ★ </span>
-
-						<div class="fta-carousel-actions">
-							<a href="<?php echo esc_url( $install_link ); ?>">
-												<?php
-												if ( filter_var( $install_link, FILTER_VALIDATE_URL ) === false ) {
-														esc_html_e( 'Already Installed', 'easy-facebook-likebox' );
-												} else {
-													esc_html_e( 'Install Now Free', 'easy-facebook-likebox' );
-												}
-												?>
-								</a>
-
-							<a class="right"
-							    href="https://wordpress.org/plugins/<?php esc_attr_e( $slug ); ?>"
-							    target="_blank"><?php esc_html_e( 'More Info', 'easy-facebook-likebox' ); ?></a>
-						</div>
-
-					</li>
-						<?php } ?>
-
-			</ul>
-		</div>
-	</div>
-
-		<?php } ?>
-
-
-	</div>
-
-		<?php
-	}
-}
-?>
-
+</div>
 <div class="esf-notification-holder"><?php esc_html_e( 'Copied', 'easy-facebook-likebox' ); ?></div>
