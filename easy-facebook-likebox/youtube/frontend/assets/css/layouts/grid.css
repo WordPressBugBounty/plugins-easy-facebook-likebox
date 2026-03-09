@@ -1,0 +1,33 @@
+/**
+ * YouTube Feed – Grid layout
+ * Compiled from frontend/assets/scss/layouts/grid.scss
+ *
+ * @package Easy_Social_Feed
+ * @subpackage YouTube/Frontend
+ * @since 6.7.5
+ */
+
+.esf-yt-feed__grid {
+	--esf-yt-col-desktop: 3;
+	--esf-yt-col-tablet: 2;
+	--esf-yt-col-mobile: 1;
+	--esf-yt-gap: 16px;
+}
+
+.esf-yt-feed__grid-inner {
+	display: grid;
+	grid-template-columns: repeat(var(--esf-yt-col-desktop, 3), 1fr);
+	gap: var(--esf-yt-gap, 16px);
+}
+
+@media (max-width: 768px) {
+	.esf-yt-feed__grid-inner {
+		grid-template-columns: repeat(var(--esf-yt-col-tablet, 2), 1fr);
+	}
+}
+
+@media (max-width: 480px) {
+	.esf-yt-feed__grid-inner {
+		grid-template-columns: repeat(var(--esf-yt-col-mobile, 1), 1fr);
+	}
+}

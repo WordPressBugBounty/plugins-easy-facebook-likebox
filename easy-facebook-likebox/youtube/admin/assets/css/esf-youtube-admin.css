@@ -1,0 +1,371 @@
+/**
+ * YouTube Admin Styles - Compiled from SCSS
+ *
+ * This file is auto-generated from esf-youtube-admin.scss
+ * To make changes, edit the SCSS file and recompile.
+ *
+ * Compile command: sass scss/esf-youtube-admin.scss css/esf-youtube-admin.css
+ *
+ * @package Easy_Social_Feed
+ * @subpackage YouTube/Admin/Assets
+ * @since 6.7.5
+ */
+
+/* Main Wrapper */
+.esf-youtube-wrap {
+  margin: 0;
+  padding: 0;
+}
+
+.esf-youtube-dashboard {
+  max-width: 1200px;
+  margin: 24px 0;
+}
+
+.esf-youtube-dashboard__header {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #dcdcde;
+}
+
+.esf-youtube-dashboard__title {
+  margin: 0 0 12px 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #1d2327;
+  line-height: 1.3;
+}
+
+.esf-youtube-dashboard__subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #757575;
+  line-height: 1.5;
+}
+
+.esf-youtube-dashboard__app {
+  min-height: 400px;
+}
+
+/* Loading State */
+.esf-youtube-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.esf-youtube-loading__spinner {
+  margin-bottom: 16px;
+}
+
+.esf-youtube-loading__spinner .spinner {
+  float: none;
+  margin: 0 auto;
+}
+
+.esf-youtube-loading__text {
+  margin: 0;
+  font-size: 14px;
+  color: #757575;
+}
+
+/* Debug Information */
+.esf-youtube-debug {
+  margin-top: 32px;
+  padding: 24px;
+  background: #f6f7f7;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+}
+
+.esf-youtube-debug h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d2327;
+}
+
+.esf-youtube-debug .widefat {
+  background: #ffffff;
+  border: 1px solid #dcdcde;
+}
+
+.esf-youtube-debug .widefat th {
+  font-weight: 600;
+  color: #1d2327;
+  width: 200px;
+}
+
+.esf-youtube-debug .widefat td {
+  color: #1d2327;
+}
+
+/* Empty State */
+.esf-youtube-empty-state {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 24px 0;
+  padding: 48px 24px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #dcdcde;
+  border-radius: 8px;
+}
+
+.esf-youtube-empty-state__icon {
+  margin-bottom: 24px;
+  font-size: 80px;
+  color: #757575;
+  opacity: 0.5;
+}
+
+.esf-youtube-empty-state__icon .dashicons {
+  width: 80px;
+  height: 80px;
+  font-size: 80px;
+}
+
+.esf-youtube-empty-state__title {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d2327;
+}
+
+.esf-youtube-empty-state__description {
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  color: #757575;
+  line-height: 1.6;
+}
+
+.esf-youtube-empty-state__actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* Account List */
+.esf-youtube-accounts {
+  margin: 24px 0;
+}
+
+.esf-youtube-accounts__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* Account Card */
+.esf-youtube-account-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease-in-out;
+  position: relative;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #dcdcde;
+  border-radius: 8px;
+}
+
+.esf-youtube-account-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.esf-youtube-account-card__header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.esf-youtube-account-card__thumbnail {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f6f7f7;
+}
+
+.esf-youtube-account-card__thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.esf-youtube-account-card__info {
+  flex: 1;
+}
+
+.esf-youtube-account-card__name {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d2327;
+}
+
+.esf-youtube-account-card__email {
+  margin: 0;
+  font-size: 13px;
+  color: #757575;
+}
+
+.esf-youtube-account-card__meta {
+  margin-bottom: 16px;
+  padding: 12px 0;
+  border-top: 1px solid #dcdcde;
+  border-bottom: 1px solid #dcdcde;
+}
+
+.esf-youtube-account-card__meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 13px;
+}
+
+.esf-youtube-account-card__meta-item strong {
+  color: #1d2327;
+  font-weight: 600;
+}
+
+.esf-youtube-account-card__meta-item span {
+  color: #757575;
+}
+
+.esf-youtube-account-card__actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Status Badges */
+.esf-youtube-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  border-radius: 12px;
+  gap: 4px;
+}
+
+.esf-youtube-status::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.esf-youtube-status--active {
+  color: #46b450;
+  background: rgba(70, 180, 80, 0.1);
+}
+
+.esf-youtube-status--active::before {
+  background: #46b450;
+}
+
+.esf-youtube-status--expired {
+  color: #f56e28;
+  background: rgba(245, 110, 40, 0.1);
+}
+
+.esf-youtube-status--expired::before {
+  background: #f56e28;
+}
+
+.esf-youtube-status--revoked {
+  color: #dc3232;
+  background: rgba(220, 50, 50, 0.1);
+}
+
+.esf-youtube-status--revoked::before {
+  background: #dc3232;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.esf-youtube-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 992px) {
+  .esf-youtube-dashboard {
+    margin: 16px 0;
+  }
+  
+  .esf-youtube-dashboard__title {
+    font-size: 24px;
+  }
+  
+  .esf-youtube-accounts__list {
+    grid-template-columns: 1fr;
+  }
+  
+  .esf-youtube-account-card__actions {
+    flex-direction: column;
+  }
+  
+  .esf-youtube-account-card__actions .components-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .esf-youtube-dashboard {
+    margin: 12px 0;
+  }
+  
+  .esf-youtube-dashboard__header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+  }
+  
+  .esf-youtube-dashboard__title {
+    font-size: 20px;
+  }
+  
+  .esf-youtube-empty-state {
+    padding: 24px 16px;
+  }
+  
+  .esf-youtube-empty-state__icon .dashicons {
+    width: 60px;
+    height: 60px;
+    font-size: 60px;
+  }
+  
+  .esf-youtube-account-card {
+    padding: 16px;
+  }
+  
+  .esf-youtube-account-card__thumbnail {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .esf-youtube-account-card__name {
+    font-size: 14px;
+  }
+  
+  .esf-youtube-account-card__email {
+    font-size: 12px;
+  }
+}

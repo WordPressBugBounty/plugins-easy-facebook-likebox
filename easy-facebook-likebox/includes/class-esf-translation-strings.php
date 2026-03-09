@@ -269,6 +269,41 @@ class ESF_Translation_Strings {
 					),
 				),
 			),
+			'youtube_feed' => array(
+				'label'   => __( 'YouTube Feed', 'easy-facebook-likebox' ),
+				'strings' => array(
+					array(
+						'key'     => 'yt_channel_has_no_videos',
+						'default' => 'This channel has no videos yet.',
+						'context' => __( 'Shown when a YouTube feed has no videos to display.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_load_more_videos_aria',
+						'default' => 'Load more videos',
+						'context' => __( 'ARIA label for the YouTube Load More button.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_load_more_videos_button',
+						'default' => 'Load More',
+						'context' => __( 'Visible text for the YouTube Load More button.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_subscribe_button',
+						'default' => 'Subscribe',
+						'context' => __( 'Subscribe button text shown in the YouTube feed header and popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_watch_on_youtube',
+						'default' => 'Watch on YouTube',
+						'context' => __( 'Link text in the YouTube popup that opens the video on youtube.com.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_popup_views_label',
+						'default' => 'views',
+						'context' => __( 'Label used next to the view count in the YouTube popup stats bar.', 'easy-facebook-likebox' ),
+					),
+				),
+			),
 			'errors_messages' => array(
 				'label'   => __( 'Errors & Messages', 'easy-facebook-likebox' ),
 				'strings' => array(
@@ -354,6 +389,28 @@ class ESF_Translation_Strings {
 			}
 		}
 		return self::$defaults_by_key;
+	}
+
+	/**
+	 * Get default strings for a subset of keys.
+	 *
+	 * @since 6.7.6
+	 *
+	 * @param array $keys List of translation keys.
+	 * @return array Associative array of key => default text.
+	 */
+	public static function get_defaults_for_keys( array $keys ) {
+		if ( empty( $keys ) ) {
+			return array();
+		}
+		$defaults = self::get_defaults_by_key();
+		$result   = array();
+		foreach ( $keys as $key ) {
+			if ( isset( $defaults[ $key ] ) ) {
+				$result[ $key ] = $defaults[ $key ];
+			}
+		}
+		return $result;
 	}
 
 	/**

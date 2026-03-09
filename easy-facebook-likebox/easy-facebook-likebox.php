@@ -4,7 +4,7 @@
  * Plugin Name: Easy Social Feed
  * Plugin URI:        https://wordpress.org/plugins/easy-facebook-likebox
  * Description:       Formerly "Easy Facebook Like Box and Custom Facebook Feed" plugin allows you to easily display custom facebook feed, custom Instagram photos and videos feed, page plugin (like box) on your website using either widget or shortcode to increase facbook fan page likes. You can use the shortcode generator. Additionally, it also now allows you to display the customized facebook feed on your website using the same color scheme of your website. Its completely customizable with lots of optional settings. Its also responsive facebook like box at the same time.
- * Version:           6.7.4
+ * Version:           6.7.5
  * Author:            Easy Social Feed
  * Author URI:        https://easysocialfeed.com/
  * Text Domain:       easy-facebook-likebox
@@ -62,7 +62,7 @@ function efl_fs_uninstall_cleanup() {
     $upload_dir = wp_upload_dir();
     if ( !empty( $upload_dir['basedir'] ) ) {
         $base = trailingslashit( $upload_dir['basedir'] );
-        $dirs = array('esf-instagram', 'esf-facebook');
+        $dirs = array('esf-instagram', 'esf-facebook', 'esf-youtube');
         require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
         require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
         $fs = new WP_Filesystem_Direct(false);
@@ -87,24 +87,25 @@ if ( function_exists( 'efl_fs' ) ) {
                 // Include Freemius SDK.
                 require_once __DIR__ . '/vendor/freemius/start.php';
                 $efl_fs = fs_dynamic_init( array(
-                    'id'              => '4142',
-                    'slug'            => 'easy-facebook-likebox',
-                    'type'            => 'plugin',
-                    'public_key'      => 'pk_d982f4dff842224ca5e54c84f6822',
-                    'is_premium'      => false,
-                    'has_addons'      => true,
-                    'has_paid_plans'  => true,
-                    'trial'           => array(
+                    'id'               => '4142',
+                    'slug'             => 'easy-facebook-likebox',
+                    'type'             => 'plugin',
+                    'public_key'       => 'pk_d982f4dff842224ca5e54c84f6822',
+                    'is_premium'       => false,
+                    'has_addons'       => true,
+                    'has_paid_plans'   => true,
+                    'trial'            => array(
                         'days'               => 7,
                         'is_require_payment' => true,
                     ),
-                    'has_affiliation' => 'all',
-                    'menu'            => array(
+                    'has_affiliation'  => 'all',
+                    'menu'             => array(
                         'support'    => false,
                         'slug'       => 'feed-them-all',
                         'first-path' => 'admin.php?page=esf_welcome',
                     ),
-                    'is_live'         => true,
+                    'is_live'          => true,
+                    'is_org_compliant' => true,
                 ) );
             }
             return $efl_fs;
@@ -158,9 +159,23 @@ if ( function_exists( 'efl_fs' ) ) {
 
         add_action( 'widgets_init', 'register_insta_widget' );
     }
+    // YouTube Module (default to activated when not explicitly set).
+    $youtube_status = ( isset( $options['plugins']['youtube']['status'] ) ? $options['plugins']['youtube']['status'] : 'activated' );
+    if ( isset( $options['plugins']['youtube'] ) ) {
+        $youtube = $options['plugins']['youtube'];
+    } else {
+        $youtube = array();
+    }
+    // When status is missing or empty, treat YouTube as activated by default.
+    if ( !array_key_exists( 'status', $youtube ) || '' === $youtube_status ) {
+        $youtube_status = 'activated';
+    }
+    if ( 'activated' === $youtube_status ) {
+        require_once plugin_dir_path( __FILE__ ) . 'youtube/autoload.php';
+    }
     if ( !class_exists( 'Feed_Them_All' ) ) {
         class Feed_Them_All {
-            public $version = '6.7.3';
+            public $version = '6.7.5';
 
             public $fta_slug = 'easy-facebook-likebox';
 
@@ -251,16 +266,13 @@ if ( function_exists( 'efl_fs' ) ) {
              */
             public function create_uploads_folder() {
                 $upload_dir = wp_upload_dir();
-                $upload_dir = $upload_dir['basedir'];
-                $upload_dir = $upload_dir . '/esf-instagram';
-                if ( !file_exists( $upload_dir ) ) {
-                    wp_mkdir_p( $upload_dir );
-                }
-                $upload_dir = wp_upload_dir();
-                $upload_dir = $upload_dir['basedir'];
-                $upload_dir = $upload_dir . '/esf-facebook';
-                if ( !file_exists( $upload_dir ) ) {
-                    wp_mkdir_p( $upload_dir );
+                $base = $upload_dir['basedir'];
+                $folders = array('esf-instagram', 'esf-facebook', 'esf-youtube');
+                foreach ( $folders as $folder ) {
+                    $path = $base . '/' . $folder;
+                    if ( !file_exists( $path ) ) {
+                        wp_mkdir_p( $path );
+                    }
                 }
             }
 
@@ -272,11 +284,16 @@ if ( function_exists( 'efl_fs' ) ) {
                 $settings = $feed_them_all->fta_get_settings();
                 $fb_status = ( isset( $settings['plugins']['facebook']['status'] ) ? $settings['plugins']['facebook']['status'] : 'activated' );
                 $insta_status = ( isset( $settings['plugins']['instagram']['status'] ) ? $settings['plugins']['instagram']['status'] : 'activated' );
+                // Default YouTube to activated when no explicit status is stored.
+                $youtube_status = ( isset( $settings['plugins']['youtube']['status'] ) ? $settings['plugins']['youtube']['status'] : 'activated' );
                 if ( empty( $fb_status ) ) {
                     $fb_status = 'activated';
                 }
                 if ( empty( $insta_status ) ) {
                     $insta_status = 'activated';
+                }
+                if ( empty( $youtube_status ) ) {
+                    $youtube_status = 'activated';
                 }
                 /*
                  * Making an array of all plugins
@@ -297,6 +314,14 @@ if ( function_exists( 'efl_fs' ) ) {
                         'description'   => __( 'Display stunning photos from the Instagram account in the feed, any Hashtag Feed and gallery of photos in the PopUp using shortcode, widget, inside popup and widget', 'easy-facebook-likebox' ),
                         'img_name'      => 'insta_cover.png',
                         'status'        => $insta_status,
+                    ),
+                    'youtube'   => array(
+                        'name'          => __( 'YouTube Feed', 'easy-facebook-likebox' ),
+                        'slug'          => 'esf-youtube',
+                        'activate_slug' => 'youtube',
+                        'description'   => __( 'Display YouTube videos from your channel using secure OAuth connection with customizable layouts and caching', 'easy-facebook-likebox' ),
+                        'img_name'      => 'youtube_cover.png',
+                        'status'        => $youtube_status,
                     ),
                 );
                 return $fta_plugins;

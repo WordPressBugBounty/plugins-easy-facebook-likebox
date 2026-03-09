@@ -1,22 +1,22 @@
 === Easy Social Feed - Social Photos Gallery and Post Feed for WordPress ===
 Contributors: DaNish Ali, maltathemes, sjaved, freemius
-Tags: Instagram feed, Instagram photos, Instagram gallery, Facebook feed, Facebook posts
+Tags: Instagram feed, Instagram photos, Instagram gallery, Facebook feed, Facebook posts, YouTube feed, YouTube videos, YouTube gallery
 Requires at least: 3.3
 Tested up to: 6.9
-Stable tag: 6.7.4
+Stable tag: 6.7.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Display customizable Instagram & Facebook feeds with photos, videos, reels, events & galleries. Fast, responsive & easy to set up.
+Display Instagram, Facebook & YouTube feeds with photos, videos, reels, events & galleries. Fast, responsive & easy to set up.
 
 == Description ==
 
-Easy Social Feed helps you display your latest **Instagram photos, videos and Facebook page posts, albums, photos, videos and events** on your website. It is responsive, SEO-friendly, easy to set up and offers live preview customization for appearance and layout.
+Easy Social Feed helps you display your latest **Instagram photos and videos, Facebook page posts and events, and YouTube videos** on your website. It is responsive, SEO-friendly, easy to set up and offers live preview customization for appearance and layout.
 
 
 Connect your account using the latest secure oAuth login and get a shortcode auto-generated. No app review required. Manual access token support is also available for Personal or Business accounts.
 
-You can enable only the module you need (Facebook or Instagram) so unrelated code is not loaded, improving performance.
+You can enable only the module you need (Facebook, Instagram or YouTube) so unrelated code is not loaded, improving performance.
 
 After connecting your account, **simply copy and paste the shortcode, or use a block or widget**, to embed your feed anywhere on your site.
 
@@ -89,6 +89,28 @@ Display Facebook page posts including images, videos, links, status, albums, eve
 
 [Demo](https://easysocialfeed.com/custom-facebook-feed/)
 
+## YouTube Feed
+
+Display your latest YouTube videos in a clean, responsive YouTube channel feed that fits your theme. Connect your channel, create a feed, and embed it anywhere using shortcode (a PHP snippet is also included).
+
+You can customize the layout and header, add per‑feed custom CSS, and control caching from the same Easy Social Feed interface for Facebook and Instagram.
+
+### Features
+- Secure Google OAuth connection to connect your YouTube channel
+- Accounts dashboard to manage connected channels (reconnect/refresh and disconnect)
+- Bulk actions for managing accounts (when multiple accounts are available)
+- Create unlimited feeds and embed each feed using a unique shortcode(Pro)
+- Feed editor with Connect, Customize and Embed panels and a live preview workflow
+- Responsive grid layout with control over columns and spacing for desktop, tablet and mobile
+- Header controls for channel branding and key channel details
+- Per‑feed settings for what to show on video cards (thumbnail, title, date and more)
+- Smart caching with configurable refresh duration for faster loading and fewer external requests
+- Clear all caches from settings and clear cache for a single feed from the feeds list
+- Per‑feed Custom CSS with helper selectors so advanced styling stays easy and organized
+- Pro: **Load More** button to show more videos without reloading the page
+- Pro: **Popup / Lightbox** video gallery with rich details and stats (views, likes, comments)
+- Pro: Popup options for autoplay, mute, and showing description and stats
+
 ## Facebook Page Plugin (Like Box)
 Embed the Facebook Page Plugin to display page likes, faces, timeline or events using shortcode and widget.
 
@@ -110,6 +132,7 @@ Embed the Facebook Page Plugin to display page likes, faces, timeline or events 
 - Lazy loading support
 - Option to load only active modules (disable unused modules for performance)  
 - Configurable feed refresh intervals
+- AI translation autofill on the Translation tab (Pro) to translate and fill feed labels into your selected language with one click  
 - SEO friendly  
 
 ## TikTok Support (Separate Plugin)
@@ -118,7 +141,7 @@ Looking to embed TikTok videos and galleries on your site? Check out our sister 
 ---
 
 ## Embedding Options
-- Gutenberg blocks  
+- Gutenberg blocks
 - Shortcodes  
 - WordPress widget  
 - Compatible with major page builders (Elementor, Divi, WPBakery, etc.)
@@ -153,7 +176,7 @@ Whether you search for an **“Instagram GDPR feed”**, **“Facebook GDPR feed
 
 1. Upload the plugin folder to `/wp-content/plugins/`  
 2. Activate the plugin via the WordPress Plugins page  
-3. Go to Easy Social Feed > Facebook / Instagram to connect your account  
+3. Go to Easy Social Feed > Facebook / Instagram / YouTube to connect your account  
 4. Copy the generated shortcode and paste into posts, pages, CPT or anywhere in PHP templates
 
 ---
@@ -309,8 +332,18 @@ Use the shortcode generator to select your preferred post types.
 
 == Changelog ==
 
+= 6.7.5 =
+* Added: Feed language setting in General settings so you can choose which language Facebook and Instagram use for their built‑in text (e.g. “X created an event”, “X shared a link”). Default uses your site language; feed cache is cleared when you change the language
+* Improved: General settings intro and descriptions for clarity and to cover all modules (Facebook, Instagram, YouTube)
+* Added: AI-powered translation autofill on the Translation tab (Pro) to automatically translate and fill feed labels into your selected language, with a one-click reset back to the original English defaults
+* Added: YouTube Feed module with a modern dashboard to connect your channel, create feeds and embed them using shortcode
+* Added: YouTube feed customization options including layout, header display, per-feed Custom CSS and cache duration controls
+* Added: YouTube performance improvements including serving thumbnails locally when possible (channel and video thumbnails)
+* Added: YouTube Pro options including Load More and Popup / Lightbox video gallery settings
+
 = 6.7.4 =
-* Fixed: Instagram Business connection failing due to deprecated `profile_pic` field in the Graph API, replaced with supported fields to restore authentication.
+* Added: General tab under Settings (Easy Social Feed > Settings) with option to preserve or remove all plugin data when the plugin is deleted
+* Fixed: Instagram Business connection failing due to deprecated field in the Graph API, replaced with supported fields to restore authentication
 * Fixed: Minor issues
 
 = 6.7.3 =
@@ -353,5 +386,8 @@ https://easysocialfeed.com/changelog
 
 == Upgrade Notice ==
 
+= 6.7.5 =
+New Feed language option in General settings so your Facebook and Instagram feeds can match your site language. Update recommended.
+
 = 6.7.4 =
-Important fix for Instagram Business connection. Update recommended.
+Important fix for Instagram Business connection. New General settings tab and optional uninstall cleanup. Update recommended.

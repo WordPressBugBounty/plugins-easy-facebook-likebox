@@ -12,8 +12,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * All registered frontend strings grouped by category.
+ *
+ * @var array<string, array{label:string,strings:array<int,array{key:string,default:string,context:string}>}>
+ */
 $translation_strings = ESF_Translation_Strings::get_all_strings();
-$saved_translations  = isset( $fta_settings['translation'] ) && is_array( $fta_settings['translation'] ) ? $fta_settings['translation'] : array();
+
+/**
+ * Saved custom translations indexed by string key.
+ *
+ * @var array<string, string>
+ */
+$saved_translations = isset( $fta_settings['translation'] ) && is_array( $fta_settings['translation'] ) ? $fta_settings['translation'] : array();
 
 ?>
 <div id="esf-settings-translation" class="col s12 efbl_tab_c slideLeft active">
@@ -21,6 +32,56 @@ $saved_translations  = isset( $fta_settings['translation'] ) && is_array( $fta_s
 	<p class="description esf-translation-intro">
 		<?php esc_html_e( 'Change the text shown in your Facebook and Instagram feeds. Leave a field blank to use the default.', 'easy-facebook-likebox' ); ?>
 	</p>
+
+	<?php
+	// Show an Autofill notice when we can detect a locale. Access control (premium, API key, etc.)
+	// is enforced in the AJAX handler.
+	/** @var string $detected_locale Effective feed locale for API/AI features. */
+	$detected_locale = function_exists( 'esf_get_effective_api_locale' ) ? esf_get_effective_api_locale() : '';
+
+	/** @var string $locale_label Human-readable label for the detected locale (e.g. "French (France)"). */
+	$locale_label = '';
+
+	/**
+	 * Locales for which the AI autofill banner has already been used.
+	 *
+	 * @var array<string, bool> $ai_used_locales
+	 */
+	$ai_used_locales = isset( $fta_settings['translation_ai_used'] ) && is_array( $fta_settings['translation_ai_used'] ) ? $fta_settings['translation_ai_used'] : array();
+	if ( $detected_locale && function_exists( 'efbl_get_locales' ) ) {
+		$all_locales = efbl_get_locales();
+		if ( isset( $all_locales[ $detected_locale ] ) ) {
+			$locale_label = $all_locales[ $detected_locale ];
+		}
+	}
+
+	// UI notice is shown for each locale only once (and never for English US);
+	// actual access control (premium check, API key, etc.) is enforced in the AJAX handler.
+	if ( $detected_locale && 'en_US' !== $detected_locale && $locale_label && empty( $ai_used_locales[ $detected_locale ] ) && function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) :
+		?>
+		<div class="notice notice-info fs-notice fs-slug-easy-facebook-likebox esf-translation-autofill-notice" style="border-left-color:#23a455;" data-esf-locale="<?php echo esc_attr( $detected_locale ); ?>">
+			<p>
+				<?php
+				printf(
+					/* translators: 1: Language label, e.g. French (France). */
+					esc_html__( 'We detected that your feed language is %1$s. Use AI to instantly translate and autofill this text into your language.', 'easy-facebook-likebox' ),
+					esc_html( $locale_label )
+				);
+				?>
+			</p>
+			<p>
+				<button type="button" class="button button-secondary esf-translation-autofill-button">
+					<?php
+					printf(
+						/* translators: 1: Language label, e.g. French (France). */
+						esc_html__( 'Autofill %1$s text', 'easy-facebook-likebox' ),
+						esc_html( $locale_label )
+					);
+					?>
+				</button>
+			</p>
+		</div>
+	<?php endif; ?>
 
 	<table class="widefat striped esf-translation-table" role="presentation">
 		<thead>
@@ -87,6 +148,9 @@ $saved_translations  = isset( $fta_settings['translation'] ) && is_array( $fta_s
 	<p class="submit">
 		<button type="button" class="button button-primary esf-save-translation-settings">
 			<?php esc_html_e( 'Save All Settings', 'easy-facebook-likebox' ); ?>
+		</button>
+		<button type="button" class="button button-secondary esf-translation-reset-defaults">
+			<?php esc_html_e( 'Reset to default English', 'easy-facebook-likebox' ); ?>
 		</button>
 	</p>
 </div>

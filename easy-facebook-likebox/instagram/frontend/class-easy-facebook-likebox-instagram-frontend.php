@@ -172,9 +172,11 @@ if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
                 $mif_personal_connected_accounts = $fta_settings['plugins']['instagram']['instagram_connected_account'];
                 if ( esf_insta_instagram_type() == 'personal' && isset( $mif_personal_connected_accounts ) && !empty( $mif_personal_connected_accounts ) && is_array( $mif_personal_connected_accounts ) ) {
                     $access_token = $mif_personal_connected_accounts[$user_id]['access_token'];
-                    $remote_url = "https://graph.instagram.com/{$user_id}/media?fields=media_url,thumbnail_url,caption,id,media_type,timestamp,username,permalink,children{media_url,id,media_type,timestamp,permalink,thumbnail_url}&limit={$feeds_per_page}&access_token=" . $access_token;
+                    $api_locale = esf_get_effective_api_locale();
+                    $remote_url = "https://graph.instagram.com/{$user_id}/media?fields=media_url,thumbnail_url,caption,id,media_type,timestamp,username,permalink,children{media_url,id,media_type,timestamp,permalink,thumbnail_url}&limit={$feeds_per_page}&locale=" . rawurlencode( $api_locale ) . '&access_token=' . $access_token;
                 } else {
-                    $remote_url = "https://graph.facebook.com/v4.0/{$user_id}/media?fields=thumbnail_url,children{permalink,thumbnail_url,media_url,media_type},media_type,caption,comments_count,id,ig_id,like_count,is_comment_enabled,media_url,owner,permalink,shortcode,timestamp,username,comments{id,hidden,like_count,media,text,timestamp,user,username,replies{hidden,id,like_count,media,text,timestamp,user,username}}&limit=" . $feeds_per_page . '&access_token=' . $access_token;
+                    $api_locale = esf_get_effective_api_locale();
+                    $remote_url = "https://graph.facebook.com/v4.0/{$user_id}/media?fields=thumbnail_url,children{permalink,thumbnail_url,media_url,media_type},media_type,caption,comments_count,id,ig_id,like_count,is_comment_enabled,media_url,owner,permalink,shortcode,timestamp,username,comments{id,hidden,like_count,media,text,timestamp,user,username,replies{hidden,id,like_count,media,text,timestamp,user,username}}&limit=" . $feeds_per_page . '&locale=' . rawurlencode( $api_locale ) . '&access_token=' . $access_token;
                 }
                 $decoded_data = $this->esf_insta_get_data( $remote_url );
                 if ( isset( $decoded_data->paging->next ) && !empty( $decoded_data->paging->next ) ) {
@@ -249,7 +251,8 @@ if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
                     $access_token = $mif_personal_connected_accounts[$user_id]['access_token'];
                     $mif_bio_url = 'https://graph.instagram.com/me?fields=id,username,media_count,account_type&access_token=' . $access_token;
                 } elseif ( isset( $access_token ) && !empty( $access_token ) ) {
-                    $mif_bio_url = "https://graph.facebook.com/v4.0/{$user_id}/?fields=biography,followers_count,follows_count,id,ig_id,media_count,name,profile_picture_url,username,website&access_token=" . $access_token;
+                    $mif_bio_locale = esf_get_effective_api_locale();
+                    $mif_bio_url = "https://graph.facebook.com/v4.0/{$user_id}/?fields=biography,followers_count,follows_count,id,ig_id,media_count,name,profile_picture_url,username,website&locale=" . rawurlencode( $mif_bio_locale ) . '&access_token=' . $access_token;
                 }
                 /*
                  * Getting the decoded data of authenticated user from instagram.

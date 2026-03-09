@@ -342,7 +342,7 @@ class Easy_Facebook_Likebox {
             $fb_appid = '395202813876688';
         }
         if ( empty( $locale ) ) {
-            $locale = 'en_US';
+            $locale = ( function_exists( 'esf_get_effective_api_locale' ) ? esf_get_effective_api_locale() : 'en_US' );
         }
         if ( !empty( $locale_other ) ) {
             $locale = $locale_other;
@@ -514,7 +514,7 @@ class Easy_Facebook_Likebox {
             $efbl_api_url = add_query_arg( apply_filters( 'efbl_api_url_params', array(
                 'fields'       => 'posts.limit(' . $post_limit . '){place,status_type,full_picture,permalink_url,likes{pic_crop,id,name},comments.limit(30){id,like_count,permalink_url,comments,reactions,comment_count,created_time,message,message_tags,attachment},reactions{id,name,pic_crop,type,link},created_time,story,message,reactions.type(LIKE).limit(0).summary(1).as(like),reactions.type(LOVE).limit(0).summary(1).as(love),reactions.type(HAHA).limit(0).summary(1).as(haha),reactions.type(WOW).limit(0).summary(1).as(wow),reactions.type(SAD).limit(0).summary(1).as(sad),reactions.type(ANGRY).limit(0).summary(1).as(angry),from,message_tags,shares,story_tags,picture,attachments},about,picture{url}',
                 'access_token' => $access_token,
-                'locale'       => 'en_us',
+                'locale'       => esf_get_effective_api_locale(),
             ), $instance ), apply_filters( 'efbl_api_url_base', 'https://graph.facebook.com/v4.0/' . $page_id . '', $instance ) );
             $posts_json = jws_fetchUrl( $efbl_api_url );
             $json_decoded = json_decode( $posts_json );

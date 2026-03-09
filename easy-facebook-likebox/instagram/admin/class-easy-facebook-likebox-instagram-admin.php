@@ -25,7 +25,7 @@ if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
         );
 
         function __construct() {
-            add_action( 'admin_menu', array($this, 'esf_insta_menu'), 100 );
+            add_action( 'admin_menu', array($this, 'esf_insta_menu'), 99 );
             add_action( 'admin_enqueue_scripts', array($this, 'esf_insta_style') );
             add_action( 'wp_ajax_mif_remove_access_token', array($this, 'esf_insta_remove_access_token') );
             add_action( 'wp_ajax_mif_save_access_token', array($this, 'esf_insta_save_access_token') );

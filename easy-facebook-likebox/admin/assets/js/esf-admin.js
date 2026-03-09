@@ -386,6 +386,7 @@ jQuery( document ).ready(
 				data: {
 					action: 'esf_save_general_settings',
 					preserve_settings_on_uninstall: jQuery( '#esf_preserve_settings_on_uninstall' ).is( ':checked' ) ? '1' : '0',
+					api_locale: jQuery( '#esf_api_locale' ).val() || '',
 					nonce: typeof fta !== 'undefined' ? fta.nonce : '',
 				},
 				dataType: 'json',
@@ -483,6 +484,90 @@ jQuery( document ).ready(
 				jQuery( this ).closest( '.esf-gdpr-plugin-detected' ).next( '.esf-supported-plugins-list' ).slideToggle( 'fast' );
 			});
 		}
+
+		/*
+		 * Translation tab - Autofill via DeepL (premium).
+		 */
+		jQuery( document ).on( 'click', '.esf-translation-autofill-button', function() {
+			var $btn = jQuery( this );
+			var $notice = jQuery( '.esf-translation-autofill-notice' );
+			var locale = $notice.data( 'esf-locale' );
+
+			if ( ! locale ) {
+				return;
+			}
+
+			var keys = [];
+			jQuery( '#esf-settings-translation input[name^="esf_translation["]' ).each( function() {
+				var $input = jQuery( this );
+				var name = $input.attr( 'name' );
+				var match = name && name.match( /esf_translation\[(.+)\]/ );
+				if ( match ) {
+					keys.push( match[1] );
+				}
+			} );
+
+			if ( ! keys.length ) {
+				esfShowNotification( ( typeof fta !== 'undefined' && fta.nothing_to_autofill ) ? fta.nothing_to_autofill : 'Nothing to autofill.', 3000 );
+				return;
+			}
+
+			var origText = $btn.html();
+			$btn.prop( 'disabled', true ).html( typeof fta !== 'undefined' && fta.saving ? fta.saving : 'Loading…' );
+
+			jQuery.ajax({
+				url: typeof fta !== 'undefined' ? fta.ajax_url : '',
+				type: 'POST',
+				data: {
+					action: 'esf_get_translation_suggestions',
+					nonce: typeof fta !== 'undefined' ? fta.nonce : '',
+					locale: locale,
+					keys: keys,
+				},
+				dataType: 'json',
+				success: function( response ) {
+					if ( response && response.success && response.data ) {
+						var suggestions = response.data;
+						jQuery( '#esf-settings-translation input[name^="esf_translation["]' ).each( function() {
+							var $input = jQuery( this );
+							var name = $input.attr( 'name' );
+							var match = name && name.match( /esf_translation\[(.+)\]/ );
+							if ( match && suggestions[ match[1] ] ) {
+								$input.val( suggestions[ match[1] ] );
+							}
+						} );
+						// Hide the AI autofill notice after a successful run to reduce clutter.
+						jQuery( '.esf-translation-autofill-notice' ).fadeOut( 'fast' );
+						esfShowNotification( ( typeof fta !== 'undefined' && fta.autofill_success ) ? fta.autofill_success : 'Translations filled and saved.', 4000 );
+
+						// Automatically save after autofill so changes persist without extra click.
+						var $saveBtn = jQuery( '.esf-save-translation-settings' ).first();
+						if ( $saveBtn.length ) {
+							$saveBtn.trigger( 'click' );
+						}
+					} else {
+						esfShowNotification( ( response && response.data ) || ( typeof fta !== 'undefined' ? fta.error : 'Unable to fetch translation suggestions.' ), 4000 );
+					}
+					$btn.prop( 'disabled', false ).html( origText );
+				},
+				error: function() {
+					esfShowNotification( typeof fta !== 'undefined' ? fta.error : 'Unable to fetch translation suggestions.', 4000 );
+					jQuery( '#toast-container' ).addClass( 'esf-failed-notification' );
+					$btn.prop( 'disabled', false ).html( origText );
+				},
+			});
+		});
+
+		/*
+		 * Translation tab - Reset all to defaults (clear custom text).
+		 */
+		jQuery( document ).on( 'click', '.esf-translation-reset-defaults', function() {
+			if ( ! window.confirm( ( typeof fta !== 'undefined' && fta.reset_confirm ) ? fta.reset_confirm : 'Reset all custom text to defaults?' ) ) {
+				return;
+			}
+			jQuery( '#esf-settings-translation input[name^="esf_translation["]' ).val( '' );
+			esfShowNotification( ( typeof fta !== 'undefined' && fta.reset_done ) ? fta.reset_done : 'Defaults restored.', 4000 );
+		});
 
 		/*
 		 * Custom Text / Translation settings (Settings page)

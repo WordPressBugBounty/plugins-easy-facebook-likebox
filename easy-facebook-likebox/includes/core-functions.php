@@ -241,6 +241,74 @@ if ( ! function_exists( 'esf_is_local_media_url' ) ) {
 	}
 }
 
+if ( ! function_exists( 'esf_readable_count' ) ) {
+	/**
+	 * Format large numbers into short, human-readable strings.
+	 *
+	 * Shared helper for all modules so follower counts, views, likes, etc.
+	 * are displayed consistently (e.g. 1.2K, 3.4M).
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param int|float|string $number Raw numeric value.
+	 * @return string Human-readable representation.
+	 */
+	function esf_readable_count( $number ) {
+		if ( ! is_numeric( $number ) ) {
+			$number = (int) $number;
+		}
+
+		$number = (float) $number;
+
+		if ( $number >= 1000000000 ) {
+			return round( $number / 1000000000, 1 ) . __( 'B', 'easy-facebook-likebox' );
+		}
+
+		if ( $number >= 1000000 ) {
+			return round( $number / 1000000, 1 ) . __( 'M', 'easy-facebook-likebox' );
+		}
+
+		if ( $number >= 1000 ) {
+			return round( $number / 1000, 1 ) . __( 'K', 'easy-facebook-likebox' );
+		}
+
+		return number_format_i18n( (int) $number );
+	}
+}
+
+if ( ! function_exists( 'esf_readable_time_ago' ) ) {
+	/**
+	 * Convert a date/time string to a relative "time ago" string.
+	 *
+	 * Wrapper around human_time_diff() that accepts common date formats
+	 * and appends a translated "ago" suffix. Intended for feed items
+	 * (Facebook, Instagram, YouTube, etc.).
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string|int $datetime Datetime string or Unix timestamp.
+	 * @return string Human-readable relative time.
+	 */
+	function esf_readable_time_ago( $datetime ) {
+		if ( empty( $datetime ) ) {
+			return '';
+		}
+
+		$timestamp = is_numeric( $datetime ) ? (int) $datetime : strtotime( $datetime );
+		if ( ! $timestamp ) {
+			return '';
+		}
+
+		$diff = human_time_diff( $timestamp, current_time( 'timestamp' ) );
+
+		return sprintf(
+			/* translators: %s: human readable time difference, e.g. "2 hours" */
+			__( '%s ago', 'easy-facebook-likebox' ),
+			$diff
+		);
+	}
+}
+
 if ( ! function_exists( 'esf_delete_media' ) ) {
 	/**
 	 * Delete media locally
@@ -354,3 +422,220 @@ if ( ! function_exists( 'esf_safe_strpos' ) ) {
 		return strpos( $haystack, $needle, $offset );
 	}
 }
+
+/**
+ * Compile and filter the list of locales for Facebook/Instagram API and widgets.
+ * Used by feed API language setting, like box locale, and page plugin widget.
+ *
+ * @return array<string, string> Locale code => label.
+ */
+if ( ! function_exists( 'efbl_get_locales' ) ) {
+	function efbl_get_locales() {
+		$locales = array(
+			'af_ZA' => 'Afrikaans',
+			'ar_AR' => 'Arabic',
+			'az_AZ' => 'Azeri',
+			'be_BY' => 'Belarusian',
+			'bg_BG' => 'Bulgarian',
+			'bn_IN' => 'Bengali',
+			'bs_BA' => 'Bosnian',
+			'ca_ES' => 'Catalan',
+			'cs_CZ' => 'Czech',
+			'cy_GB' => 'Welsh',
+			'da_DK' => 'Danish',
+			'de_DE' => 'German',
+			'el_GR' => 'Greek',
+			'en_US' => 'English (US)',
+			'en_GB' => 'English (UK)',
+			'eo_EO' => 'Esperanto',
+			'es_ES' => 'Spanish (Spain)',
+			'es_LA' => 'Spanish',
+			'et_EE' => 'Estonian',
+			'eu_ES' => 'Basque',
+			'fa_IR' => 'Persian',
+			'fb_LT' => 'Leet Speak',
+			'fi_FI' => 'Finnish',
+			'fo_FO' => 'Faroese',
+			'fr_FR' => 'French (France)',
+			'fr_CA' => 'French (Canada)',
+			'fy_NL' => 'NETHERLANDS (NL)',
+			'ga_IE' => 'Irish',
+			'gl_ES' => 'Galician',
+			'hi_IN' => 'Hindi',
+			'hr_HR' => 'Croatian',
+			'hu_HU' => 'Hungarian',
+			'hy_AM' => 'Armenian',
+			'id_ID' => 'Indonesian',
+			'is_IS' => 'Icelandic',
+			'it_IT' => 'Italian',
+			'ja_JP' => 'Japanese',
+			'ka_GE' => 'Georgian',
+			'km_KH' => 'Khmer',
+			'ko_KR' => 'Korean',
+			'ku_TR' => 'Kurdish',
+			'la_VA' => 'Latin',
+			'lt_LT' => 'Lithuanian',
+			'lv_LV' => 'Latvian',
+			'mk_MK' => 'Macedonian',
+			'ml_IN' => 'Malayalam',
+			'ms_MY' => 'Malay',
+			'nb_NO' => 'Norwegian (bokmal)',
+			'ne_NP' => 'Nepali',
+			'nl_NL' => 'Dutch',
+			'nn_NO' => 'Norwegian (nynorsk)',
+			'pa_IN' => 'Punjabi',
+			'pl_PL' => 'Polish',
+			'ps_AF' => 'Pashto',
+			'pt_PT' => 'Portuguese (Portugal)',
+			'pt_BR' => 'Portuguese (Brazil)',
+			'ro_RO' => 'Romanian',
+			'ru_RU' => 'Russian',
+			'sk_SK' => 'Slovak',
+			'sl_SI' => 'Slovenian',
+			'sq_AL' => 'Albanian',
+			'sr_RS' => 'Serbian',
+			'sv_SE' => 'Swedish',
+			'sw_KE' => 'Swahili',
+			'ta_IN' => 'Tamil',
+			'te_IN' => 'Telugu',
+			'th_TH' => 'Thai',
+			'tl_PH' => 'Filipino',
+			'tr_TR' => 'Turkish',
+			'uk_UA' => 'Ukrainian',
+			'ur_PK' => 'Urdu',
+			'vi_VN' => 'Vietnamese',
+			'zh_CN' => 'Simplified Chinese (China)',
+			'zh_HK' => 'Traditional Chinese (Hong Kong)',
+			'zh_TW' => 'Traditional Chinese (Taiwan)',
+		);
+
+		return apply_filters( 'efbl_locale_names', $locales );
+	}
+}
+
+/**
+ * Supported locales for Facebook and Instagram Graph API (feed language).
+ * Default option plus efbl_get_locales() for the admin dropdown.
+ *
+ * @since 6.8.0
+ * @return array<string, string>
+ */
+if ( ! function_exists( 'esf_get_supported_api_locales' ) ) {
+	function esf_get_supported_api_locales() {
+		return array_merge(
+			array( '' => __( 'Default (use site language)', 'easy-facebook-likebox' ) ),
+			efbl_get_locales()
+		);
+	}
+}
+
+/**
+ * Normalize a WordPress/Feed language locale to one of the supported EFBL locales.
+ *
+ * Example: "ar" -> "ar_AR" (if that key exists), "es" -> "es_ES", etc.
+ *
+ * @since 6.7.6
+ *
+ * @param string $locale Raw locale (e.g. from get_locale() or saved setting).
+ * @return string Normalized locale key from efbl_get_locales(), or empty string if not found.
+ */
+if ( ! function_exists( 'esf_normalize_locale_to_supported' ) ) {
+	function esf_normalize_locale_to_supported( $locale ) {
+		$locale = (string) $locale;
+		if ( '' === $locale ) {
+			return '';
+		}
+
+		$supported = efbl_get_locales();
+
+		// Exact match first.
+		if ( isset( $supported[ $locale ] ) ) {
+			return $locale;
+		}
+
+		// Try to map based on the language code only (first two letters).
+		$lang2 = substr( $locale, 0, 2 );
+		if ( ! $lang2 ) {
+			return '';
+		}
+
+		foreach ( $supported as $key => $label ) {
+			if ( 0 === strpos( $key, $lang2 . '_' ) || $key === strtoupper( $lang2 ) . '_' ) {
+				return $key;
+			}
+		}
+
+		return '';
+	}
+}
+
+/**
+ * Effective API locale for Facebook/Instagram requests.
+ * Uses saved setting, or WordPress site language, or en_US.
+ *
+ * @since 6.8.0
+ * @return string Locale code (e.g. en_US, fr_FR).
+ */
+if ( ! function_exists( 'esf_get_effective_api_locale' ) ) {
+	function esf_get_effective_api_locale() {
+		$settings = get_option( 'fta_settings', array() );
+		$saved    = isset( $settings['api_locale'] ) ? $settings['api_locale'] : '';
+
+		// 1) Saved Feed language from General tab.
+		if ( '' !== $saved && is_string( $saved ) ) {
+			$normalized_saved = esf_normalize_locale_to_supported( $saved );
+			if ( '' !== $normalized_saved ) {
+				return $normalized_saved;
+			}
+		}
+
+		// 2) Site language (used when "Default" is selected).
+		$wp_locale = get_locale();
+		if ( ! empty( $wp_locale ) ) {
+			$normalized_wp = esf_normalize_locale_to_supported( $wp_locale );
+			if ( '' !== $normalized_wp ) {
+				return $normalized_wp;
+			}
+		}
+
+		// 3) Fallback.
+		return 'en_US';
+	}
+}
+
+/**
+ * Clear all Facebook and Instagram feed transients (cache).
+ * Safe to call when API language or other feed-affecting settings change.
+ *
+ * @since 6.8.0
+ * @return int|false Number of rows deleted, or false on error.
+ */
+if ( ! function_exists( 'esf_clear_feed_transients' ) ) {
+	function esf_clear_feed_transients() {
+		global $wpdb;
+
+		if ( ! isset( $wpdb->options ) || ! $wpdb->options ) {
+			return false;
+		}
+
+		$option_table = $wpdb->options;
+
+		$like_efbl         = $wpdb->esc_like( '_transient_efbl_' ) . '%';
+		$like_efbl_timeout = $wpdb->esc_like( '_transient_timeout_efbl_' ) . '%';
+		$like_esf          = $wpdb->esc_like( '_transient_esf_' ) . '%';
+		$like_esf_timeout  = $wpdb->esc_like( '_transient_timeout_esf_' ) . '%';
+
+		$deleted = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$option_table} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s",
+				$like_efbl,
+				$like_efbl_timeout,
+				$like_esf,
+				$like_esf_timeout
+			)
+		);
+
+		return $deleted;
+	}
+}
+

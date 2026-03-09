@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Easy Social Feed\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-04 15:42+0000\n"
+"POT-Creation-Date: 2026-02-27 14:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: \n"
@@ -22,24 +22,24 @@ msgid ""
 "do not delete to make the plugin work properly."
 msgstr ""
 
-#: admin/class-esf-admin.php:427
+#: admin/class-esf-admin.php:590
 msgid " Activated"
 msgstr ""
 
-#: admin/class-esf-admin.php:429
+#: admin/class-esf-admin.php:592
 msgid " Deactivated"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:325
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:352
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:373
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:395
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:416
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:439
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:459
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:479
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:499
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:519
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:175
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:202
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:223
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:245
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:266
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:289
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:309
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:329
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:349
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:369
 msgid " discount! On the checkout click on \"Have a promotional code?"
 msgstr ""
 
@@ -53,15 +53,15 @@ msgid ""
 " discount! On the checkout click on \"Have a promotional code?\" and enter"
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:259
-#: instagram/admin/views/html-admin-page-mif.php:286
-#: instagram/admin/views/html-admin-page-mif.php:313
-#: instagram/admin/views/html-admin-page-mif.php:340
+#: instagram/admin/views/html-admin-page-mif.php:233
+#: instagram/admin/views/html-admin-page-mif.php:260
+#: instagram/admin/views/html-admin-page-mif.php:287
+#: instagram/admin/views/html-admin-page-mif.php:314
 msgid ""
 " discount! On the checkout click on \"Have a promotional code?\" and enter "
 msgstr ""
 
-#: admin/class-esf-admin.php:434
+#: admin/class-esf-admin.php:597
 msgid " Successfully"
 msgstr ""
 
@@ -77,38 +77,82 @@ msgstr ""
 msgid " with your Instagram account before clicking the connect button."
 msgstr ""
 
+#. %s: human readable time difference, e.g. "2 hours"
+#: includes/core-functions.php:306
+#, php-format
+msgid "%s ago"
+msgstr ""
+
+#. %s: number of subscribers
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:261
+#, php-format
+msgid "%s subscriber"
+msgid_plural "%s subscribers"
+msgstr[0] ""
+msgstr[1] ""
+
+#. %s: number of videos
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:265
+#, php-format
+msgid "%s video"
+msgid_plural "%s videos"
+msgstr[0] ""
+msgstr[1] ""
+
+#. %s: number of views
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:455
+#, php-format
+msgid "%s view"
+msgid_plural "%s views"
+msgstr[0] ""
+msgstr[1] ""
+
+#: youtube/includes/models/class-esf-youtube-feed-repository.php:435
+msgid "(Copy)"
+msgstr ""
+
 #: instagram/admin/views/template-shoppable.php:131
 msgid "--Select One--"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:63
-#: instagram/admin/views/html-admin-page-mif.php:92
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:46
+#: instagram/admin/views/html-admin-page-mif.php:72
 msgid "1"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:69
-#: instagram/admin/views/html-admin-page-mif.php:98
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:52
+#: instagram/admin/views/html-admin-page-mif.php:78
 msgid "2"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:75
-#: instagram/admin/views/html-admin-page-mif.php:105
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:58
+#: instagram/admin/views/html-admin-page-mif.php:85
 msgid "3"
 msgstr ""
 
-#: admin/class-esf-admin.php:566
-msgid "49% OFF Easy Social Feed "
+#: youtube/includes/class-esf-youtube-auth-callback-listener.php:58
+msgid "401 Unauthorized"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:265
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:244
-#: instagram/admin/views/html-admin-page-mif.php:472
-msgid "5-Star Rating"
+#: youtube/includes/class-esf-youtube-auth-callback-listener.php:46
+msgid "403 Forbidden"
 msgstr ""
 
 #: facebook/admin/includes/efbl-customizer-extend.php:155
 #: instagram/admin/includes/class-esf-insta-customizer-extend.php:154
 msgid "</code>"
+msgstr ""
+
+#. 1: discount (e.g. 17%), 2: coupon code
+#: admin/views/html-upgrade-notice.php:36
+#, php-format
+msgid "<strong>Save %1$s with code </strong><code>%2$s</code>."
+msgstr ""
+
+#. %s: Site name
+#: youtube/includes/class-esf-youtube-token-manager.php:149
+#, php-format
+msgid "[%s] YouTube Account Token Expired"
 msgstr ""
 
 #: facebook/admin/views/html-authenticate-tab.php:145
@@ -125,6 +169,19 @@ msgstr ""
 msgid "Access Token (Optional):"
 msgstr ""
 
+#: youtube/includes/api/class-esf-youtube-api-service.php:375
+msgid "Access token and playlist ID are required."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-service.php:453
+msgid "Access token and search query are required."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-service.php:69
+#: youtube/includes/api/class-esf-youtube-api-service.php:318
+msgid "Access token is required."
+msgstr ""
+
 #: facebook/admin/views/html-how-to-use-tab.php:442
 msgid ""
 "Access Token provided from Facebook to display your page feeds. If you have "
@@ -132,6 +189,24 @@ msgid ""
 "your feed but this is optional if you don't have your app the default access "
 "token will be used. Please note: Your Access token is required to show your "
 "page events you can follow the steps explained "
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-accounts.php:257
+msgid "Account deleted successfully. Access has been revoked from Google."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-accounts.php:58
+msgid "Account ID to delete."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:58
+msgid "Account ID to refresh."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:122
+#: youtube/includes/api/class-esf-youtube-api-accounts.php:234
+#: youtube/includes/api/class-esf-youtube-api-load-more.php:107
+msgid "Account not found."
 msgstr ""
 
 #: instagram/admin/views/html-shoppable-tab.php:20
@@ -144,15 +219,25 @@ msgstr ""
 msgid "Accounts"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:70
-#: admin/views/html-admin-page-easy-social-feed.php:116
+#: admin/views/html-admin-page-easy-social-feed.php:56
+#: admin/views/html-admin-page-easy-social-feed.php:102
+#: admin/views/html-admin-page-easy-social-feed.php:148
 msgid "Activate"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:257
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:236
-#: instagram/admin/views/html-admin-page-mif.php:464
-msgid "Active Installs: "
+#. %d: Number of days
+#: youtube/includes/class-esf-youtube-token-manager.php:249
+msgid "Active - Auto-refresh in %d days"
+msgstr ""
+
+#. %d: Number of hours
+#: youtube/includes/class-esf-youtube-token-manager.php:252
+msgid "Active - Auto-refresh in %d hours"
+msgstr ""
+
+#. %d: Number of minutes
+#: youtube/includes/class-esf-youtube-token-manager.php:256
+msgid "Active - Auto-refresh in %d minutes"
 msgstr ""
 
 #: instagram/includes/esf-instagram-feed-widget.php:211
@@ -160,7 +245,7 @@ msgstr ""
 msgid "Add Image"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:348
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:198
 msgid ""
 "Add load more button at the bottom of each feed to load more posts, events, "
 "photos, videos, or albums."
@@ -187,13 +272,7 @@ msgstr ""
 msgid "Already connected?"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:272
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:251
-#: instagram/admin/views/html-admin-page-mif.php:479
-msgid "Already Installed"
-msgstr ""
-
-#: includes/class-esf-translation-strings.php:303
+#: includes/class-esf-translation-strings.php:338
 msgid "Alternate message when access token is missing."
 msgstr ""
 
@@ -207,7 +286,7 @@ msgid ""
 "media and Load More remain disabled, even if visitors give consent."
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:136
+#: admin/views/html-admin-page-easy-social-feed.php:122
 msgid "Any Hashtag Feed"
 msgstr ""
 
@@ -223,27 +302,41 @@ msgstr ""
 msgid "Approved Pages"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:302
-#: instagram/admin/views/html-admin-page-mif.php:199
-#: instagram/admin/views/html-admin-page-mif.php:213
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:152
+#: instagram/admin/views/html-admin-page-mif.php:173
+#: instagram/admin/views/html-admin-page-mif.php:187
 #: instagram/admin/views/html-shoppable-tab.php:106
 msgid "Are you sure?"
 msgstr ""
 
-#: admin/class-esf-admin.php:840
+#: includes/class-esf-translation-strings.php:283
+msgid "ARIA label for the YouTube Load More button."
+msgstr ""
+
+#: admin/class-esf-admin.php:906
 msgid "Attention! Access token is expired. Please re-authenticate the app."
 msgstr ""
 
-#: admin/class-esf-admin.php:830
+#: admin/class-esf-admin.php:896
 msgid ""
 "Attention! Data access to the current access token is expired. Please re-"
 "authenticate the app."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:63
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:46
 #: facebook/admin/views/html-how-to-use-tab.php:76
-#: instagram/admin/views/html-admin-page-mif.php:92
+#: instagram/admin/views/html-admin-page-mif.php:72
 msgid "Authenticate"
+msgstr ""
+
+#: admin/class-esf-admin.php:504
+msgid "Auto-translation is available in the premium version only."
+msgstr ""
+
+#. 1: Language label, e.g. French (France).
+#: admin/views/html-settings-tab-translation.php:77
+#, php-format
+msgid "Autofill %1$s text"
 msgstr ""
 
 #: admin/views/html-settings-tab-gdpr.php:35
@@ -266,10 +359,11 @@ msgstr ""
 msgid "Autoplay carousel"
 msgstr ""
 
-#: admin/class-esf-admin.php:512
+#: admin/class-esf-admin.php:675
 msgid "Awesome, you have been using Easy Social Feed "
 msgstr ""
 
+#: includes/core-functions.php:264
 #: instagram/includes/esf-insta-helper-functions.php:246
 msgid "B"
 msgstr ""
@@ -277,10 +371,6 @@ msgstr ""
 #: facebook/admin/includes/efbl-customizer.php:1294
 #: instagram/admin/includes/class-esf-insta-customizer.php:1215
 msgid "Background Color"
-msgstr ""
-
-#: admin/class-esf-admin.php:569
-msgid "before the sale ends!"
 msgstr ""
 
 #: facebook/admin/includes/efbl-customizer.php:933
@@ -368,8 +458,8 @@ msgstr ""
 msgid "Button/link text"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:359
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:380
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:209
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:230
 msgid "Buy Now"
 msgstr ""
 
@@ -387,8 +477,12 @@ msgstr ""
 msgid "Cache duration"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:299
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:336
+#: youtube/includes/api/class-esf-youtube-api-settings.php:65
+msgid "Cache duration in seconds. Must be one of the allowed values."
+msgstr ""
+
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:312
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:349
 msgid "Cache is successfully deleted."
 msgstr ""
 
@@ -410,9 +504,9 @@ msgstr ""
 msgid "Cached Feeds"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:305
-#: instagram/admin/views/html-admin-page-mif.php:202
-#: instagram/admin/views/html-admin-page-mif.php:216
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:155
+#: instagram/admin/views/html-admin-page-mif.php:176
+#: instagram/admin/views/html-admin-page-mif.php:190
 #: instagram/admin/views/html-shoppable-tab.php:109
 msgid "Cancel"
 msgstr ""
@@ -446,7 +540,7 @@ msgid ""
 "etc."
 msgstr ""
 
-#: admin/views/html-settings-tab-translation.php:22
+#: admin/views/html-settings-tab-translation.php:33
 msgid ""
 "Change the text shown in your Facebook and Instagram feeds. Leave a field "
 "blank to use the default."
@@ -457,22 +551,26 @@ msgstr ""
 msgid "Check new posts after every:"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:323
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:350
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:393
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:414
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:437
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:540
-#: instagram/admin/views/html-admin-page-mif.php:257
-#: instagram/admin/views/html-admin-page-mif.php:284
-#: instagram/admin/views/html-admin-page-mif.php:311
-#: instagram/admin/views/html-admin-page-mif.php:338
-#: instagram/admin/views/html-admin-page-mif.php:360
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:173
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:200
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:243
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:264
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:287
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:390
+#: instagram/admin/views/html-admin-page-mif.php:231
+#: instagram/admin/views/html-admin-page-mif.php:258
+#: instagram/admin/views/html-admin-page-mif.php:285
+#: instagram/admin/views/html-admin-page-mif.php:312
+#: instagram/admin/views/html-admin-page-mif.php:334
 msgid "Check out the demo"
 msgstr ""
 
-#: admin/class-esf-admin.php:575
-msgid "Checkout Now"
+#: admin/views/html-settings-tab-general.php:40
+msgid ""
+"Choose which language your Facebook and Instagram feeds use. Facebook and "
+"Instagram return their own predefined text (e.g. story lines like “X created "
+"an event”, “X shared a link”) in the language you select here. Leave as "
+"Default to use your site's language."
 msgstr ""
 
 #: facebook/admin/views/html-clear-cache-tab.php:28
@@ -480,8 +578,8 @@ msgstr ""
 msgid "Clear all"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:100
-#: instagram/admin/views/html-admin-page-mif.php:142
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:83
+#: instagram/admin/views/html-admin-page-mif.php:122
 msgid "Clear Cache"
 msgstr ""
 
@@ -490,7 +588,7 @@ msgstr ""
 msgid "Click behaviour"
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:226
+#: instagram/admin/views/html-admin-page-mif.php:200
 msgid "Click on the user icon located on the top right of your screen."
 msgstr ""
 
@@ -514,6 +612,20 @@ msgstr ""
 msgid "Click the save button and visit your site to see likebox in widget"
 msgstr ""
 
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:40
+msgid ""
+"Comma-separated list of fields to return (id, name, account_id, feed_type, "
+"source_id, settings, status, created_at, updated_at). Omit for full response."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-accounts.php:40
+msgid "Comma-separated list of fields to return."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:99
+msgid "Comma-separated list of fields to return. Omit for full response."
+msgstr ""
+
 #: facebook/admin/includes/efbl-customizer.php:2531
 #: instagram/admin/includes/class-esf-insta-customizer.php:2394
 msgid "Comments Color"
@@ -531,11 +643,11 @@ msgstr ""
 msgid "Connect My Facebook Account"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:289
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:139
 msgid "Connect My Facebook Pages"
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:243
+#: instagram/admin/views/html-admin-page-mif.php:217
 #: instagram/admin/views/html-autenticate-tab.php:107
 #: instagram/admin/views/html-autenticate-tab.php:351
 #: instagram/admin/views/html-autenticate-tab.php:417
@@ -550,14 +662,28 @@ msgstr ""
 msgid "Connect your Instagram account"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:422
+#: admin/views/html-admin-page-easy-social-feed.php:161
+msgid ""
+"Connect your YouTube channel and display a responsive video feed anywhere on "
+"your site:"
+msgstr ""
+
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:435
 #: instagram/admin/views/html-autenticate-tab.php:143
 #: instagram/admin/views/html-autenticate-tab.php:172
 msgid "Connected Instagram Account"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:490
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:539
 msgid "Connected Instagram Accounts"
+msgstr ""
+
+#: youtube/admin/classes/class-esf-youtube-admin.php:362
+msgid "Connecting…"
+msgstr ""
+
+#: youtube/admin/classes/class-esf-youtube-admin.php:365
+msgid "Connection complete. This window will close automatically."
 msgstr ""
 
 #: instagram/admin/views/html-autenticate-tab.php:286
@@ -590,19 +716,19 @@ msgstr ""
 msgid "CookieYes | GDPR Cookie Consent by CookieYes"
 msgstr ""
 
-#: admin/class-esf-admin.php:226
-#: admin/views/html-admin-page-easy-social-feed.php:301
-#: admin/views/html-admin-page-esf-settings.php:62
+#: admin/class-esf-admin.php:252
+#: admin/views/html-admin-page-easy-social-feed.php:197
+#: admin/views/html-admin-page-esf-settings.php:71
 #: facebook/admin/class-easy-facebook-likebox-admin.php:150
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:166
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:549
-#: instagram/admin/views/html-admin-page-mif.php:505
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:179
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:399
+#: instagram/admin/views/html-admin-page-mif.php:347
 msgid "Copied"
 msgstr ""
 
 #: facebook/admin/class-easy-facebook-likebox-admin.php:458
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:427
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:569
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:440
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:667
 #: facebook/admin/views/html-likebox-tab.php:33
 #: facebook/admin/views/html-likebox-tab.php:261
 #: facebook/admin/views/html-authenticate-tab.php:218
@@ -645,15 +771,23 @@ msgid ""
 "options."
 msgstr ""
 
+#: youtube/includes/api/class-esf-youtube-api-preview.php:105
+msgid "Could not generate preview."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-service.php:356
+msgid "Could not get channel uploads playlist."
+msgstr ""
+
 #: admin/views/html-admin-page-wellcome.php:46
 msgid "Custom Facebook Feed"
 msgstr ""
 
-#: easy-facebook-likebox.php:233
+#: easy-facebook-likebox.php:334
 msgid "Custom Facebook Feed - Page Plugin (Likebox)"
 msgstr ""
 
-#: easy-facebook-likebox.php:241 admin/views/html-admin-page-wellcome.php:28
+#: easy-facebook-likebox.php:342 admin/views/html-admin-page-wellcome.php:28
 msgid "Custom Instagram Feed"
 msgstr ""
 
@@ -662,14 +796,18 @@ msgstr ""
 msgid "Custom URL"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:87
+#: admin/views/html-admin-page-easy-social-feed.php:73
 msgid ""
 "Customizable and mobile-friendly Facebook post, images, videos, events, and "
 "albums feed"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:75
-#: instagram/admin/views/html-admin-page-mif.php:105
+#: admin/views/html-admin-page-easy-social-feed.php:171
+msgid "Customizable layouts, header and caching options"
+msgstr ""
+
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:58
+#: instagram/admin/views/html-admin-page-mif.php:85
 msgid "Customize (skins)"
 msgstr ""
 
@@ -703,8 +841,9 @@ msgstr ""
 msgid "days"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:68
-#: admin/views/html-admin-page-easy-social-feed.php:114
+#: admin/views/html-admin-page-easy-social-feed.php:54
+#: admin/views/html-admin-page-easy-social-feed.php:100
+#: admin/views/html-admin-page-easy-social-feed.php:146
 msgid "Deactivate"
 msgstr ""
 
@@ -712,8 +851,16 @@ msgstr ""
 msgid "decade"
 msgstr ""
 
-#: admin/views/html-settings-tab-translation.php:28
+#: admin/views/html-settings-tab-translation.php:89
 msgid "Default"
+msgstr ""
+
+#: includes/core-functions.php:526
+msgid "Default (use site language)"
+msgstr ""
+
+#: admin/class-esf-admin.php:259
+msgid "Defaults restored."
 msgstr ""
 
 #: instagram/admin/views/html-how-to-use-tab.php:444
@@ -739,36 +886,36 @@ msgstr ""
 msgid "Define how many words you want to show in feed"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:307
-#: instagram/admin/views/html-admin-page-mif.php:204
-#: instagram/admin/views/html-admin-page-mif.php:218
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:157
+#: instagram/admin/views/html-admin-page-mif.php:178
+#: instagram/admin/views/html-admin-page-mif.php:192
 #: instagram/admin/views/html-shoppable-tab.php:111
 msgid "Delete"
 msgstr ""
 
 #: facebook/admin/class-easy-facebook-likebox-admin.php:401
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:423
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:493
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:436
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:542
 #: facebook/admin/views/html-authenticate-tab.php:165
 #: instagram/admin/views/html-autenticate-tab.php:148
 #: instagram/admin/views/html-autenticate-tab.php:176
 msgid "Delete Access Token"
 msgstr ""
 
-#: admin/class-esf-admin.php:475
+#: admin/class-esf-admin.php:638
 #: facebook/admin/class-easy-facebook-likebox-admin.php:272
 #: facebook/admin/class-easy-facebook-likebox-admin.php:319
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:653
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:735
 msgid "Deleted"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:911
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:993
 msgid "Deleted!"
 msgstr ""
 
-#: admin/class-esf-admin.php:227
+#: admin/class-esf-admin.php:253
 #: facebook/admin/class-easy-facebook-likebox-admin.php:153
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:169
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:182
 msgid "Deleting"
 msgstr ""
 
@@ -796,7 +943,7 @@ msgid ""
 "More will always load normally for visitors."
 msgstr ""
 
-#: admin/class-esf-admin.php:536 admin/class-esf-admin.php:580
+#: admin/class-esf-admin.php:699
 msgid "Dismiss"
 msgstr ""
 
@@ -827,7 +974,7 @@ msgid ""
 "subscribers and customers."
 msgstr ""
 
-#: easy-facebook-likebox.php:236
+#: easy-facebook-likebox.php:337
 msgid ""
 "Display customizable and mobile-friendly Facebook post, images, videos, "
 "events, albums feed and Facebook page plugin using shortcode and widget"
@@ -870,11 +1017,11 @@ msgstr ""
 msgid "Display profile info, avatars, and posts"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:133
+#: admin/views/html-admin-page-easy-social-feed.php:119
 msgid "Display stunning photos from the Instagram account in the feed"
 msgstr ""
 
-#: easy-facebook-likebox.php:244
+#: easy-facebook-likebox.php:345
 msgid ""
 "Display stunning photos from the Instagram account in the feed, any Hashtag "
 "Feed and gallery of photos in the PopUp using shortcode, widget, inside "
@@ -895,6 +1042,12 @@ msgid ""
 "site. It’s responsive, highly customizable, and SEO-friendly"
 msgstr ""
 
+#: easy-facebook-likebox.php:353
+msgid ""
+"Display YouTube videos from your channel using secure OAuth connection with "
+"customizable layouts and caching"
+msgstr ""
+
 #: admin/views/html-admin-page-wellcome.php:66
 msgid ""
 "Displays a Facebook Page Plugin. The Facebook Page Plugin is a social plugin "
@@ -906,14 +1059,14 @@ msgstr ""
 msgid "Displays Hashtag or Mentions feeds"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:303
-#: instagram/admin/views/html-admin-page-mif.php:200
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:153
+#: instagram/admin/views/html-admin-page-mif.php:174
 msgid ""
 "Do you really want to delete the access token? It will delete all the pages "
 "data, access tokens, and permissions given to the app."
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:214
+#: instagram/admin/views/html-admin-page-mif.php:188
 msgid ""
 "Do you really want to delete the access token? It will delete the access "
 "token saved in your website databse."
@@ -977,11 +1130,11 @@ msgstr ""
 
 #. Name of the plugin
 #. Author of the plugin
-#: admin/class-esf-admin.php:267 admin/class-esf-admin.php:268
+#: admin/class-esf-admin.php:297 admin/class-esf-admin.php:298
 msgid "Easy Social Feed"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:33
+#: admin/views/html-admin-page-easy-social-feed.php:19
 msgid "Easy Social Feed (Previously Easy Facebook Likebox)"
 msgstr ""
 
@@ -1007,11 +1160,19 @@ msgstr ""
 msgid "Edit"
 msgstr ""
 
-#: admin/class-esf-admin.php:516
+#: admin/views/html-admin-page-easy-social-feed.php:174
+msgid "Embed feeds using shortcode (Gutenberg block coming soon)"
+msgstr ""
+
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:528
+msgid "Empty response from Facebook."
+msgstr ""
+
+#: admin/class-esf-admin.php:679
 msgid "encourage us to make it even better."
 msgstr ""
 
-#: admin/class-esf-admin.php:955
+#: admin/class-esf-admin.php:974
 msgid "Enjoying Easy Social Feed? Please take a moment to"
 msgstr ""
 
@@ -1035,7 +1196,7 @@ msgid ""
 "defined width."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:273
+#: includes/class-esf-translation-strings.php:308
 msgid "Errors & Messages"
 msgstr ""
 
@@ -1051,9 +1212,45 @@ msgstr ""
 msgid "Events Filter"
 msgstr ""
 
+#: youtube/class-esf-youtube-main.php:504
+msgid "Every 1 Hour"
+msgstr ""
+
+#: youtube/class-esf-youtube-main.php:516
+msgid "Every 12 Hours"
+msgstr ""
+
+#: youtube/class-esf-youtube-main.php:520
+msgid "Every 24 Hours"
+msgstr ""
+
+#: youtube/class-esf-youtube-main.php:508
+msgid "Every 3 Hours"
+msgstr ""
+
+#: youtube/class-esf-youtube-main.php:497
+msgid "Every 30 Minutes"
+msgstr ""
+
+#: youtube/class-esf-youtube-main.php:512
+msgid "Every 6 Hours"
+msgstr ""
+
+#: youtube/class-esf-youtube-main.php:524
+msgid "Every 7 Days"
+msgstr ""
+
+#: youtube/includes/class-esf-youtube-token-manager.php:236
+msgid "Expired - Auto-refresh failed. Please reconnect."
+msgstr ""
+
+#: youtube/includes/class-esf-youtube-token-manager.php:241
+msgid "Expiring soon - Auto-refresh scheduled"
+msgstr ""
+
 #: facebook/admin/class-easy-facebook-likebox-admin.php:171
 #: facebook/admin/class-easy-facebook-likebox-admin.php:172
-#: instagram/admin/views/html-admin-page-mif.php:154
+#: instagram/admin/views/html-admin-page-mif.php:129
 msgid "Facebook"
 msgstr ""
 
@@ -1069,11 +1266,11 @@ msgstr ""
 msgid "Facebook Demo - Customizer"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:90
+#: admin/views/html-admin-page-easy-social-feed.php:76
 msgid "Facebook Group feed"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:93
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:76
 msgid "Facebook Like box(Page Plugin)"
 msgstr ""
 
@@ -1081,7 +1278,7 @@ msgstr ""
 msgid "Facebook Page Plugin (Like box)"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:93
+#: admin/views/html-admin-page-easy-social-feed.php:79
 msgid "Facebook Page Plugin (previously like box)"
 msgstr ""
 
@@ -1095,6 +1292,46 @@ msgstr ""
 msgid "Facebook's Platform Terms"
 msgstr ""
 
+#. %s: Error message
+#: youtube/includes/api/class-esf-youtube-api-service.php:102
+#, php-format
+msgid "Failed to connect to YouTube API: %s"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:383
+msgid "Failed to create feed."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-accounts.php:249
+msgid "Failed to delete account."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:484
+msgid "Failed to delete feed."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:522
+msgid "Failed to duplicate feed."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-service.php:658
+msgid "Failed to fetch video details."
+msgstr ""
+
+#. %s: Error message
+#: youtube/includes/api/class-esf-youtube-api-service.php:227
+#, php-format
+msgid "Failed to refresh token: %s"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:167
+msgid "Failed to update account tokens."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:449
+msgid "Failed to update feed."
+msgstr ""
+
 #: facebook/includes/easy-facebook-page-plugin-widget.php:89
 msgid "Fanpage Url:"
 msgstr ""
@@ -1104,6 +1341,14 @@ msgstr ""
 msgid "Feed"
 msgstr ""
 
+#: youtube/includes/models/class-esf-youtube-feed-repository.php:435
+msgid "Feed (Copy)"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:492
+msgid "Feed deleted successfully."
+msgstr ""
+
 #: facebook/admin/includes/efbl-customizer.php:2135
 #: facebook/admin/includes/efbl-customizer.php:2165
 #: instagram/admin/includes/class-esf-insta-customizer.php:2001
@@ -1111,11 +1356,59 @@ msgstr ""
 msgid "Feed Hover Shadow Color"
 msgstr ""
 
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:171
+msgid "Feed ID to clear cache for."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:130
+msgid "Feed ID to delete."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:151
+msgid "Feed ID to duplicate."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-load-more.php:40
+#: youtube/includes/api/class-esf-youtube-api-preview.php:40
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:91
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:113
+msgid "Feed ID."
+msgstr ""
+
+#: admin/views/html-settings-tab-general.php:30
+msgid "Feed language"
+msgstr ""
+
 #: facebook/admin/includes/efbl-customizer.php:1719
 #: facebook/admin/includes/efbl-customizer.php:1738
 #: instagram/admin/includes/class-esf-insta-customizer.php:1613
 #: instagram/admin/includes/class-esf-insta-customizer.php:1632
 msgid "Feed Meta Color"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:195
+msgid "Feed name."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-load-more.php:86
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:325
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:409
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:475
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:513
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:546
+msgid "Feed not found."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:223
+msgid "Feed settings (layout, video, header, moderation, style)."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:210
+msgid "Feed source type."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:228
+msgid "Feed status."
 msgstr ""
 
 #: facebook/admin/includes/efbl-customizer.php:1901
@@ -1144,6 +1437,10 @@ msgstr ""
 msgid ""
 "Feeds Will be automatically refreshed after selected time interval. In this "
 "setting, the possible values are any number. Recommended value is 5"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:46
+msgid "Filter by status (active, inactive)."
 msgstr ""
 
 #: facebook/admin/views/html-how-to-use-tab.php:224
@@ -1190,7 +1487,7 @@ msgid ""
 "refresh your feeds manually"
 msgstr ""
 
-#: admin/class-esf-admin.php:513
+#: admin/class-esf-admin.php:676
 msgid "for more than a week. I would really appreciate it if you "
 msgstr ""
 
@@ -1212,21 +1509,16 @@ msgstr ""
 msgid "Free 7-day PRO trial"
 msgstr ""
 
-#: admin/class-esf-admin.php:568
-msgid "FSBFCM2025"
+#: youtube/includes/api/class-esf-youtube-api-load-more.php:115
+#: youtube/includes/api/class-esf-youtube-api-preview.php:94
+msgid "Frontend not loaded."
 msgstr ""
 
-#: admin/class-esf-admin.php:987
-msgid ""
-"Fully automated web accessibility technology that complies with the WCAG 2.1 "
-"and keeps your website accessible at all times"
-msgstr ""
-
-#: admin/views/html-admin-page-easy-social-feed.php:139
+#: admin/views/html-admin-page-easy-social-feed.php:125
 msgid "Gallery of photos in the PopUp"
 msgstr ""
 
-#: admin/views/html-admin-page-esf-settings.php:35
+#: admin/views/html-admin-page-esf-settings.php:36
 #: admin/views/html-settings-tab-gdpr.php:16
 msgid "GDPR"
 msgstr ""
@@ -1243,6 +1535,11 @@ msgstr ""
 msgid "GDPR mode"
 msgstr ""
 
+#: admin/views/html-settings-tab-general.php:18
+#: admin/views/html-admin-page-esf-settings.php:31
+msgid "General"
+msgstr ""
+
 #: facebook/admin/views/html-likebox-tab.php:252
 #: facebook/admin/views/html-how-to-use-tab.php:394
 #: instagram/admin/views/html-how-to-use-tab.php:365
@@ -1254,7 +1551,7 @@ msgid "Generate the shortcode using the shortcode generator below."
 msgstr ""
 
 #: facebook/admin/class-easy-facebook-likebox-admin.php:154
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:170
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:183
 msgid "Generating Shortcode"
 msgstr ""
 
@@ -1262,20 +1559,16 @@ msgstr ""
 msgid "Get feed"
 msgstr ""
 
-#: admin/class-esf-admin.php:988
-msgid "Get it"
-msgstr ""
-
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:544
-#: instagram/admin/views/html-admin-page-mif.php:364
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:394
+#: instagram/admin/views/html-admin-page-mif.php:338
 msgid "Get Started"
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:227
+#: instagram/admin/views/html-admin-page-mif.php:201
 msgid "Go in your Instagram Settings and select “Authorized Apps”"
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:222
+#: instagram/admin/views/html-admin-page-mif.php:196
 msgid "Go to "
 msgstr ""
 
@@ -1421,11 +1714,11 @@ msgstr ""
 msgid "https://wordpress.org/plugins/easy-facebook-likebox"
 msgstr ""
 
-#: admin/class-esf-admin.php:526
+#: admin/class-esf-admin.php:689
 msgid "I already rated it"
 msgstr ""
 
-#: admin/class-esf-admin.php:522
+#: admin/class-esf-admin.php:685
 msgid "I Like Easy Social Feed - It increased engagement on my site"
 msgstr ""
 
@@ -1435,8 +1728,8 @@ msgid "ID"
 msgstr ""
 
 #: facebook/admin/class-easy-facebook-likebox-admin.php:440
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:427
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:568
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:440
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:665
 #: facebook/admin/views/html-authenticate-tab.php:179
 msgid "ID:"
 msgstr ""
@@ -1504,7 +1797,7 @@ msgid ""
 "section above, or "
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:220
+#: instagram/admin/views/html-admin-page-mif.php:194
 msgid "If you want to disconnect plugin app also follow the steps below:"
 msgstr ""
 
@@ -1530,9 +1823,9 @@ msgid ""
 "fr_FR for frecnh."
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:197
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:198
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:109
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:210
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:211
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:90
 msgid "Instagram"
 msgstr ""
 
@@ -1546,14 +1839,20 @@ msgid ""
 "select “Business” from Authenticate -> Connect My Instagram Account."
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:274
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:253
-#: instagram/admin/views/html-admin-page-mif.php:481
-msgid "Install Now Free"
+#: youtube/includes/api/class-esf-youtube-api-settings.php:153
+msgid "Invalid cache duration. Choose one of the allowed values."
 msgstr ""
 
-#: admin/class-esf-admin.php:567
-msgid "is just a click away! Use code "
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:502
+msgid "Invalid request. Missing required parameters."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-service.php:256
+msgid "Invalid response from token refresh server."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:94
+msgid "Invalid security token."
 msgstr ""
 
 #: facebook/admin/views/html-how-to-use-tab.php:75
@@ -1573,12 +1872,29 @@ msgid ""
 "feeds."
 msgstr ""
 
+#: youtube/admin/views/html-admin-dashboard.php:32
+msgid "JavaScript is disabled in your browser."
+msgstr ""
+
+#: includes/core-functions.php:272
 #: instagram/includes/esf-insta-helper-functions.php:238
 msgid "K"
 msgstr ""
 
+#: admin/views/html-settings-tab-general.php:53
+msgid "Keep settings and data when the plugin is deleted"
+msgstr ""
+
+#: includes/class-esf-translation-strings.php:303
+msgid "Label used next to the view count in the YouTube popup stats bar."
+msgstr ""
+
 #: facebook/includes/easy-facebook-page-plugin-widget.php:192
 msgid "Language of your page"
+msgstr ""
+
+#: admin/views/html-admin-page-easy-social-feed.php:165
+msgid "Latest videos from your YouTube channel"
 msgstr ""
 
 #: facebook/admin/includes/efbl-customizer.php:100
@@ -1596,7 +1912,7 @@ msgstr ""
 msgid "Learn more about GDPR options"
 msgstr ""
 
-#: admin/views/html-settings-tab-translation.php:73
+#: admin/views/html-settings-tab-translation.php:134
 msgid "Leave blank for default"
 msgstr ""
 
@@ -1610,6 +1926,10 @@ msgstr ""
 
 #: instagram/admin/views/template-shoppable.php:85
 msgid "Link Source"
+msgstr ""
+
+#: includes/class-esf-translation-strings.php:298
+msgid "Link text in the YouTube popup that opens the video on youtube.com."
 msgstr ""
 
 #: facebook/admin/views/html-how-to-use-tab.php:547
@@ -1679,6 +1999,14 @@ msgstr ""
 msgid "Load More Hover Color"
 msgstr ""
 
+#: youtube/includes/api/class-esf-youtube-api-load-more.php:73
+msgid "Load More is a premium feature."
+msgstr ""
+
+#: youtube/frontend/class-esf-youtube-frontend.php:150
+msgid "Loading…"
+msgstr ""
+
 #: facebook/includes/easy-facebook-page-plugin-widget.php:196
 msgid "Locale (Other):"
 msgstr ""
@@ -1691,7 +2019,7 @@ msgstr ""
 msgid "log in to instagram.com"
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:224
+#: instagram/admin/views/html-admin-page-mif.php:198
 msgid "Log in with your username and password"
 msgstr ""
 
@@ -1708,12 +2036,7 @@ msgstr ""
 msgid "Loop"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:223
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:202
-#: instagram/admin/views/html-admin-page-mif.php:427
-msgid "Love this plugin?"
-msgstr ""
-
+#: includes/core-functions.php:268
 #: instagram/includes/esf-insta-helper-functions.php:242
 msgid "M"
 msgstr ""
@@ -1797,8 +2120,8 @@ msgstr ""
 msgid "minutes"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:82
-#: instagram/admin/views/html-admin-page-mif.php:114
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:65
+#: instagram/admin/views/html-admin-page-mif.php:94
 msgid "Moderate"
 msgstr ""
 
@@ -1810,17 +2133,11 @@ msgstr ""
 msgid "months"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:281
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:260
-#: instagram/admin/views/html-admin-page-mif.php:488
-msgid "More Info"
-msgstr ""
-
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:538
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:388
 msgid "Multifeed"
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:358
+#: instagram/admin/views/html-admin-page-mif.php:332
 msgid "Multifeed Add-on"
 msgstr ""
 
@@ -1886,7 +2203,7 @@ msgstr ""
 msgid "No GDPR consent plugin detected."
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:617
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:534
 msgid "No page found"
 msgstr ""
 
@@ -1902,6 +2219,10 @@ msgstr ""
 msgid ""
 "No page(s) found, Please connect your Facebook page with plugin first from "
 "authenticate tab"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:140
+msgid "No refresh token available. Please reconnect your account."
 msgstr ""
 
 #: facebook/admin/includes/efbl-skins.php:291
@@ -1925,11 +2246,16 @@ msgid ""
 "generate your shortocde."
 msgstr ""
 
-#: admin/class-esf-admin.php:531
+#: youtube/includes/api/class-esf-youtube-api-service.php:133
+msgid ""
+"No YouTube channel found for this account. Please create a channel first."
+msgstr ""
+
+#: admin/class-esf-admin.php:694
 msgid "No, not good enough, I do not like to rate it"
 msgstr ""
 
-#: includes/core-functions.php:286
+#: includes/core-functions.php:386
 msgid "Nonce not verified or you don't have appropriate permissions"
 msgstr ""
 
@@ -1939,6 +2265,10 @@ msgstr ""
 #: facebook/admin/views/html-how-to-use-tab.php:172
 #: facebook/admin/views/html-how-to-use-tab.php:201
 msgid "None"
+msgstr ""
+
+#: admin/class-esf-admin.php:256
+msgid "Nothing to autofill."
 msgstr ""
 
 #: facebook/admin/includes/efbl-customizer.php:132
@@ -1953,6 +2283,10 @@ msgstr ""
 
 #: facebook/admin/views/html-how-to-use-tab.php:278
 msgid "Number of posts to display"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-load-more.php:48
+msgid "Number of videos already displayed."
 msgstr ""
 
 #: facebook/admin/views/html-how-to-use-tab.php:288
@@ -1980,6 +2314,10 @@ msgstr ""
 #: instagram/admin/includes/class-esf-insta-customizer.php:1745
 #: instagram/admin/includes/class-esf-insta-customizer.php:1944
 msgid "Open PopUp Icon color"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-preview.php:48
+msgid "Optional settings override (JSON string) for live preview."
 msgstr ""
 
 #: facebook/admin/views/html-authenticate-tab.php:135
@@ -2077,8 +2415,17 @@ msgstr ""
 msgid "Permissions Needed"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:171
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:217
+msgid "Playlist ID, search query, or other source identifier."
+msgstr ""
+
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:184
 msgid "Please connect your Instagram account with plugin"
+msgstr ""
+
+#: youtube/admin/views/html-admin-dashboard.php:35
+msgid ""
+"Please enable JavaScript to manage your YouTube accounts from this dashboard."
 msgstr ""
 
 #: facebook/admin/views/html-how-to-use-tab.php:218
@@ -2113,7 +2460,7 @@ msgid ""
 "(This selection is only for preview, it can be used with any page.)"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:253
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:266
 msgid "Please wait! We are generating a preview for you"
 msgstr ""
 
@@ -2122,7 +2469,7 @@ msgid "Please wait! We are generating a preview for you."
 msgstr ""
 
 #: facebook/admin/class-easy-facebook-likebox-admin.php:156
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:172
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:185
 msgid "Please wait, we are generating preview for you"
 msgstr ""
 
@@ -2166,7 +2513,7 @@ msgstr ""
 msgid "Posts to display:"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:318
+#: includes/class-esf-translation-strings.php:353
 msgid "Prefix before error message (e.g. \"Error: something went wrong\")."
 msgstr ""
 
@@ -2174,24 +2521,28 @@ msgstr ""
 msgid "Prefix before reaction count (e.g. \"All 5\")."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:320
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:170
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:197
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:220
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:240
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:261
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:284
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:307
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:327
 #: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:347
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:370
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:390
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:411
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:434
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:457
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:477
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:497
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:517
-#: instagram/admin/views/html-admin-page-mif.php:254
-#: instagram/admin/views/html-admin-page-mif.php:281
-#: instagram/admin/views/html-admin-page-mif.php:308
-#: instagram/admin/views/html-admin-page-mif.php:335
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:367
+#: instagram/admin/views/html-admin-page-mif.php:228
+#: instagram/admin/views/html-admin-page-mif.php:255
+#: instagram/admin/views/html-admin-page-mif.php:282
+#: instagram/admin/views/html-admin-page-mif.php:309
 #: instagram/admin/views/html-how-to-use-tab.php:154
 #: instagram/admin/views/html-how-to-use-tab.php:263
 #: instagram/admin/views/html-how-to-use-tab.php:327
 msgid "Premium Feature"
+msgstr ""
+
+#: admin/views/html-settings-tab-general.php:47
+msgid "Preserve settings on uninstall"
 msgstr ""
 
 #: admin/views/html-settings-tab-gdpr.php:107
@@ -2205,9 +2556,9 @@ msgstr ""
 msgid "Previous post"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:85
-#: instagram/admin/views/html-admin-page-mif.php:117
-#: instagram/admin/views/html-admin-page-mif.php:131
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:68
+#: instagram/admin/views/html-admin-page-mif.php:97
+#: instagram/admin/views/html-admin-page-mif.php:111
 msgid "Pro"
 msgstr ""
 
@@ -2218,6 +2569,13 @@ msgstr ""
 #: facebook/admin/views/html-how-to-use-tab.php:529
 #: instagram/admin/views/html-how-to-use-tab.php:450
 msgid "pro"
+msgstr ""
+
+#: admin/views/html-upgrade-notice.php:30
+msgid ""
+"Pro unlocks a lot more: visual moderation, Load More for unlimited posts, "
+"hashtag & event feeds, featured and shoppable posts, advanced popups, and "
+"priority support — with new features added regularly."
 msgstr ""
 
 #: instagram/admin/views/html-clear-cache-tab.php:32
@@ -2233,7 +2591,7 @@ msgstr ""
 msgid "Quick Start Video"
 msgstr ""
 
-#: admin/class-esf-admin.php:958
+#: admin/class-esf-admin.php:977
 msgid "rate the plugin"
 msgstr ""
 
@@ -2244,6 +2602,10 @@ msgstr ""
 #: instagram/admin/views/html-shoppable-tab.php:76
 #: instagram/admin/views/html-moderate-tab.php:91
 msgid "Refresh feed"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-service.php:189
+msgid "Refresh token is required."
 msgstr ""
 
 #: instagram/includes/esf-instagram-feed-widget.php:209
@@ -2265,12 +2627,20 @@ msgstr ""
 msgid "Reset All"
 msgstr ""
 
+#: admin/class-esf-admin.php:258
+msgid "Reset all custom text to defaults?"
+msgstr ""
+
+#: admin/views/html-settings-tab-translation.php:153
+msgid "Reset to default English"
+msgstr ""
+
 #: facebook/admin/views/html-likebox-tab.php:175
 #: facebook/admin/views/html-likebox-tab.php:342
 msgid "Responsive"
 msgstr ""
 
-#: admin/class-esf-admin.php:514
+#: admin/class-esf-admin.php:677
 msgid "review and rate "
 msgstr ""
 
@@ -2286,21 +2656,28 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: admin/views/html-settings-tab-translation.php:47
-#: admin/views/html-settings-tab-translation.php:89
+#. %s: discount (e.g. 17%)
+#: admin/views/html-upgrade-notice.php:39
+#, php-format
+msgid "Save %s on Pro."
+msgstr ""
+
+#: admin/views/html-settings-tab-translation.php:108
+#: admin/views/html-settings-tab-translation.php:150
 msgid "Save All Settings"
 msgstr ""
 
+#: admin/views/html-settings-tab-general.php:65
 #: admin/views/html-settings-tab-gdpr.php:97
 msgid "Save Settings"
 msgstr ""
 
 #: facebook/admin/class-easy-facebook-likebox-admin.php:152
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:168
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:181
 msgid "Saving"
 msgstr ""
 
-#: admin/class-esf-admin.php:229
+#: admin/class-esf-admin.php:255
 msgid "Saving…"
 msgstr ""
 
@@ -2314,6 +2691,10 @@ msgstr ""
 
 #: instagram/includes/esf-insta-helper-functions.php:295
 msgid "seconds"
+msgstr ""
+
+#: admin/views/html-admin-page-easy-social-feed.php:168
+msgid "Secure OAuth 2.0 connection (no API key required)"
 msgstr ""
 
 #: instagram/admin/views/html-skins-tab.php:38
@@ -2342,7 +2723,7 @@ msgstr ""
 msgid "Select language"
 msgstr ""
 
-#: admin/class-esf-admin.php:252
+#: admin/class-esf-admin.php:282
 #: instagram/includes/esf-instagram-feed-widget.php:473
 msgid "Select or Upload Image"
 msgstr ""
@@ -2606,19 +2987,25 @@ msgstr ""
 msgid "Select the text size of total followers in the header."
 msgstr ""
 
-#: easy-facebook-likebox.php:267 admin/class-esf-admin.php:300
-#: admin/class-esf-admin.php:301
-#: admin/views/html-admin-page-easy-social-feed.php:105
-#: admin/views/html-admin-page-easy-social-feed.php:151
-#: admin/views/html-admin-page-esf-settings.php:23
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:358
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:425
+msgid "Selected account not found."
+msgstr ""
+
+#: easy-facebook-likebox.php:376 admin/class-esf-admin.php:330
+#: admin/class-esf-admin.php:331
+#: admin/views/html-admin-page-easy-social-feed.php:91
+#: admin/views/html-admin-page-easy-social-feed.php:137
+#: admin/views/html-admin-page-easy-social-feed.php:183
 msgid "Settings"
 msgstr ""
 
-#: admin/class-esf-admin.php:358
+#: admin/class-esf-admin.php:428
 msgid "Settings already saved."
 msgstr ""
 
-#: admin/class-esf-admin.php:364 admin/class-esf-admin.php:406
+#: admin/class-esf-admin.php:405 admin/class-esf-admin.php:434
+#: admin/class-esf-admin.php:476
 msgid "Settings saved successfully!"
 msgstr ""
 
@@ -2634,7 +3021,7 @@ msgstr ""
 msgid "Shadow color"
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:128
+#: instagram/admin/views/html-admin-page-mif.php:108
 msgid "Shoppable"
 msgstr ""
 
@@ -2956,31 +3343,35 @@ msgstr ""
 msgid "Show Stories"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:298
+#: includes/class-esf-translation-strings.php:278
+msgid "Shown when a YouTube feed has no videos to display."
+msgstr ""
+
+#: includes/class-esf-translation-strings.php:333
 msgid "Shown when API access token is missing."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:283
+#: includes/class-esf-translation-strings.php:318
 msgid "Shown when Facebook feed returns no results."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:288
+#: includes/class-esf-translation-strings.php:323
 msgid "Shown when feed request returns no data."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:313
+#: includes/class-esf-translation-strings.php:348
 msgid "Shown when Instagram feed has no data."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:323
+#: includes/class-esf-translation-strings.php:358
 msgid "Shown when Instagram stories have no data."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:308
+#: includes/class-esf-translation-strings.php:343
 msgid "Shown when loading more Instagram posts and none are left."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:278
+#: includes/class-esf-translation-strings.php:313
 msgid "Shown when no Facebook or Instagram account is connected."
 msgstr ""
 
@@ -2988,11 +3379,11 @@ msgstr ""
 msgid "Shown when the browser cannot play the video."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:328
+#: includes/class-esf-translation-strings.php:363
 msgid "Shown when the Facebook page ID is invalid."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:293
+#: includes/class-esf-translation-strings.php:328
 msgid "Shown when the given account ID is invalid."
 msgstr ""
 
@@ -3170,30 +3561,29 @@ msgstr ""
 msgid "Small header"
 msgstr ""
 
-#: admin/class-esf-admin.php:228
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:167
+#: admin/class-esf-admin.php:254
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:180
 msgid "Something went wrong!"
 msgstr ""
 
-#: admin/class-esf-admin.php:651
 #: facebook/admin/class-easy-facebook-likebox-admin.php:389
 #: facebook/admin/class-easy-facebook-likebox-admin.php:604
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:801
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:848
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:882
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:913
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:883
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:930
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:964
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:995
 msgid "Something went wrong! Please try again"
 msgstr ""
 
-#: admin/class-esf-admin.php:437 admin/class-esf-admin.php:477
+#: admin/class-esf-admin.php:600 admin/class-esf-admin.php:640
 #: facebook/admin/class-easy-facebook-likebox-admin.php:361
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:307
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:338
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:658
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:320
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:351
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:740
 msgid "Something Went Wrong! Please try again."
 msgstr ""
 
-#: admin/class-esf-admin.php:367
+#: admin/class-esf-admin.php:437
 #: facebook/admin/class-easy-facebook-likebox-admin.php:151
 msgid "Something went wrong! Please try again."
 msgstr ""
@@ -3201,24 +3591,32 @@ msgstr ""
 #: facebook/admin/class-easy-facebook-likebox-admin.php:278
 #: facebook/admin/class-easy-facebook-likebox-admin.php:321
 #: facebook/admin/class-easy-facebook-likebox-admin.php:488
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:453
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:458
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:625
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:466
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:471
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:515
 msgid "Something went wrong! Refresh the page and try again"
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:240
+#: instagram/admin/views/html-admin-page-mif.php:214
 msgid ""
 "Sorry, Plugin is unable to get the accounts data. Please delete the access "
 "token and select accounts in the second step of authentication to give the "
 "permission."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:285
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:135
 msgid ""
 "Sorry, the Plugin is unable to get the page data. Please delete the access "
 "token and select pages in the second step of authentication to give "
 "permission."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:53
+msgid "Sort column."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:60
+msgid "Sort order (asc, desc)."
 msgstr ""
 
 #: facebook/admin/includes/efbl-customizer.php:1676
@@ -3235,9 +3633,13 @@ msgstr ""
 msgid "Submit"
 msgstr ""
 
+#: includes/class-esf-translation-strings.php:293
+msgid "Subscribe button text shown in the YouTube feed header and popup."
+msgstr ""
+
 #: facebook/admin/class-easy-facebook-likebox-admin.php:483
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:446
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:611
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:459
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:710
 msgid "Successfully Authenticated!"
 msgstr ""
 
@@ -3273,19 +3675,19 @@ msgstr ""
 msgid "Text Size of Bio"
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:359
+#: instagram/admin/views/html-admin-page-mif.php:333
 msgid ""
 "The Multifeed add-on gives you the ability to display posts of multiple "
 "Instagram accounts in one single feed ordered by date."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:539
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:389
 msgid ""
 "The Multifeed gives you the ability to display multiple posts or events from "
 "multiple Facebook accounts in one single feed ordered by date."
 msgstr ""
 
-#: admin/class-esf-admin.php:515
+#: admin/class-esf-admin.php:678
 msgid "the plugin to help spread the word and "
 msgstr ""
 
@@ -3302,10 +3704,17 @@ msgid ""
 "after consent has been given by a supported GDPR / cookie consent plugin."
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:224
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:203
-#: instagram/admin/views/html-admin-page-mif.php:428
-msgid "Then why not try our other FREE plugins."
+#. 1: Channel name, 2: Channel ID, 3: Admin URL
+#: youtube/includes/class-esf-youtube-token-manager.php:155
+#, php-format
+msgid ""
+"The YouTube access token for channel '%1$s' (ID: %2$s) has expired and could "
+"not be automatically refreshed.\n"
+"\n"
+"Please reconnect the account at:\n"
+"%3$s\n"
+"\n"
+"This is an automated message from Easy Social Feed plugin."
 msgstr ""
 
 #: facebook/admin/views/html-authenticate-tab.php:268
@@ -3313,6 +3722,12 @@ msgstr ""
 msgid ""
 "These are the permissions that would be granted once you connect your user "
 "account:"
+msgstr ""
+
+#: admin/views/html-settings-tab-general.php:20
+msgid ""
+"These settings apply to all modules (Facebook, Instagram) and control how "
+"your feeds and data behave across the plugin."
 msgstr ""
 
 #: facebook/admin/views/html-authenticate-tab.php:303
@@ -3402,8 +3817,8 @@ msgid ""
 "values. You can edit it and change the look & feel of your Facebook Feeds."
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:83
-#: admin/views/html-admin-page-easy-social-feed.php:129
+#: admin/views/html-admin-page-easy-social-feed.php:69
+#: admin/views/html-admin-page-easy-social-feed.php:115
 msgid "This module allows you to display:"
 msgstr ""
 
@@ -3525,13 +3940,32 @@ msgid ""
 "can register your app from Facebook developer account and add ID here."
 msgstr ""
 
-#: admin/views/html-settings-tab-translation.php:20
-#: admin/views/html-admin-page-esf-settings.php:40
+#. %s: Error message
+#: youtube/includes/api/class-esf-youtube-api-service.php:245
+#, php-format
+msgid "Token refresh failed: %s"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:183
+msgid "Token refreshed successfully."
+msgstr ""
+
+#: admin/views/html-settings-tab-translation.php:31
+#: admin/views/html-admin-page-esf-settings.php:41
 msgid "Translation"
+msgstr ""
+
+#: admin/class-esf-admin.php:257
+msgid "Translations filled and saved."
 msgstr ""
 
 #: instagram/admin/views/html-autenticate-tab.php:361
 msgid "Trouble connecting? Please "
+msgstr ""
+
+#: admin/class-esf-admin.php:538 admin/class-esf-admin.php:546
+#: admin/class-esf-admin.php:552
+msgid "Unable to fetch translation suggestions at the moment."
 msgstr ""
 
 #: facebook/admin/views/html-how-to-use-tab.php:425
@@ -3543,16 +3977,33 @@ msgstr ""
 msgid "Unable to understand shortocde parameters?"
 msgstr ""
 
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:522
+msgid "Unexpected response from Facebook."
+msgstr ""
+
+#: youtube/includes/class-esf-youtube-token-manager.php:226
+msgid "Unknown"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-service.php:116
+#: youtube/includes/api/class-esf-youtube-api-service.php:411
+#: youtube/includes/api/class-esf-youtube-api-service.php:490
+msgid "Unknown API error"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-service.php:239
+msgid "Unknown error during token refresh"
+msgstr ""
+
 #: facebook/includes/easy-custom-facebook-feed-widget.php:288
 #: facebook/admin/views/html-how-to-use-tab.php:231
 msgid "Upcoming"
 msgstr ""
 
-#: admin/class-esf-admin.php:649
 #: facebook/admin/class-easy-facebook-likebox-admin.php:602
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:799
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:846
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:880
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:881
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:928
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:962
 msgid "Updated!"
 msgstr ""
 
@@ -3571,30 +4022,34 @@ msgstr ""
 msgid "Upgrade to PRO"
 msgstr ""
 
+#: admin/views/html-upgrade-notice.php:25
+msgid "Upgrade to Pro"
+msgstr ""
+
 #: facebook/admin/includes/efbl-customizer-extend.php:157
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:402
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:423
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:446
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:466
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:486
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:506
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:526
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:252
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:273
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:296
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:316
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:336
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:356
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:376
 #: facebook/admin/views/html-moderate-tab.php:108
 #: instagram/admin/includes/class-esf-insta-customizer-extend.php:156
-#: instagram/admin/views/html-admin-page-mif.php:266
-#: instagram/admin/views/html-admin-page-mif.php:293
-#: instagram/admin/views/html-admin-page-mif.php:320
-#: instagram/admin/views/html-admin-page-mif.php:347
+#: instagram/admin/views/html-admin-page-mif.php:240
+#: instagram/admin/views/html-admin-page-mif.php:267
+#: instagram/admin/views/html-admin-page-mif.php:294
+#: instagram/admin/views/html-admin-page-mif.php:321
 #: instagram/admin/views/html-shoppable-tab.php:130
 #: instagram/admin/views/html-moderate-tab.php:123
 msgid "Upgrade to pro"
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:98
+#: instagram/admin/views/html-admin-page-mif.php:78
 msgid "Use"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:69
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:52
 msgid "Use (Display)"
 msgstr ""
 
@@ -3603,6 +4058,12 @@ msgstr ""
 msgid ""
 "Use below shortcode to display like box inside pages, posts or in any "
 "shortcode aware textarea/editor"
+msgstr ""
+
+#. %s: coupon code
+#: admin/views/html-upgrade-notice.php:42
+#, php-format
+msgid "Use code <code>%s</code> for a discount."
 msgstr ""
 
 #: facebook/admin/views/html-authenticate-tab.php:305
@@ -3628,7 +4089,7 @@ msgstr ""
 msgid "Use this feature"
 msgstr ""
 
-#: admin/class-esf-admin.php:253
+#: admin/class-esf-admin.php:283
 #: instagram/includes/esf-instagram-feed-widget.php:474
 msgid "Use this Image"
 msgstr ""
@@ -3707,11 +4168,11 @@ msgstr ""
 msgid "Username:"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:142
+#: admin/views/html-admin-page-easy-social-feed.php:128
 msgid "using shortcode, widget, inside popup and widget"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:96
+#: admin/views/html-admin-page-easy-social-feed.php:82
 msgid "using shortcode, widget, inside popup and widget."
 msgstr ""
 
@@ -3719,6 +4180,10 @@ msgstr ""
 #: facebook/admin/views/html-how-to-use-tab.php:161
 #: facebook/admin/views/html-how-to-use-tab.php:203
 msgid "Videos"
+msgstr ""
+
+#: includes/class-esf-translation-strings.php:288
+msgid "Visible text for the YouTube Load More button."
 msgstr ""
 
 #: instagram/admin/views/html-skins-tab.php:35
@@ -3729,45 +4194,45 @@ msgstr ""
 msgid "Want to customize the layout of post feed?"
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:435
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:285
 msgid ""
 "We are sorry carousel layout is not included in your plan. Please upgrade to "
 "premium version to unlock this and all other cool features."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:391
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:241
 msgid ""
 "We are sorry grid layout is not included in your plan. Please upgrade to "
 "premium version to unlock this and all other cool features."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:371
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:221
 msgid ""
 "We are sorry Live stream feature is not included in your plan. Please "
 "upgrade to premium version to unlock this and all other cool features."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:412
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:262
 msgid ""
 "We are sorry masonry layout is not included in your plan. Please upgrade to "
 "premium version to unlock this and all other cool features."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:518
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:368
 msgid ""
 "We are sorry showing popup on exit intent feature is not included in your "
 "plan. Please upgrade to premium version to unlock this and all other cool "
 "features."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:478
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:328
 msgid ""
 "We are sorry showing popup on specific pages feature is not included in your "
 "plan. Please upgrade to premium version to unlock this and all other cool "
 "features."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:458
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:308
 msgid ""
 "We are sorry showing tabs in likebox feature is not included in your plan. "
 "Please upgrade to premium version to unlock this and all other cool features."
@@ -3962,7 +4427,15 @@ msgstr ""
 msgid "We are sorry, “Text Size of Bio” is a premium feature."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:498
+#. 1: Language label, e.g. French (France).
+#: admin/views/html-settings-tab-translation.php:67
+#, php-format
+msgid ""
+"We detected that your feed language is %1$s. Use AI to instantly translate "
+"and autofill this text into your language."
+msgstr ""
+
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:348
 msgid ""
 "We're sorry, ability to display posts from other pages not managed by you is "
 "not included in your plan. Please upgrade to premium version to unlock this "
@@ -3979,19 +4452,19 @@ msgid ""
 "premium version to unlock this and all other cool features."
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:282
+#: instagram/admin/views/html-admin-page-mif.php:256
 msgid ""
 "We're sorry, Carousel layout is not included in your plan. Please upgrade to "
 "premium version to unlock this and all other cool features."
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:336
+#: instagram/admin/views/html-admin-page-mif.php:310
 msgid ""
 "We're sorry, Full Width layout is not included in your plan. Please upgrade "
 "to premium version to unlock this and all other cool features."
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:309
+#: instagram/admin/views/html-admin-page-mif.php:283
 msgid ""
 "We're sorry, Half Width layout is not included in your plan. Please upgrade "
 "to premium version to unlock this and all other cool features."
@@ -4022,13 +4495,13 @@ msgid ""
 "the bottom of each feed to load more photos and videos."
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:255
+#: instagram/admin/views/html-admin-page-mif.php:229
 msgid ""
 "We're sorry, Masonry layout is not included in your plan. Please upgrade to "
 "premium version to unlock this and all other cool features."
 msgstr ""
 
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:321
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:171
 msgid ""
 "We're sorry, posts filter is not included in your plan. Please upgrade to "
 "premium version to unlock this and all other cool features."
@@ -4046,10 +4519,6 @@ msgid ""
 "premium version to unlock this and all other cool features. "
 msgstr ""
 
-#: admin/class-esf-admin.php:986
-msgid "Website Accessibility"
-msgstr ""
-
 #: instagram/includes/esf-insta-helper-functions.php:302
 msgid "week"
 msgstr ""
@@ -4058,17 +4527,24 @@ msgstr ""
 msgid "weeks"
 msgstr ""
 
-#: admin/class-esf-admin.php:281 admin/class-esf-admin.php:282
+#: admin/class-esf-admin.php:311 admin/class-esf-admin.php:312
 #: admin/views/html-admin-page-wellcome.php:16
 msgid "Welcome"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:56
+#: admin/views/html-admin-page-easy-social-feed.php:42
 msgid "Welcome to the modules management page"
 msgstr ""
 
 #: instagram/admin/views/html-autenticate-tab.php:239
 msgid "What connection type do you need?"
+msgstr ""
+
+#: admin/views/html-settings-tab-general.php:56
+msgid ""
+"When checked and saved, all plugin settings, cached data, and uploads will "
+"be kept when you delete or remove the plugin. When unchecked (default), "
+"uninstalling the plugin will remove all its data."
 msgstr ""
 
 #: instagram/admin/views/html-autenticate-tab.php:404
@@ -4089,7 +4565,7 @@ msgid ""
 "properly."
 msgstr ""
 
-#: admin/views/html-settings-tab-translation.php:30
+#: admin/views/html-settings-tab-translation.php:91
 msgid "Where it's used"
 msgstr ""
 
@@ -4157,7 +4633,12 @@ msgstr ""
 msgid "Yes, take me there"
 msgstr ""
 
-#: admin/views/html-admin-page-easy-social-feed.php:59
+#: admin/class-esf-admin.php:499
+#: youtube/includes/class-esf-youtube-auth-callback-listener.php:57
+msgid "You are not allowed to perform this action."
+msgstr ""
+
+#: admin/views/html-admin-page-easy-social-feed.php:45
 msgid ""
 "You can disable the module which you are not using. It will help us to "
 "include only required resources to make your site load faster"
@@ -4224,11 +4705,35 @@ msgid ""
 "Instagram Feeds -> Skins section."
 msgstr ""
 
-#: instagram/admin/views/html-admin-page-mif.php:228
+#: youtube/includes/class-esf-youtube-auth-callback-listener.php:45
+msgid "You do not have permission to connect YouTube accounts."
+msgstr ""
+
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:495
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:131
+msgid "You do not have permission to refresh this account."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:84
+msgid "You do not have permission to refresh YouTube tokens."
+msgstr ""
+
+#: youtube/admin/classes/class-esf-youtube-admin.php:324
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+#: instagram/admin/views/html-admin-page-mif.php:202
 msgid ""
 "You will see a list of the apps & websites that are linked to your Instagram "
 "account. Click “Revoke Access” and “Yes” on the button below which you "
 "authenticated"
+msgstr ""
+
+#: admin/views/html-upgrade-notice.php:28
+msgid "You're on the free plan"
 msgstr ""
 
 #: facebook/admin/views/html-likebox-tab.php:290
@@ -4237,7 +4742,7 @@ msgid ""
 "bar when page is opened. Like https://facebook.com/easysocialfeed"
 msgstr ""
 
-#: admin/class-esf-admin.php:962
+#: admin/class-esf-admin.php:981
 msgid ""
 "Your feedback truly helps us grow and continue improving Easy Social Feed. "
 "Thank you for your support!"
@@ -4247,6 +4752,30 @@ msgstr ""
 msgid "Your page full URL"
 msgstr ""
 
-#: admin/views/html-settings-tab-translation.php:29
+#: youtube/includes/api/class-esf-youtube-api-oauth.php:109
+msgid "Your plan allows one YouTube account per site. Upgrade to add more."
+msgstr ""
+
+#: admin/views/html-settings-tab-translation.php:90
 msgid "Your text"
+msgstr ""
+
+#: youtube/admin/classes/class-esf-youtube-admin.php:82
+#: youtube/admin/classes/class-esf-youtube-admin.php:83
+msgid "YouTube"
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:204
+msgid "YouTube account ID."
+msgstr ""
+
+#. %s: Error message
+#: youtube/includes/api/class-esf-youtube-api-service.php:122
+#, php-format
+msgid "YouTube API error: %s"
+msgstr ""
+
+#: easy-facebook-likebox.php:350 includes/class-esf-translation-strings.php:273
+#: admin/views/html-admin-page-easy-social-feed.php:155
+msgid "YouTube Feed"
 msgstr ""
