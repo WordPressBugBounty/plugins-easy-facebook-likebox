@@ -353,9 +353,9 @@ class Easy_Facebook_Page_Plugin_Widget extends WP_Widget {
             $fb_appid = 'fb_appid="' . $fb_appid . '"';
         }
         $fanpage_url = efbl_parse_url( $fanpage_url );
-        $responsive = ( empty( $responsive ) ? wp_strip_all_tags( 0 ) : $responsive );
-        $hide_cta = ( empty( $hide_cta ) ? wp_strip_all_tags( 0 ) : $hide_cta );
-        $small_header = ( empty( $small_header ) ? wp_strip_all_tags( 0 ) : $small_header );
+        $responsive = ( empty( $responsive ) ? wp_strip_all_tags( '0' ) : $responsive );
+        $hide_cta = ( empty( $hide_cta ) ? wp_strip_all_tags( '0' ) : $hide_cta );
+        $small_header = ( empty( $small_header ) ? wp_strip_all_tags( '0' ) : $small_header );
         if ( isset( $efbl_tabs_timeline ) && !empty( $efbl_tabs_timeline ) ) {
             $efbl_tabs_timeline = ( $efbl_tabs_timeline === 1 ? 'timeline,' : null );
         }

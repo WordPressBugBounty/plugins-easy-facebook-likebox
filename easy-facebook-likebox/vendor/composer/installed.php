@@ -3,7 +3,7 @@
         'name' => 'easysocialfeed/easy-facebook-likebox',
         'pretty_version' => 'dev-develop',
         'version' => 'dev-develop',
-        'reference' => 'f4d5c1e6ad743e0a0443964a1d63b60a66fa25ff',
+        'reference' => '952984f80f2d9733c5c225ab0282ef0788711d53',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'easysocialfeed/easy-facebook-likebox' => array(
             'pretty_version' => 'dev-develop',
             'version' => 'dev-develop',
-            'reference' => 'f4d5c1e6ad743e0a0443964a1d63b60a66fa25ff',
+            'reference' => '952984f80f2d9733c5c225ab0282ef0788711d53',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

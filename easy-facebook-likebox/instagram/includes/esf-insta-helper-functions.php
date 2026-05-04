@@ -81,6 +81,72 @@ if ( ! function_exists( 'esf_insta_personal_account' ) ) :
 endif;
 
 /*
+* Resolve a requested skin ID against the live $mif_skins map and gracefully
+* fall back when the requested ID no longer exists (e.g. user deleted the
+* skin post, a duplicate was cleaned up, or the option got reset).
+*
+* Resolution order:
+*   1. The requested ID, if present in $mif_skins.
+*   2. The first surviving skin with the same layout (looked up via post meta).
+*   3. The plugin default_skin_id from fta_settings.
+*   4. The first available skin in the global map.
+*   5. 0 when nothing is available.
+*
+* This makes every render path self-healing — feeds keep working even when a
+* shortcode references an ID that has been removed from wp_posts.
+*/
+if ( ! function_exists( 'esf_insta_resolve_skin_id' ) ) {
+
+	function esf_insta_resolve_skin_id( $requested_id ) {
+
+		global $mif_skins;
+
+		$requested_id = (int) $requested_id;
+
+		// Happy path.
+		if ( $requested_id && is_array( $mif_skins ) && isset( $mif_skins[ $requested_id ] ) ) {
+			return $requested_id;
+		}
+
+		// Try to recover the layout the caller wanted.
+		$layout = '';
+		if ( $requested_id ) {
+			$layout = get_post_meta( $requested_id, 'layout', true );
+			if ( ! is_string( $layout ) ) {
+				$layout = '';
+			}
+		}
+
+		if ( $layout && is_array( $mif_skins ) ) {
+			foreach ( $mif_skins as $candidate_id => $candidate ) {
+				if ( isset( $candidate['layout'] ) && $candidate['layout'] === $layout ) {
+					return (int) $candidate_id;
+				}
+			}
+		}
+
+		// Fall back to the plugin's default grid skin.
+		$Feed_Them_All = new Feed_Them_All();
+		$fta_settings  = $Feed_Them_All->fta_get_settings();
+
+		if ( isset( $fta_settings['plugins']['instagram']['default_skin_id'] ) ) {
+			$default_id = (int) $fta_settings['plugins']['instagram']['default_skin_id'];
+			if ( $default_id && is_array( $mif_skins ) && isset( $mif_skins[ $default_id ] ) ) {
+				return $default_id;
+			}
+		}
+
+		// Last resort — any available skin.
+		if ( is_array( $mif_skins ) && ! empty( $mif_skins ) ) {
+			$keys = array_keys( $mif_skins );
+			return (int) $keys[0];
+		}
+
+		return 0;
+	}
+}
+
+/*
 * Return Default account ID
 */
 if ( ! function_exists( 'esf_insta_default_id' ) ) {
@@ -650,8 +716,8 @@ if ( ! function_exists( 'esf_insta_get_shoppable_settings' ) ) {
 	/**
 	 * Get shoppable setting if enabled
 	 *
-	 * @param null $user_id
-	 * @param null $story_id
+	 * @param mixed $user_id  Instagram user ID (string, int or null).
+	 * @param mixed $story_id Instagram story/media ID (string, int or null).
 	 *
 	 * @since 6.3.7
 	 *

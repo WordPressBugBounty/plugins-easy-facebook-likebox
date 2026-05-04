@@ -60,7 +60,7 @@ class Easy_Facebook_Likebox {
      *
      * @since    1.1.0
      *
-     * @var      object
+     * @var      int
      */
     public $likebox_instance = 1;
 
@@ -231,7 +231,7 @@ class Easy_Facebook_Likebox {
         wp_enqueue_style(
             $this->plugin_slug . '-customizer-style',
             admin_url( 'admin-ajax.php' ) . '?action=' . $this->plugin_slug . '-customizer-style',
-            $this->plugin_slug . '-frontend',
+            array($this->plugin_slug . '-frontend'),
             self::VERSION
         );
     }
@@ -393,7 +393,7 @@ class Easy_Facebook_Likebox {
               fjs.parentNode.insertBefore(js, fjs);
             }(document, \'script\', \'facebook-jssdk\'));</script>';
         $likebox_instance = $this->likebox_instance;
-        $returner .= ' <div class="efbl-like-box ' . esc_attr( $likebox_instance ) . '">
+        $returner .= ' <div class="efbl-like-box ' . esc_attr( (string) $likebox_instance ) . '">
                   <div class="fb-page" data-animclass="';
         if ( $animate_effect ) {
             $returner .= '' . esc_attr( $animate_effect ) . '';
@@ -429,7 +429,7 @@ class Easy_Facebook_Likebox {
      *
      * @return mixed|void
      */
-    public function query_posts( $page_id = 617177998743210, $instance = array(), $test_mode = false ) {
+    public function query_posts( $page_id = 617177998743210, $instance = array(), $test_mode = 0 ) {
         if ( !isset( $page_id ) || empty( $page_id ) ) {
             $page_id = 617177998743210;
         }
@@ -499,7 +499,7 @@ class Easy_Facebook_Likebox {
         if ( isset( $approved_pages[$page_id]['name'] ) ) {
             $page_name = $approved_pages[$page_id]['name'];
         }
-        $page_username = efbl_get_page_username( $page_id );
+        $page_username = (string) efbl_get_page_username( $page_id );
         $transient_name = 'efbl_posts_' . str_replace( ' ', '', $page_username ) . '-' . $post_limit . '-' . $duration;
         if ( empty( $page_name ) ) {
             $page_name = $page_id;
@@ -519,7 +519,7 @@ class Easy_Facebook_Likebox {
             $posts_json = jws_fetchUrl( $efbl_api_url );
             $json_decoded = json_decode( $posts_json );
             if ( !$test_mode && !empty( $json_decoded->posts->data ) ) {
-                set_transient( $transient_name, $posts_json, $cache_seconds );
+                set_transient( $transient_name, $posts_json, (int) $cache_seconds );
             }
         }
         $json_decoded = json_decode( $posts_json );

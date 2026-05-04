@@ -382,7 +382,7 @@ if ( $is_album_feed ) {
         ?>
 
 				<div class="efbl-feed-content efbl-col-<?php 
-        esc_attr_e( $efbl_shared_img_col );
+        esc_attr_e( (string) $efbl_shared_img_col );
         ?>">
 
 					<?php 

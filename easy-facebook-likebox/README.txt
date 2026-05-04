@@ -1,22 +1,22 @@
 === Easy Social Feed - Social Photos Gallery and Post Feed for WordPress ===
 Contributors: DaNish Ali, maltathemes, sjaved, freemius
-Tags: Instagram feed, Instagram photos, Instagram gallery, Facebook feed, Facebook posts, YouTube feed, YouTube videos, YouTube gallery
+Tags: Instagram feed, Facebook feed, YouTube feed, X feed, Social media feed, Instagram photos, Instagram gallery, Facebook posts, YouTube videos, YouTube gallery, Twitter feed, Twitter timeline
 Requires at least: 3.3
 Tested up to: 6.9
-Stable tag: 6.7.5
+Stable tag: 6.7.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Display Instagram, Facebook & YouTube feeds with photos, videos, reels, events & galleries. Fast, responsive & easy to set up.
+Display Instagram, Facebook, YouTube & X/Twitter feeds with photos, videos, reels, events & galleries. Fast, responsive & easy to set up.
 
 == Description ==
 
-Easy Social Feed helps you display your latest **Instagram photos and videos, Facebook page posts and events, and YouTube videos** on your website. It is responsive, SEO-friendly, easy to set up and offers live preview customization for appearance and layout.
+Easy Social Feed helps you display your latest **Instagram photos and videos, Facebook page posts and events, YouTube videos, and X/Twitter timeline posts** on your website. It is responsive, SEO-friendly, easy to set up and offers live preview customization for appearance and layout.
 
 
 Connect your account using the latest secure oAuth login and get a shortcode auto-generated. No app review required. Manual access token support is also available for Personal or Business accounts.
 
-You can enable only the module you need (Facebook, Instagram or YouTube) so unrelated code is not loaded, improving performance.
+You can enable only the module you need (Facebook, Instagram, YouTube or X/Twitter) so unrelated code is not loaded, improving performance.
 
 After connecting your account, **simply copy and paste the shortcode, or use a block or widget**, to embed your feed anywhere on your site.
 
@@ -95,6 +95,8 @@ Display your latest YouTube videos in a clean, responsive YouTube channel feed t
 
 You can customize the layout and header, add per‑feed custom CSS, and control caching from the same Easy Social Feed interface for Facebook and Instagram.
 
+[Demo](https://easysocialfeed.com/custom-youtube-feed/)
+
 ### Features
 - Secure Google OAuth connection to connect your YouTube channel
 - Accounts dashboard to manage connected channels (reconnect/refresh and disconnect)
@@ -110,6 +112,24 @@ You can customize the layout and header, add per‑feed custom CSS, and control 
 - Pro: **Load More** button to show more videos without reloading the page
 - Pro: **Popup / Lightbox** video gallery with rich details and stats (views, likes, comments)
 - Pro: Popup options for autoplay, mute, and showing description and stats
+
+## X / Twitter Feed
+
+Display an X (Twitter) feed on your site with a clean, responsive design and live customization controls. Connect your own account with OAuth, or add public accounts by username and embed feeds anywhere with shortcode.
+
+[Demo](https://easysocialfeed.com/custom-twitter-feed/)
+
+### Features
+- Secure OAuth connection for your own X/Twitter account
+- Pro: Add public X accounts by username (no app setup on your site)
+- Feed editor with Connect, Customize and Embed panels and live preview
+- Responsive timeline layout with header, stats and tweet card controls
+- Auto-generated shortcode for quick embedding in posts, pages and widgets
+- Smart caching with configurable cache duration for faster page load
+- Per-feed Custom CSS support for advanced styling
+- Pro: **Load More** pagination for progressive tweet loading
+- Pro: **Popup / Lightbox** for tweet media with gallery and video support
+- Pro: Multiple accounts
 
 ## Facebook Page Plugin (Like Box)
 Embed the Facebook Page Plugin to display page likes, faces, timeline or events using shortcode and widget.
@@ -176,7 +196,7 @@ Whether you search for an **“Instagram GDPR feed”**, **“Facebook GDPR feed
 
 1. Upload the plugin folder to `/wp-content/plugins/`  
 2. Activate the plugin via the WordPress Plugins page  
-3. Go to Easy Social Feed > Facebook / Instagram / YouTube to connect your account  
+3. Go to Easy Social Feed > Facebook / Instagram / YouTube / X-Twitter to connect your account  
 4. Copy the generated shortcode and paste into posts, pages, CPT or anywhere in PHP templates
 
 ---
@@ -332,6 +352,14 @@ Use the shortcode generator to select your preferred post types.
 
 == Changelog ==
 
+= 6.7.6 =
+* Improved: YouTube channel header banner height increased so the channel artwork looks more prominent in the feed.
+* Added: X / Twitter Feed module with README documentation and Translation tab support for Twitter feed labels.
+* Fixed: When a connected account assigned to a feed is deleted, the plugin now shows a notice and auto-assigns another available account where possible.
+* Added: New first-run onboarding wizard to simplify setup across modules.
+* Improved: Connection handoff now redirects users to module pages, with auto-open connect flow for Facebook and Instagram.
+
+
 = 6.7.5 =
 * Added: Feed language setting in General settings so you can choose which language Facebook and Instagram use for their built‑in text (e.g. “X created an event”, “X shared a link”). Default uses your site language; feed cache is cleared when you change the language
 * Improved: General settings intro and descriptions for clarity and to cover all modules (Facebook, Instagram, YouTube)
@@ -340,6 +368,7 @@ Use the shortcode generator to select your preferred post types.
 * Added: YouTube feed customization options including layout, header display, per-feed Custom CSS and cache duration controls
 * Added: YouTube performance improvements including serving thumbnails locally when possible (channel and video thumbnails)
 * Added: YouTube Pro options including Load More and Popup / Lightbox video gallery settings
+* Fixed: Facebook and Instagram duplicate issue.
 
 = 6.7.4 =
 * Added: General tab under Settings (Easy Social Feed > Settings) with option to preserve or remove all plugin data when the plugin is deleted
@@ -385,6 +414,14 @@ Older changelog entries are available on our website:
 https://easysocialfeed.com/changelog
 
 == Upgrade Notice ==
+
+= 6.7.6 =
+Critical skin stability fix for Facebook and Instagram feeds, plus a new onboarding wizard with improved module connection handoff. Update recommended.
+
+What you should do after update:
+1. Update the plugin, then open Easy Social Feed > Facebook and Easy Social Feed > Instagram once in wp-admin (this finalizes migration checks).
+2. Do not delete old/duplicate skins manually unless you have confirmed where each skin_id is used.
+3. If a feed looks stale, clear plugin cache once from settings.
 
 = 6.7.5 =
 New Feed language option in General settings so your Facebook and Instagram feeds can match your site language. Update recommended.

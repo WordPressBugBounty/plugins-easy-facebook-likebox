@@ -236,6 +236,12 @@ class ESF_Instagram_Feed_Widget extends WP_Widget {
                 if ( $mif_skin['layout'] == 'half_width' ) {
                     continue;
                 }
+                // Hide duplicates from the widget skin picker — the post itself
+                // stays intact so any widget already configured with that ID
+                // keeps rendering.
+                if ( !empty( $mif_skin['is_duplicate'] ) ) {
+                    continue;
+                }
                 ?>
 
 							<option value="<?php 

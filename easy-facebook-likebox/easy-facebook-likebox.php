@@ -4,7 +4,7 @@
  * Plugin Name: Easy Social Feed
  * Plugin URI:        https://wordpress.org/plugins/easy-facebook-likebox
  * Description:       Formerly "Easy Facebook Like Box and Custom Facebook Feed" plugin allows you to easily display custom facebook feed, custom Instagram photos and videos feed, page plugin (like box) on your website using either widget or shortcode to increase facbook fan page likes. You can use the shortcode generator. Additionally, it also now allows you to display the customized facebook feed on your website using the same color scheme of your website. Its completely customizable with lots of optional settings. Its also responsive facebook like box at the same time.
- * Version:           6.7.5
+ * Version:           6.7.6
  * Author:            Easy Social Feed
  * Author URI:        https://easysocialfeed.com/
  * Text Domain:       easy-facebook-likebox
@@ -38,7 +38,9 @@ function efl_fs_uninstall_cleanup() {
         'efbl_account_id',
         'efbl_skin_id',
         'mif_skin_id',
-        'mif_account_id'
+        'mif_account_id',
+        'esf_twitter_settings',
+        'esf_twitter_db_schema_version'
     );
     foreach ( $options as $option ) {
         delete_option( $option );
@@ -62,7 +64,12 @@ function efl_fs_uninstall_cleanup() {
     $upload_dir = wp_upload_dir();
     if ( !empty( $upload_dir['basedir'] ) ) {
         $base = trailingslashit( $upload_dir['basedir'] );
-        $dirs = array('esf-instagram', 'esf-facebook', 'esf-youtube');
+        $dirs = array(
+            'esf-instagram',
+            'esf-facebook',
+            'esf-youtube',
+            'esf-twitter'
+        );
         require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
         require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
         $fs = new WP_Filesystem_Direct(false);
@@ -71,6 +78,13 @@ function efl_fs_uninstall_cleanup() {
             if ( $fs->exists( $path ) && $fs->is_dir( $path ) ) {
                 $fs->rmdir( $path, true );
             }
+        }
+    }
+    $twitter_db_installer = plugin_dir_path( __FILE__ ) . 'twitter/includes/database/class-esf-twitter-db-installer.php';
+    if ( file_exists( $twitter_db_installer ) ) {
+        require_once $twitter_db_installer;
+        if ( class_exists( 'ESF_Twitter_DB_Installer' ) ) {
+            ESF_Twitter_DB_Installer::drop_tables();
         }
     }
 }
@@ -173,9 +187,22 @@ if ( function_exists( 'efl_fs' ) ) {
     if ( 'activated' === $youtube_status ) {
         require_once plugin_dir_path( __FILE__ ) . 'youtube/autoload.php';
     }
+    // Twitter/X Module (default to activated when not explicitly set).
+    $twitter_status = ( isset( $options['plugins']['twitter']['status'] ) ? $options['plugins']['twitter']['status'] : 'activated' );
+    if ( isset( $options['plugins']['twitter'] ) ) {
+        $twitter = $options['plugins']['twitter'];
+    } else {
+        $twitter = array();
+    }
+    if ( !array_key_exists( 'status', $twitter ) || '' === $twitter_status ) {
+        $twitter_status = 'activated';
+    }
+    if ( 'activated' === $twitter_status ) {
+        require_once plugin_dir_path( __FILE__ ) . 'twitter/autoload.php';
+    }
     if ( !class_exists( 'Feed_Them_All' ) ) {
         class Feed_Them_All {
-            public $version = '6.7.5';
+            public $version = '6.7.6';
 
             public $fta_slug = 'easy-facebook-likebox';
 
@@ -267,7 +294,12 @@ if ( function_exists( 'efl_fs' ) ) {
             public function create_uploads_folder() {
                 $upload_dir = wp_upload_dir();
                 $base = $upload_dir['basedir'];
-                $folders = array('esf-instagram', 'esf-facebook', 'esf-youtube');
+                $folders = array(
+                    'esf-instagram',
+                    'esf-facebook',
+                    'esf-youtube',
+                    'esf-twitter'
+                );
                 foreach ( $folders as $folder ) {
                     $path = $base . '/' . $folder;
                     if ( !file_exists( $path ) ) {
@@ -286,6 +318,8 @@ if ( function_exists( 'efl_fs' ) ) {
                 $insta_status = ( isset( $settings['plugins']['instagram']['status'] ) ? $settings['plugins']['instagram']['status'] : 'activated' );
                 // Default YouTube to activated when no explicit status is stored.
                 $youtube_status = ( isset( $settings['plugins']['youtube']['status'] ) ? $settings['plugins']['youtube']['status'] : 'activated' );
+                // Default Twitter to activated when no explicit status is stored.
+                $twitter_status = ( isset( $settings['plugins']['twitter']['status'] ) ? $settings['plugins']['twitter']['status'] : 'activated' );
                 if ( empty( $fb_status ) ) {
                     $fb_status = 'activated';
                 }
@@ -294,6 +328,9 @@ if ( function_exists( 'efl_fs' ) ) {
                 }
                 if ( empty( $youtube_status ) ) {
                     $youtube_status = 'activated';
+                }
+                if ( empty( $twitter_status ) ) {
+                    $twitter_status = 'activated';
                 }
                 /*
                  * Making an array of all plugins
@@ -322,6 +359,14 @@ if ( function_exists( 'efl_fs' ) ) {
                         'description'   => __( 'Display YouTube videos from your channel using secure OAuth connection with customizable layouts and caching', 'easy-facebook-likebox' ),
                         'img_name'      => 'youtube_cover.png',
                         'status'        => $youtube_status,
+                    ),
+                    'twitter'   => array(
+                        'name'          => __( 'X / Twitter Feed', 'easy-facebook-likebox' ),
+                        'slug'          => 'esf-twitter',
+                        'activate_slug' => 'twitter',
+                        'description'   => __( 'Display your X (Twitter) timeline using secure OAuth connection with DB-backed caching. Connect your own account (free) or display any public account feed (Pro).', 'easy-facebook-likebox' ),
+                        'img_name'      => 'twitter_cover.png',
+                        'status'        => $twitter_status,
                     ),
                 );
                 return $fta_plugins;

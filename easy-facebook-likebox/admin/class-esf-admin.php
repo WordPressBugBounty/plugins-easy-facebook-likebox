@@ -17,6 +17,9 @@ if ( !class_exists( 'ESF_Admin' ) ) {
         protected static $footer_review_hook_added = false;
 
         function __construct() {
+            $this->load_welcome_dependencies();
+            add_action( 'rest_api_init', array($this, 'register_welcome_rest_routes') );
+            add_action( 'admin_init', array($this, 'maybe_redirect_completed_welcome') );
             add_action( 'admin_menu', array($this, 'esf_menu') );
             add_action( 'admin_menu', array($this, 'esf_settings_submenu'), 101 );
             add_action( 'admin_head', array($this, 'esf_debug_token') );
@@ -35,6 +38,120 @@ if ( !class_exists( 'ESF_Admin' ) ) {
                 self::$footer_review_hook_added = true;
             }
             add_action( 'pre_get_posts', array($this, 'esf_exclude_demo_pages'), 1 );
+        }
+
+        /**
+         * Load welcome wizard dependencies once per request.
+         *
+         * Kept private and explicit so the dependency graph for the new
+         * wizard never relies on autoloaders the rest of the plugin doesn't
+         * have. Wraps each include in file_exists guards because the wizard
+         * code lives outside the legacy module trees.
+         *
+         * @since 6.8.0
+         * @return void
+         */
+        private function load_welcome_dependencies() {
+            $base = ( defined( 'FTA_PLUGIN_DIR' ) ? FTA_PLUGIN_DIR : plugin_dir_path( dirname( __FILE__ ) ) );
+            $state_file = $base . 'includes/welcome/class-esf-welcome-state.php';
+            if ( !class_exists( 'ESF_Welcome_State' ) && file_exists( $state_file ) ) {
+                require_once $state_file;
+            }
+            $api_file = $base . 'admin/api/class-esf-api-welcome.php';
+            if ( !class_exists( 'ESF_API_Welcome' ) && file_exists( $api_file ) ) {
+                require_once $api_file;
+            }
+        }
+
+        /**
+         * Register the welcome wizard REST routes on rest_api_init.
+         *
+         * @since 6.8.0
+         * @return void
+         */
+        public function register_welcome_rest_routes() {
+            if ( class_exists( 'ESF_API_Welcome' ) ) {
+                ESF_API_Welcome::register_routes();
+            }
+        }
+
+        /**
+         * Send already-onboarded users straight to the dashboard.
+         *
+         * The wizard is a strictly first-run experience: once a user has
+         * completed (or skipped) it, requests to ?page=esf_welcome bounce to
+         * the main dashboard. An undocumented `&force=1` escape hatch lets
+         * developers and support staff revisit the wizard for testing.
+         *
+         * @since 6.8.0
+         * @return void
+         */
+        public function maybe_redirect_completed_welcome() {
+            if ( !is_admin() || wp_doing_ajax() ) {
+                return;
+            }
+            $page = ( isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '' );
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only routing decision.
+            if ( 'esf_welcome' !== $page ) {
+                return;
+            }
+            $force = ( isset( $_GET['force'] ) ? sanitize_text_field( wp_unslash( $_GET['force'] ) ) : '' );
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only routing decision.
+            if ( '1' === $force ) {
+                return;
+            }
+            if ( !class_exists( 'ESF_Welcome_State' ) || !ESF_Welcome_State::is_completed() ) {
+                return;
+            }
+            wp_safe_redirect( admin_url( 'admin.php?page=feed-them-all' ) );
+            exit;
+        }
+
+        /**
+         * Enqueue React + SCSS bundle for the welcome wizard page.
+         *
+         * Mirrors the pattern used by ESF_Twitter_Admin / ESF_YouTube_Admin:
+         * read the wp-scripts asset manifest for an accurate dependency list
+         * and version, then localise a small bootstrap object the wizard
+         * uses for its initial render.
+         *
+         * @since 6.8.0
+         * @return void
+         */
+        public function enqueue_welcome_assets() {
+            $base_url = ( defined( 'FTA_PLUGIN_URL' ) ? FTA_PLUGIN_URL : plugin_dir_url( dirname( __FILE__ ) ) );
+            $base_dir = ( defined( 'FTA_PLUGIN_DIR' ) ? FTA_PLUGIN_DIR : plugin_dir_path( dirname( __FILE__ ) ) );
+            $asset_path = $base_dir . 'admin/assets/build/welcome/welcome.asset.php';
+            if ( !file_exists( $asset_path ) ) {
+                return;
+            }
+            $asset = (include $asset_path);
+            if ( !is_array( $asset ) ) {
+                return;
+            }
+            $dependencies = ( isset( $asset['dependencies'] ) && is_array( $asset['dependencies'] ) ? $asset['dependencies'] : array() );
+            $version = ( isset( $asset['version'] ) ? (string) $asset['version'] : (( defined( 'FTA_VERSION' ) ? FTA_VERSION : '1.0.0' )) );
+            wp_enqueue_script(
+                'esf-welcome-wizard',
+                $base_url . 'admin/assets/build/welcome/welcome.js',
+                $dependencies,
+                $version,
+                true
+            );
+            wp_enqueue_style(
+                'esf-welcome-wizard',
+                $base_url . 'admin/assets/build/welcome/welcome.css',
+                array('wp-components'),
+                $version
+            );
+            wp_set_script_translations( 'esf-welcome-wizard', 'easy-facebook-likebox' );
+            wp_localize_script( 'esf-welcome-wizard', 'esfWelcomeBootstrap', array(
+                'restUrl'   => esc_url_raw( rest_url() ),
+                'restNonce' => wp_create_nonce( 'wp_rest' ),
+                'pluginUrl' => esc_url_raw( $base_url ),
+                'logoUrl'   => esc_url_raw( $base_url . 'admin/assets/images/plugin-logo.png' ),
+                'isPro'     => function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only(),
+            ) );
         }
 
         /**
@@ -79,6 +196,14 @@ if ( !class_exists( 'ESF_Admin' ) ) {
         public function esf_admin_assets( $hook ) {
             // load plugin files only on it's pages
             if ( 'toplevel_page_feed-them-all' !== $hook && 'easy-social-feed_page_mif' !== $hook && 'easy-social-feed_page_easy-facebook-likebox' !== $hook && 'easy-social-feed_page_esf-settings' !== $hook && 'admin_page_esf_welcome' !== $hook ) {
+                return false;
+            }
+            // Welcome wizard owns its own React bundle and does not need
+            // the legacy admin assets (Materialize-era jQuery + CSS). Loading
+            // them would conflict with the wp-components styles and add ~80KB
+            // of unused JS to the wizard page.
+            if ( 'admin_page_esf_welcome' === $hook ) {
+                $this->enqueue_welcome_assets();
                 return false;
             }
             wp_deregister_script( 'bootstrap.min' );
@@ -182,12 +307,14 @@ if ( !class_exists( 'ESF_Admin' ) ) {
         }
 
         /**
-         * Includes view of welcome page
+         * Render the first-run setup wizard page.
          *
          * @since 1.0.0
+         * @since 6.8.0 Switched to React-based wizard mount (html-admin-page-welcome.php).
+         * @return void
          */
         function esf_welcome_page() {
-            include_once FTA_PLUGIN_DIR . 'admin/views/html-admin-page-wellcome.php';
+            include_once FTA_PLUGIN_DIR . 'admin/views/html-admin-page-welcome.php';
         }
 
         /**
@@ -628,6 +755,7 @@ if ( !class_exists( 'ESF_Admin' ) ) {
                 'toplevel_page_feed-them-all',
                 'easy-social-feed_page_easy-facebook-likebox',
                 'easy-social-feed_page_mif',
+                'easy-social-feed_page_esf-twitter',
                 'easy-social-feed_page_esf-youtube',
                 'admin_page_esf_welcome',
                 'easy-social-feed_page_feed-them-all-addons',
@@ -641,6 +769,7 @@ if ( !class_exists( 'ESF_Admin' ) ) {
 				.toplevel_page_feed-them-all #wpfooter,
 				.easy-social-feed_page_easy-facebook-likebox #wpfooter,
 				.easy-social-feed_page_mif #wpfooter,
+				.easy-social-feed_page_esf-twitter #wpfooter,
 				.easy-social-feed_page_esf-youtube #wpfooter,
 				.admin_page_esf_welcome #wpfooter,
 				.easy-social-feed_page_feed-them-all-addons #wpfooter,

@@ -61,9 +61,14 @@ if ( (efl_fs()->is_free_plan() || efl_fs()->is_plan( 'instagram_premium', true )
     $skin_id = '';
     $layout = 'grid';
 } else {
-    $selected_skin = $efbl_skins[$skin_id]['layout'];
-    $efbl_skin_values = $efbl_skins[$skin_id];
-    $layout = $efbl_skin_values['layout'];
+    // Resolve the skin ID up front so a missing/deleted skin gracefully
+    // falls back to a working one (same layout if possible, otherwise
+    // the canonical default) instead of producing notices and a broken
+    // feed render.
+    $skin_id = efbl_resolve_skin_id( $skin_id );
+    $selected_skin = ( isset( $efbl_skins[$skin_id]['layout'] ) ? $efbl_skins[$skin_id]['layout'] : '' );
+    $efbl_skin_values = ( isset( $efbl_skins[$skin_id] ) ? $efbl_skins[$skin_id] : array() );
+    $layout = ( isset( $efbl_skin_values['layout'] ) ? $efbl_skin_values['layout'] : '' );
 }
 if ( isset( $efbl_queried_data['public_page'] ) && !empty( $efbl_queried_data['public_page'] ) ) {
     $is_public_page = $efbl_queried_data['public_page'];
@@ -72,8 +77,9 @@ if ( isset( $efbl_queried_data['public_page'] ) && !empty( $efbl_queried_data['p
 }
 if ( is_customize_preview() && isset( $post->ID ) && $post->ID == $efbl_demo_page_id ) {
     $skin_id = get_option( 'efbl_skin_id', false );
+    $skin_id = efbl_resolve_skin_id( $skin_id );
     $efbl_skin_settings = get_option( 'efbl_skin_' . $skin_id, false );
-    $efbl_skin_values = $efbl_skins[$skin_id];
+    $efbl_skin_values = ( isset( $efbl_skins[$skin_id] ) ? $efbl_skins[$skin_id] : array() );
     $EFBL_SKINS = new EFBL_SKINS();
     $default_settings = $EFBL_SKINS->efbl_default_skin_settings();
     $efbl_skin_settings = wp_parse_args( $efbl_skin_settings, $default_settings );

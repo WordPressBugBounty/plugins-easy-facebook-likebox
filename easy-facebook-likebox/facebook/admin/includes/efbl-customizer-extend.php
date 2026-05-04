@@ -146,8 +146,11 @@ if ( class_exists( 'WP_Customize_Control' ) && ! class_exists( 'Customize_EFBL_P
 		public $icon = null;
 
 		public function render_content() {
-			$ESF_Admin   = new ESF_Admin();
-			$banner_info = $ESF_Admin->esf_upgrade_banner();
+		$ESF_Admin   = new ESF_Admin();
+		$banner_info = $ESF_Admin->esf_upgrade_banner();
+		if ( ! is_array( $banner_info ) ) {
+			$banner_info = array( 'discount' => '', 'coupon' => '', 'button-url' => '', 'target' => '', 'button-text' => '' );
+		}
 			?>
 			<label class="customize-control-title">   <?php echo $this->label; ?></label>
 			<p><?php echo $this->description; ?></p>

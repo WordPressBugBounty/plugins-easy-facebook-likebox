@@ -49,7 +49,7 @@ class ESF_Translation_Strings {
 		}
 
 		$list = array(
-			'post_text'    => array(
+			'post_text'         => array(
 				'label'   => __( 'Post Text', 'easy-facebook-likebox' ),
 				'strings' => array(
 					array(
@@ -139,7 +139,7 @@ class ESF_Translation_Strings {
 					),
 				),
 			),
-			'media'       => array(
+			'media'             => array(
 				'label'   => __( 'Media', 'easy-facebook-likebox' ),
 				'strings' => array(
 					array(
@@ -149,7 +149,7 @@ class ESF_Translation_Strings {
 					),
 				),
 			),
-			'time'        => array(
+			'time'              => array(
 				'label'   => __( 'Time', 'easy-facebook-likebox' ),
 				'strings' => array(
 					array(
@@ -239,7 +239,7 @@ class ESF_Translation_Strings {
 					),
 				),
 			),
-			'load_more'   => array(
+			'load_more'         => array(
 				'label'   => __( 'Load More / Pagination', 'easy-facebook-likebox' ),
 				'strings' => array(
 					array(
@@ -259,7 +259,7 @@ class ESF_Translation_Strings {
 					),
 				),
 			),
-			'other'       => array(
+			'other'             => array(
 				'label'   => __( 'Other', 'easy-facebook-likebox' ),
 				'strings' => array(
 					array(
@@ -269,7 +269,7 @@ class ESF_Translation_Strings {
 					),
 				),
 			),
-			'youtube_feed' => array(
+			'youtube_feed'      => array(
 				'label'   => __( 'YouTube Feed', 'easy-facebook-likebox' ),
 				'strings' => array(
 					array(
@@ -304,7 +304,112 @@ class ESF_Translation_Strings {
 					),
 				),
 			),
-			'errors_messages' => array(
+			'twitter_feed'      => array(
+				'label'   => __( 'X / Twitter Feed', 'easy-facebook-likebox' ),
+				'strings' => array(
+					array(
+						'key'     => 'tw_load_more_tweets_aria',
+						'default' => 'Load more tweets',
+						'context' => __( 'ARIA label for the Twitter/X Load More button.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_no_tweets_to_display',
+						'default' => 'No tweets to display.',
+						'context' => __( 'Shown when a Twitter/X feed has no tweets to render.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_following',
+						'default' => 'Following',
+						'context' => __( 'Tooltip label for the following count in Twitter/X feed header.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_tweets',
+						'default' => 'Tweets',
+						'context' => __( 'Tooltip label for the tweet count in Twitter/X feed header.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_follow',
+						'default' => 'Follow',
+						'context' => __( 'Follow button label in Twitter/X feed and popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_view_on_x',
+						'default' => 'View on X',
+						'context' => __( 'Tooltip label for links that open a tweet on x.com.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_view_tweet_on_x',
+						'default' => 'View tweet on X',
+						'context' => __( 'ARIA label for the tweet logo link in Twitter/X cards.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_retweeted_from',
+						'default' => 'Retweeted from',
+						'context' => __( 'Prefix text shown before the original retweeted account.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_retweet',
+						'default' => 'Retweet',
+						'context' => __( 'Fallback label used for retweets when source account is unknown.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_more',
+						'default' => 'more',
+						'context' => __( 'Suffix shown in media grids for extra item count (e.g. "+2 more").', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_replies',
+						'default' => 'Replies',
+						'context' => __( 'Tooltip label for reply count in Twitter/X card and popup metrics.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_likes',
+						'default' => 'Likes',
+						'context' => __( 'Tooltip label for like count in Twitter/X card and popup metrics.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_retweets',
+						'default' => 'Retweets',
+						'context' => __( 'Tooltip label for retweet count in Twitter/X card and popup metrics.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_quotes',
+						'default' => 'Quotes',
+						'context' => __( 'Tooltip label for quote count in Twitter/X card and popup metrics.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_share',
+						'default' => 'Share',
+						'context' => __( 'Tooltip label for the share button in Twitter/X cards.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_share_on_x',
+						'default' => 'Share on X',
+						'context' => __( 'Share menu link label for x.com.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_share_on_facebook',
+						'default' => 'Share on Facebook',
+						'context' => __( 'Share menu link label for facebook.com.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_share_on_linkedin',
+						'default' => 'Share on LinkedIn',
+						'context' => __( 'Share menu link label for linkedin.com.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_share_on_whatsapp',
+						'default' => 'Share on WhatsApp',
+						'context' => __( 'Share menu link label for WhatsApp.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_verified_account',
+						'default' => 'Verified account',
+						'context' => __( 'Tooltip text shown on verified badge in Twitter/X feed and popup.', 'easy-facebook-likebox' ),
+					),
+				),
+			),
+			'errors_messages'   => array(
 				'label'   => __( 'Errors & Messages', 'easy-facebook-likebox' ),
 				'strings' => array(
 					array(
@@ -422,8 +527,8 @@ class ESF_Translation_Strings {
 		if ( null !== self::$translation_settings ) {
 			return self::$translation_settings;
 		}
-		$settings                      = get_option( 'fta_settings', array() );
-		self::$translation_settings    = isset( $settings['translation'] ) && is_array( $settings['translation'] ) ? $settings['translation'] : array();
+		$settings                   = get_option( 'fta_settings', array() );
+		self::$translation_settings = isset( $settings['translation'] ) && is_array( $settings['translation'] ) ? $settings['translation'] : array();
 		return self::$translation_settings;
 	}
 
@@ -446,7 +551,7 @@ class ESF_Translation_Strings {
 	}
 }
 
-// phpcs:ignore Generic.Files.OneObjectStructurePerFile -- Helper function belongs with this class.
+// phpcs:disable Generic.Files.OneObjectStructurePerFile -- Helper function belongs with this class.
 if ( ! function_exists( 'esf_get_translated_string' ) ) {
 	/**
 	 * Get the frontend string for a translation key (custom from settings or default).
@@ -458,3 +563,4 @@ if ( ! function_exists( 'esf_get_translated_string' ) ) {
 		return ESF_Translation_Strings::get( $key );
 	}
 }
+// phpcs:enable Generic.Files.OneObjectStructurePerFile

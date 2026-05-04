@@ -69,7 +69,11 @@ if ( efl_fs()->is_plan( 'instagram_premium', true ) or efl_fs()->is_plan( 'combo
     $hashtag = null;
 }
 if ( isset( $skin_id ) ) {
-    $mif_values = $mif_skins[$skin_id]['design'];
+    // Resolve the requested skin ID against the live $mif_skins map. If the
+    // skin post was deleted/trashed we fall back to a same-layout sibling
+    // (or the plugin default) instead of rendering a blank feed.
+    $skin_id = esf_insta_resolve_skin_id( $skin_id );
+    $mif_values = ( isset( $mif_skins[$skin_id]['design'] ) ? $mif_skins[$skin_id]['design'] : array() );
 }
 if ( is_customize_preview() && isset( $post->ID ) && $post->ID == $esf_insta_demo_page_id ) {
     $mif_values = get_option( 'mif_skin_' . $skin_id, false );
@@ -142,7 +146,7 @@ echo esc_attr( $mif_instagram_type );
 ?>  <?php 
 echo esc_attr( $wrapper_class );
 ?> esf-insta-skin-<?php 
-echo esc_attr( intval( $skin_id ) );
+echo esc_attr( (string) (int) $skin_id );
 ?> esf-insta-<?php 
 echo esc_attr( $mif_ver );
 ?>"<?php 

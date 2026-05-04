@@ -47,7 +47,7 @@ if ( $is_album_feed ) {
             $efbl_status_col = 6;
             ?>
 					<div class="efbl-thumbnail-col efbl-col-sm-<?php 
-            esc_attr_e( $efbl_status_col );
+            esc_attr_e( (string) $efbl_status_col );
             ?> ">
 
 						<?php 
@@ -168,7 +168,7 @@ if ( $is_album_feed ) {
 
 
 				<div class="efbl-feed-content efbl-col-sm-<?php 
-        esc_attr_e( $efbl_status_col );
+        esc_attr_e( (string) $efbl_status_col );
         ?>">
 
 					<?php 
@@ -388,7 +388,7 @@ if ( $is_album_feed ) {
         ?>
 
 				<div class="efbl-feed-content efbl-col-sm-<?php 
-        esc_attr_e( $efbl_shared_img_col );
+        esc_attr_e( (string) $efbl_shared_img_col );
         ?> ">
 
 					<?php 

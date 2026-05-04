@@ -45,7 +45,7 @@ $fta_settings  = $Feed_Them_All->fta_get_settings();
 							<?php esc_html_e( 'You can disable the module which you are not using. It will help us to include only required resources to make your site load faster', 'easy-facebook-likebox' ); ?>.
 						</p>
 
-						<div class="fta_all_plugs col s12">
+						<div class="fta_all_plugs col s12 esf-modules-grid">
 							<?php
 							// Facebook module card.
 							$status = $Feed_Them_All->module_status( 'facebook' );
@@ -60,7 +60,7 @@ $fta_settings  = $Feed_Them_All->fta_get_settings();
 
 								<div class="card-content">
 									<span class="card-title  grey-text text-darken-4">
-										<?php esc_html_e( 'Custom Facebook Feed - Page Plugin (Likebox)' ); ?>
+										<?php esc_html_e( 'Facebook Feed - Page Plugin (Likebox)' ); ?>
 									</span>
 								</div>
 								<hr>
@@ -82,14 +82,16 @@ $fta_settings  = $Feed_Them_All->fta_get_settings();
 											<?php esc_html_e( 'using shortcode, widget, inside popup and widget.', 'easy-facebook-likebox' ); ?>
 										</li>
 									</ul>
-									<a class="btn waves-effect fta_plug_activate waves-light"
-									    data-status="<?php esc_attr_e( $status ); ?>"
-									    data-plug="facebook"
-									    href="#"><?php esc_attr_e( $btn ); ?></a>
+									<div class="esf-module-actions">
+										<a class="btn waves-effect fta_plug_activate waves-light"
+											data-status="<?php esc_attr_e( $status ); ?>"
+											data-plug="facebook"
+											href="#"><?php esc_attr_e( $btn ); ?></a>
 
-									<a class="btn waves-effect fta_setting_btn right waves-light" href="<?php echo esc_url( admin_url( 'admin.php?page=easy-facebook-likebox' ) ); ?>">
-										<?php esc_html_e( 'Settings', 'easy-facebook-likebox' ); ?>
-									</a>
+										<a class="btn waves-effect fta_setting_btn right waves-light" href="<?php echo esc_url( admin_url( 'admin.php?page=easy-facebook-likebox' ) ); ?>">
+											<?php esc_html_e( 'Configure', 'easy-facebook-likebox' ); ?>
+										</a>
+									</div>
 								</div>
 							</div>
 							<?php
@@ -106,7 +108,7 @@ $fta_settings  = $Feed_Them_All->fta_get_settings();
 
 								<div class="card-content">
 									<span class="card-title  grey-text text-darken-4">
-										<?php esc_html_e( 'Custom Instagram Feed' ); ?>
+										<?php esc_html_e( 'Instagram Feed' ); ?>
 									</span>
 								</div>
 								<hr>
@@ -128,14 +130,16 @@ $fta_settings  = $Feed_Them_All->fta_get_settings();
 											<?php esc_html_e( 'using shortcode, widget, inside popup and widget', 'easy-facebook-likebox' ); ?>
 										</li>
 									</ul>
-									<a class="btn waves-effect fta_plug_activate waves-light"
-									    data-status="<?php esc_attr_e( $status ); ?>"
-									    data-plug="instagram"
-									    href="#"><?php esc_attr_e( $btn ); ?></a>
+									<div class="esf-module-actions">
+										<a class="btn waves-effect fta_plug_activate waves-light"
+											data-status="<?php esc_attr_e( $status ); ?>"
+											data-plug="instagram"
+											href="#"><?php esc_attr_e( $btn ); ?></a>
 
-									<a class="btn waves-effect fta_setting_btn right waves-light" href="<?php echo esc_url( admin_url( 'admin.php?page=mif' ) ); ?>">
-										<?php esc_html_e( 'Settings', 'easy-facebook-likebox' ); ?>
-									</a>
+										<a class="btn waves-effect fta_setting_btn right waves-light" href="<?php echo esc_url( admin_url( 'admin.php?page=mif' ) ); ?>">
+											<?php esc_html_e( 'Configure', 'easy-facebook-likebox' ); ?>
+										</a>
+									</div>
 								</div>
 							</div>
 							<?php
@@ -158,7 +162,7 @@ $fta_settings  = $Feed_Them_All->fta_get_settings();
 								<hr>
 								<div class="fta_cta_holder">
 									<p>
-										<?php esc_html_e( 'Connect your YouTube channel and display a responsive video feed anywhere on your site:', 'easy-facebook-likebox' ); ?>
+										<?php esc_html_e( 'This module allows you to display:', 'easy-facebook-likebox' ); ?>
 									</p>
 									<ul>
 										<li>
@@ -171,17 +175,67 @@ $fta_settings  = $Feed_Them_All->fta_get_settings();
 											<?php esc_html_e( 'Customizable layouts, header and caching options', 'easy-facebook-likebox' ); ?>
 										</li>
 										<li>
-											<?php esc_html_e( 'Embed feeds using shortcode (Gutenberg block coming soon)', 'easy-facebook-likebox' ); ?>
+											<?php esc_html_e( 'using shortcode (Gutenberg block coming soon)', 'easy-facebook-likebox' ); ?>
 										</li>
 									</ul>
-									<a class="btn waves-effect fta_plug_activate waves-light"
-									    data-status="<?php esc_attr_e( $status ); ?>"
-									    data-plug="youtube"
-									    href="#"><?php esc_attr_e( $btn ); ?></a>
+									<div class="esf-module-actions">
+										<a class="btn waves-effect fta_plug_activate waves-light"
+											data-status="<?php esc_attr_e( $status ); ?>"
+											data-plug="youtube"
+											href="#"><?php esc_attr_e( $btn ); ?></a>
 
-									<a class="btn waves-effect fta_setting_btn right waves-light" href="<?php echo esc_url( admin_url( 'admin.php?page=esf-youtube' ) ); ?>">
-										<?php esc_html_e( 'Settings', 'easy-facebook-likebox' ); ?>
-									</a>
+										<a class="btn waves-effect fta_setting_btn right waves-light" href="<?php echo esc_url( admin_url( 'admin.php?page=esf-youtube' ) ); ?>">
+											<?php esc_html_e( 'Configure', 'easy-facebook-likebox' ); ?>
+										</a>
+									</div>
+								</div>
+							</div>
+							<?php
+							// Twitter/X module card.
+							$status = $Feed_Them_All->module_status( 'twitter' );
+
+							if ( $status === 'activated' ) {
+								$btn = __( 'Deactivate', 'easy-facebook-likebox' );
+							} else {
+								$btn = __( 'Activate', 'easy-facebook-likebox' );
+							}
+							?>
+							<div class="card col fta_single_plug s5 fta_plug_twitter   fta_plug_<?php esc_attr_e( $status ); ?>">
+
+								<div class="card-content">
+									<span class="card-title  grey-text text-darken-4">
+										<?php esc_html_e( 'X / Twitter Feed', 'easy-facebook-likebox' ); ?>
+									</span>
+								</div>
+								<hr>
+								<div class="fta_cta_holder">
+									<p>
+										<?php esc_html_e( 'This module allows you to display:', 'easy-facebook-likebox' ); ?>
+									</p>
+									<ul>
+										<li>
+											<?php esc_html_e( 'Your own X/Twitter timeline with secure OAuth connection', 'easy-facebook-likebox' ); ?>
+										</li>
+										<li>
+											<?php esc_html_e( 'Any public X/Twitter account feed', 'easy-facebook-likebox' ); ?>
+										</li>
+										<li>
+											<?php esc_html_e( 'Media-friendly timeline layout with customizable options', 'easy-facebook-likebox' ); ?>
+										</li>
+										<li>
+											<?php esc_html_e( 'using shortcode (Gutenberg block coming soon)', 'easy-facebook-likebox' ); ?>
+										</li>
+									</ul>
+									<div class="esf-module-actions">
+										<a class="btn waves-effect fta_plug_activate waves-light"
+											data-status="<?php esc_attr_e( $status ); ?>"
+											data-plug="twitter"
+											href="#"><?php esc_attr_e( $btn ); ?></a>
+
+										<a class="btn waves-effect fta_setting_btn right waves-light" href="<?php echo esc_url( admin_url( 'admin.php?page=esf-twitter' ) ); ?>">
+											<?php esc_html_e( 'Configure', 'easy-facebook-likebox' ); ?>
+										</a>
+									</div>
 								</div>
 							</div>
 

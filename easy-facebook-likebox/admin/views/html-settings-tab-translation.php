@@ -30,7 +30,7 @@ $saved_translations = isset( $fta_settings['translation'] ) && is_array( $fta_se
 <div id="esf-settings-translation" class="col s12 efbl_tab_c slideLeft active">
 	<h5><?php esc_html_e( 'Translation', 'easy-facebook-likebox' ); ?></h5>
 	<p class="description esf-translation-intro">
-		<?php esc_html_e( 'Change the text shown in your Facebook and Instagram feeds. Leave a field blank to use the default.', 'easy-facebook-likebox' ); ?>
+		<?php esc_html_e( 'Change the text shown in your Facebook, Instagram, YouTube, and X/Twitter feeds. Leave a field blank to use the default.', 'easy-facebook-likebox' ); ?>
 	</p>
 
 	<?php
@@ -95,7 +95,7 @@ $saved_translations = isset( $fta_settings['translation'] ) && is_array( $fta_se
 			<?php
 			foreach ( $translation_strings as $category_key => $category ) {
 				$category_label = isset( $category['label'] ) ? $category['label'] : '';
-				$strings       = isset( $category['strings'] ) ? $category['strings'] : array();
+				$strings        = isset( $category['strings'] ) ? $category['strings'] : array();
 				if ( empty( $strings ) ) {
 					continue;
 				}

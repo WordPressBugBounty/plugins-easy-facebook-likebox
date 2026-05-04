@@ -247,6 +247,9 @@ esc_html_e( 'Select skin and layout', 'easy-facebook-likebox' );
 												<?php 
 if ( isset( $efbl_skins ) ) {
     foreach ( $efbl_skins as $efbl_skin ) {
+        if ( !empty( $efbl_skin['is_duplicate'] ) ) {
+            continue;
+        }
         $layout_selected = ucfirst( $efbl_skin['layout'] );
         ?>
 														<option value="<?php 

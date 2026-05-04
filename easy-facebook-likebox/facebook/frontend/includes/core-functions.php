@@ -1,5 +1,62 @@
 <?php
 
+if ( !function_exists( 'efbl_resolve_skin_id' ) ) {
+    /**
+     * Resolve a Facebook skin ID to one that is guaranteed to exist in
+     * $GLOBALS['efbl_skins']. Provides graceful fallback so that feeds
+     * referencing a deleted/missing skin still render.
+     *
+     * Resolution order:
+     *   1. Requested ID, if present in the global.
+     *   2. Another existing skin sharing the same layout (looked up via
+     *      the layout post meta of the requested ID).
+     *   3. The plugin's canonical default_skin_id from fta_settings.
+     *   4. Any available skin in the global (first one).
+     *   5. 0 if no skin is available at all.
+     *
+     * @param int|string $requested_id The skin ID coming from a shortcode,
+     *                                 widget, block, or AJAX call.
+     * @return int A valid skin ID that exists in $GLOBALS['efbl_skins'],
+     *             or 0 if the install has no skins at all.
+     */
+    function efbl_resolve_skin_id(  $requested_id  ) {
+        global $efbl_skins;
+        $requested_id = (int) $requested_id;
+        // Happy path: the requested skin exists.
+        if ( $requested_id && is_array( $efbl_skins ) && isset( $efbl_skins[$requested_id] ) ) {
+            return $requested_id;
+        }
+        if ( !is_array( $efbl_skins ) || empty( $efbl_skins ) ) {
+            return 0;
+        }
+        // Fallback 1: try to find another skin that uses the same layout
+        // as the missing one (if we can still figure out the layout from
+        // post meta of the deleted/orphaned post).
+        if ( $requested_id ) {
+            $layout = get_post_meta( $requested_id, 'layout', true );
+            if ( $layout ) {
+                foreach ( $efbl_skins as $skin_id => $skin_data ) {
+                    if ( isset( $skin_data['layout'] ) && $skin_data['layout'] === $layout ) {
+                        return (int) $skin_id;
+                    }
+                }
+            }
+        }
+        // Fallback 2: the canonical default skin from settings.
+        $fta_settings = get_option( 'fta_settings', array() );
+        if ( !empty( $fta_settings['plugins']['facebook']['default_skin_id'] ) ) {
+            $default_id = (int) $fta_settings['plugins']['facebook']['default_skin_id'];
+            if ( isset( $efbl_skins[$default_id] ) ) {
+                return $default_id;
+            }
+        }
+        // Fallback 3: just return the first available skin.
+        reset( $efbl_skins );
+        $first_key = key( $efbl_skins );
+        return ( $first_key ? (int) $first_key : 0 );
+    }
+
+}
 if ( !function_exists( 'efbl_time_ago' ) ) {
     function efbl_time_ago(  $date, $granularity = 2  ) {
         $date_timestamp = strtotime( $date );

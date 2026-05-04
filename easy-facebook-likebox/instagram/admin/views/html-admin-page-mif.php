@@ -34,7 +34,7 @@ $auth_url = esc_url(
 
 $mif_personal_clients = array( '1097984338516189' );
 
-$mif_personal_app_ID = $mif_personal_clients[ array_rand( $mif_personal_clients, '1' ) ];
+$mif_personal_app_ID = $mif_personal_clients[ array_rand( $mif_personal_clients, 1 ) ];
 
 $personal_auth_url = esc_url(
 	add_query_arg(
@@ -54,6 +54,14 @@ if ( isset( $_GET['tab'] ) ) {
 } else {
 	$active_tab = 'mif-general';
 }
+
+$esf_welcome_handoff = isset( $_GET['esf_welcome_handoff'] ) ? sanitize_text_field( wp_unslash( $_GET['esf_welcome_handoff'] ) ) : '';
+$esf_welcome_next    = isset( $_GET['esf_welcome_next'] ) ? sanitize_text_field( wp_unslash( $_GET['esf_welcome_next'] ) ) : '';
+$esf_autostart_connect = (
+	'1' === $esf_welcome_handoff &&
+	'connect' === $esf_welcome_next &&
+	'mif-general' === $active_tab
+);
 
 if ( efl_fs()->is_free_plan() || efl_fs()->is_plan( 'facebook_premium', true ) ) {
 	$is_free = true;
@@ -346,3 +354,20 @@ if ( efl_fs()->is_free_plan() || efl_fs()->is_plan( 'facebook_premium', true ) )
 
 <div class="esf-notification-holder"><?php esc_html_e( 'Copied', 'easy-facebook-likebox' ); ?></div>
 </div>
+
+<?php if ( $esf_autostart_connect ) : ?>
+	<script>
+		jQuery( document ).ready( function( $ ) {
+			const trigger = document.querySelector(
+				'a.mif_auth_btn.mif_auth_btn_st.esf-modal-trigger[href="#mif-authentication-modal"]'
+			);
+			if ( trigger ) {
+				trigger.click();
+			}
+			const url = new URL( window.location.href );
+			url.searchParams.delete( 'esf_welcome_handoff' );
+			url.searchParams.delete( 'esf_welcome_next' );
+			window.history.replaceState( {}, '', url.toString() );
+		} );
+	</script>
+<?php endif; ?>

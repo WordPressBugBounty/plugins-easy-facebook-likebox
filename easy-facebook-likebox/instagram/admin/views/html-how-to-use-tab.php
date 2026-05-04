@@ -221,6 +221,11 @@ esc_html_e( 'Select skin and layout', 'easy-facebook-likebox' );
 							<?php 
 if ( $mif_skins ) {
     foreach ( $mif_skins as $mif_skin ) {
+        // Hide duplicate skin posts from the dropdown — the underlying
+        // post stays intact so any saved shortcode keeps working.
+        if ( !empty( $mif_skin['is_duplicate'] ) ) {
+            continue;
+        }
         ?>
 
 									<option value="<?php 

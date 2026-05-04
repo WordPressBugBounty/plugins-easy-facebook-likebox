@@ -27,7 +27,7 @@ if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
             wp_enqueue_style( 'esf-custom-fonts', FTA_PLUGIN_URL . 'frontend/assets/css/esf-custom-fonts.css', array() );
             wp_enqueue_script( 'imagesloaded.pkgd.min', FTA_PLUGIN_URL . 'frontend/assets/js/imagesloaded.pkgd.min.js' );
             wp_enqueue_style( 'esf-insta-frontend', ESF_INSTA_PLUGIN_URL . 'frontend/assets/css/esf-insta-frontend.css' );
-            wp_enqueue_style( 'esf-insta-customizer-style', admin_url( 'admin-ajax.php' ) . '?action=esf-insta-customizer-style', 'esf-insta-frontend' );
+            wp_enqueue_style( 'esf-insta-customizer-style', admin_url( 'admin-ajax.php' ) . '?action=esf-insta-customizer-style', array('esf-insta-frontend') );
             $mif_ver = 'free';
             if ( efl_fs()->is_plan( 'instagram_premium', true ) or efl_fs()->is_plan( 'combo_premium', true ) ) {
                 $mif_ver = 'pro';
@@ -261,7 +261,7 @@ if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
                 if ( isset( $self_decoded_data->meta->code ) && 400 !== $self_decoded_data->meta->code && !isset( $self_decoded_data->error ) ) {
                 }
                 if ( isset( $self_decoded_data->meta->code ) && 400 !== $self_decoded_data->meta->code && !isset( $self_decoded_data->error ) ) {
-                    set_transient( $mif_bio_slug, wp_json_encode( $self_decoded_data ), $cache_seconds );
+                    set_transient( $mif_bio_slug, wp_json_encode( $self_decoded_data ), (int) $cache_seconds );
                 }
             }
             return $self_decoded_data;

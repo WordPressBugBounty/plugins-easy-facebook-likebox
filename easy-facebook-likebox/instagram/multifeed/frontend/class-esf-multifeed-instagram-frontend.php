@@ -120,10 +120,13 @@ class Esf_Multifeed_Instagram_Frontend {
 			foreach ( $all_posts as $single_post ){
 				$ord[] = strtotime($single_post->timestamp);
 			}
-			array_multisort($ord, SORT_DESC, $all_posts);
-			$all_posts = array_slice($all_posts, 0, $instance['feeds_per_page']);
-			return [ 'sorted_posts' => $all_posts, 'next_posts_url' => $next_posts_url];
+		array_multisort($ord, SORT_DESC, $all_posts);
+		$all_posts = array_slice($all_posts, 0, $instance['feeds_per_page']);
+		return [ 'sorted_posts' => $all_posts, 'next_posts_url' => $next_posts_url];
+
 		}
+
+		return array( 'sorted_posts' => array(), 'next_posts_url' => '' );
 	}
 
 	/**
@@ -150,7 +153,7 @@ class Esf_Multifeed_Instagram_Frontend {
 			$next_posts_url = $esf_insta_posts->pagination;
 			$esf_insta_posts = $esf_insta_posts->data;
 		}
-		$next_posts = array_slice( $esf_insta_posts, $current_items, $feeds_per_page );
+		$next_posts = array_slice( $esf_insta_posts, $current_items, (int) $feeds_per_page );
 
 		// If posts are not already cached fetch new one
 		if ( empty( $next_posts ) && isset( $next_posts_url ) ) {
@@ -178,8 +181,8 @@ class Esf_Multifeed_Instagram_Frontend {
 					$final_posts     = array_merge( $esf_insta_posts, $sorted_posts['sorted_posts'] );
 					$final_posts_arr = $this->create_object( $instance, $final_posts, $new_next_posts_url );
 
-					if ( ! isset( $final_posts_arr->error ) && ! empty( $sorted_posts['sorted_posts'] ) ) {
-						set_transient( $trasneint_name, wp_json_encode( $final_posts_arr ), $cache_seconds );
+				if ( ! isset( $final_posts_arr->error ) && ! empty( $sorted_posts['sorted_posts'] ) ) {
+					set_transient( $trasneint_name, wp_json_encode( $final_posts_arr ), (int) $cache_seconds );
 					} else {
 						return false;
 					}
@@ -211,5 +214,5 @@ class Esf_Multifeed_Instagram_Frontend {
 	}
 
 }
-new Esf_Multifeed_Instagram_Frontend();
 }
+new Esf_Multifeed_Instagram_Frontend();

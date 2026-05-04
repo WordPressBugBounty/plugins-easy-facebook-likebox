@@ -8,6 +8,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $FTA          = new Feed_Them_All();
 $fta_settings = $FTA->fta_get_settings();
+if ( ! isset( $banner_info ) || ! is_array( $banner_info ) ) {
+	$ESF_Admin_mod = new ESF_Admin();
+	$banner_info   = $ESF_Admin_mod->esf_upgrade_banner();
+	if ( ! is_array( $banner_info ) ) {
+		$banner_info = array( 'discount' => '', 'coupon' => '', 'button-url' => '', 'target' => '', 'button-text' => '' );
+	}
+}
 ?>
 <div id="efbl-moderate" class="col s12 efbl_tab_c slideLeft <?php echo $active_tab == 'efbl-moderate' ? 'active' : ''; ?>">
 	<div class="row">

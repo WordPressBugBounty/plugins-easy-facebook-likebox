@@ -327,6 +327,9 @@ class Easy_Custom_Facebook_Feed_Widget extends WP_Widget {
 
 						<?php 
             foreach ( $efbl_skins as $efbl_skin ) {
+                if ( !empty( $efbl_skin['is_duplicate'] ) ) {
+                    continue;
+                }
                 if ( $efbl_skin['layout'] === 'half' || $efbl_skin['layout'] === 'thumbnail' ) {
                     continue;
                 }

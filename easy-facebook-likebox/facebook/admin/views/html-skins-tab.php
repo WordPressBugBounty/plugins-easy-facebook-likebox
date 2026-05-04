@@ -52,6 +52,13 @@ endif;
 
 			foreach ( $efbl_skins as $efbl_skin ) {
 
+				// Hide duplicate skins from the admin UI without deleting
+				// the underlying posts, so any existing shortcodes that
+				// reference the duplicate IDs keep working.
+				if ( ! empty( $efbl_skin['is_duplicate'] ) ) {
+					continue;
+				}
+
 				$customizer_url = admin_url( 'customize.php' );
 
 				if ( isset( $page_permalink ) ) {

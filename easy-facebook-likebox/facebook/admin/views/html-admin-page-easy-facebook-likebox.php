@@ -9,11 +9,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 $FTA         = new Feed_Them_All();
 $ESF_Admin   = new ESF_Admin();
 $banner_info = $ESF_Admin->esf_upgrade_banner();
+if ( ! is_array( $banner_info ) ) {
+	$banner_info = array( 'discount' => '', 'coupon' => '', 'button-url' => '', 'target' => '', 'button-text' => '' );
+}
 
 $fta_settings = $FTA->fta_get_settings();
 
 $app_ID = array( '468599428373231' );
-$rand_app_ID = array_rand( $app_ID, '1' );
+$rand_app_ID = array_rand( $app_ID, 1 );
 $u_app_ID = $app_ID[ $rand_app_ID ];
 
 $auth_url = esc_url(
@@ -33,6 +36,14 @@ if ( isset( $_GET['tab'] ) ) {
 } else {
 	$active_tab = 'efbl-authentication';
 }
+
+$esf_welcome_handoff = isset( $_GET['esf_welcome_handoff'] ) ? sanitize_text_field( wp_unslash( $_GET['esf_welcome_handoff'] ) ) : '';
+$esf_welcome_next    = isset( $_GET['esf_welcome_next'] ) ? sanitize_text_field( wp_unslash( $_GET['esf_welcome_next'] ) ) : '';
+$esf_autostart_connect = (
+	'1' === $esf_welcome_handoff &&
+	'connect' === $esf_welcome_next &&
+	'efbl-authentication' === $active_tab
+);
 
 ?>
 <div class="fta_wrap_outer">
@@ -381,6 +392,23 @@ if ( isset( $_GET['tab'] ) ) {
 
 	</div>
 <?php } ?>
+
+<?php if ( $esf_autostart_connect ) : ?>
+	<script>
+		jQuery( document ).ready( function( $ ) {
+			const trigger = document.querySelector(
+				'a.efbl_authentication_btn.esf-modal-trigger[href="#fta-fb-connect-info"]'
+			);
+			if ( trigger ) {
+				trigger.click();
+			}
+			const url = new URL( window.location.href );
+			url.searchParams.delete( 'esf_welcome_handoff' );
+			url.searchParams.delete( 'esf_welcome_next' );
+			window.history.replaceState( {}, '', url.toString() );
+		} );
+	</script>
+<?php endif; ?>
 
 <div id="efbl-addon-upgrade" class="fta-upgrade-modal esf-modal fadeIn">
 	<div class="modal-content">

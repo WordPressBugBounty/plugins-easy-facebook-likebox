@@ -83,7 +83,7 @@ if ( !isset( $esf_insta_user_data->error ) && empty( $esf_insta_user_data->error
         ?> />
 
 							<?php 
-        if ( $hashtag && !empty( $hashtag ) ) {
+        if ( isset( $hashtag ) && $hashtag ) {
             ?>
 
 								<span class="esf-insta-hashtag-overlay"><i

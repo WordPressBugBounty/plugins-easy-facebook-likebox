@@ -108,7 +108,7 @@ if ( isset( $_GET['access_token'] ) && ! empty( $_GET['access_token'] ) ) {
 
 $app_ID = array( '468599428373231' );
 
-$rand_app_ID = array_rand( $app_ID, '1' );
+$rand_app_ID = array_rand( $app_ID, 1 );
 
 $u_app_ID = $app_ID[ $rand_app_ID ];
 

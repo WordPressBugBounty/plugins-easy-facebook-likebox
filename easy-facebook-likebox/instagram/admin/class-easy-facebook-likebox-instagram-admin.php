@@ -257,7 +257,6 @@ if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
 			   </div>
 				</li>
 			</ul>';
-                $fta_settings['plugins']['instagram']['instagram_connected_account'][$self_decoded_data->id];
                 $fta_settings['plugins']['instagram']['instagram_connected_account'][$self_decoded_data->id]['username'] = $self_decoded_data->username;
                 $fta_settings['plugins']['instagram']['instagram_connected_account'][$self_decoded_data->id]['access_token'] = $access_token;
                 $fta_settings['plugins']['instagram']['selected_type'] = 'personal';

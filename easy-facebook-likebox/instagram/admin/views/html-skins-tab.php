@@ -46,6 +46,14 @@ $esf_insta_business_accounts = esf_insta_business_accounts();
 
 				foreach ( $mif_skins as $mif_skin ) {
 
+					// Hide duplicate skin posts that older versions of the
+					// plugin auto-created. The post itself stays in the DB
+					// (so any existing shortcode using its ID keeps working)
+					// — we just don't render a card for it here.
+					if ( ! empty( $mif_skin['is_duplicate'] ) ) {
+						continue;
+					}
+
 					$customizer_url = admin_url( 'customize.php' );
 					if ( isset( $page_permalink ) ) {
 						$customizer_url = add_query_arg(
