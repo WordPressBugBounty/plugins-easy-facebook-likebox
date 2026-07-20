@@ -72,13 +72,7 @@ class ESF_YouTube_Renderer {
 			return '';
 		}
 
-		$token_manager = ESF_YouTube_Token_Manager::get_instance();
-		$access_token  = $token_manager->get_valid_access_token( $feed_obj->account_id );
-		if ( ! $access_token ) {
-			return '';
-		}
-
-		$videos = $this->get_videos_for_feed( $feed_id, $feed_obj, $access_token );
+		$videos = $this->get_videos_for_feed( $feed_id, $feed_obj );
 		if ( is_wp_error( $videos ) ) {
 			$videos = array();
 		}
@@ -207,16 +201,10 @@ class ESF_YouTube_Renderer {
 			return array();
 		}
 
-		$token_manager = ESF_YouTube_Token_Manager::get_instance();
-		$access_token  = $token_manager->get_valid_access_token( $feed_obj->account_id );
-		if ( ! $access_token ) {
-			return array();
-		}
-
 		$saved_settings     = json_decode( $feed_row->settings, true );
 		$feed_obj->settings = ESF_YouTube_Feed_Repository::merge_settings_with_defaults( is_array( $saved_settings ) ? $saved_settings : array() );
 
-		$videos = $this->get_videos_for_feed( $feed_id, $feed_obj, $access_token );
+		$videos = $this->get_videos_for_feed( $feed_id, $feed_obj );
 		if ( is_wp_error( $videos ) ) {
 			return array();
 		}
@@ -225,7 +213,11 @@ class ESF_YouTube_Renderer {
 	}
 
 	/**
-	 * Get videos for a feed (from cache or API).
+	 * Get videos for a feed (from integrator payload, cache, or API).
+	 *
+	 * Pipeline:
+	 *   1. Allow integrators to short-circuit via `esf_youtube_render_videos_payload`.
+	 *   2. When no override, read from {@see ESF_YouTube_Cache} or fetch via API.
 	 *
 	 * Cache key includes feed_id and account_id so that when the feed's linked
 	 * account is changed, we fetch the new account's videos instead of
@@ -233,17 +225,55 @@ class ESF_YouTube_Renderer {
 	 *
 	 * @since 6.7.5
 	 *
-	 * @param int    $feed_id      Feed ID (for cache key).
-	 * @param object $feed_obj     Feed object with feed_type, source_id, account_id.
-	 * @param string $access_token Valid access token.
+	 * @param int         $feed_id      Feed ID (for cache key).
+	 * @param object      $feed_obj     Feed object with feed_type, source_id, account_id.
+	 * @param string|null $access_token Optional valid access token. Resolved internally when omitted.
 	 * @return array|WP_Error Normalized video items or WP_Error on failure.
 	 */
-	protected function get_videos_for_feed( $feed_id, $feed_obj, $access_token ) {
+	protected function get_videos_for_feed( $feed_id, $feed_obj, $access_token = null ) {
+		$preset = array(
+			'videos'          => array(),
+			'has_local_cache' => false,
+		);
+
+		/**
+		 * Filter the YouTube video payload before cache/API fetch.
+		 *
+		 * Returning videos short-circuits the cache and API fetch. This is the
+		 * canonical hook for tests and third-party integrations.
+		 *
+		 * Listeners may return either:
+		 *   - `array{videos:array,has_local_cache?:bool}` (preferred shape), or
+		 *   - a flat `array<int, array>` of normalized video items.
+		 *
+		 * @since 6.7.8
+		 *
+		 * @param array  $value    Default empty payload.
+		 * @param int    $feed_id  Feed ID.
+		 * @param object $feed_obj Feed object.
+		 */
+		$payload = apply_filters( 'esf_youtube_render_videos_payload', $preset, (int) $feed_id, $feed_obj );
+
+		if ( function_exists( 'esf_resolve_render_payload_override' ) ) {
+			$override = esf_resolve_render_payload_override( $payload, 'videos' );
+			if ( $override['short_circuited'] ) {
+				return $override['items'];
+			}
+		}
+
 		$account_id = isset( $feed_obj->account_id ) ? (int) $feed_obj->account_id : 0;
 		$cache_key  = 'esf_yt_videos_' . (int) $feed_id . '_' . $account_id;
 		$cached     = ESF_YouTube_Cache::get( $cache_key );
 		if ( is_array( $cached ) ) {
 			return $cached;
+		}
+
+		if ( null === $access_token || '' === $access_token ) {
+			$token_manager = ESF_YouTube_Token_Manager::get_instance();
+			$access_token  = $token_manager->get_valid_access_token( $account_id );
+		}
+		if ( ! $access_token ) {
+			return array();
 		}
 
 		$api_service = ESF_YouTube_API_Service::get_instance();

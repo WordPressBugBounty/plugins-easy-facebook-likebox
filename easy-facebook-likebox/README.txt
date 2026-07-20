@@ -3,7 +3,7 @@ Contributors: DaNish Ali, maltathemes, sjaved, freemius
 Tags: Instagram feed, Facebook feed, YouTube feed, X feed, Social media feed, Instagram photos, Instagram gallery, Facebook posts, YouTube videos, YouTube gallery, Twitter feed, Twitter timeline
 Requires at least: 3.3
 Tested up to: 7.0
-Stable tag: 6.7.7
+Stable tag: 6.7.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -355,6 +355,12 @@ Use the shortcode generator to select your preferred post types.
 
 == Changelog ==
 
+= 6.7.8 =
+* Fixed: Critical error when editing the Instagram feed widget in Customizer with the modern Instagram module.
+* Improved: lightbox controls theme compatibility.
+* Improved: Instagram avatar and stories thumbnail sizing with page builders.
+* Fixed: Minor issues.
+
 = 6.7.7 =
 * Added: Modern Instagram Feed module with a new dashboard (accounts, feeds, live preview), aligned with YouTube and X/Twitter.
 * Added: Modern Easy Social Feed main (hub) page and global Settings page for managing modules and plugin-wide options.
@@ -426,16 +432,6 @@ https://easysocialfeed.com/changelog
 
 == Upgrade Notice ==
 
-= 6.7.6 =
-Critical skin stability fix for Facebook and Instagram feeds, plus a new onboarding wizard with improved module connection handoff. Update recommended.
+= 6.7.8 =
+Update to this version to avoid a fatal error when using the Instagram widget with the modern Instagram module.
 
-What you should do after update:
-1. Update the plugin, then open Easy Social Feed > Facebook and Easy Social Feed > Instagram once in wp-admin (this finalizes migration checks).
-2. Do not delete old/duplicate skins manually unless you have confirmed where each skin_id is used.
-3. If a feed looks stale, clear plugin cache once from settings.
-
-= 6.7.5 =
-New Feed language option in General settings so your Facebook and Instagram feeds can match your site language. Update recommended.
-
-= 6.7.4 =
-Important fix for Instagram Business connection. New General settings tab and optional uninstall cleanup. Update recommended.

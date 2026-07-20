@@ -4,7 +4,7 @@
  * Plugin Name: Easy Social Feed
  * Plugin URI:        https://wordpress.org/plugins/easy-facebook-likebox
  * Description:       Formerly "Easy Facebook Like Box and Custom Facebook Feed" plugin allows you to easily display custom facebook feed, custom Instagram photos and videos feed, page plugin (like box) on your website using either widget or shortcode to increase facbook fan page likes. You can use the shortcode generator. Additionally, it also now allows you to display the customized facebook feed on your website using the same color scheme of your website. Its completely customizable with lots of optional settings. Its also responsive facebook like box at the same time.
- * Version:           6.7.7
+ * Version:           6.7.8
  * Author:            Easy Social Feed
  * Author URI:        https://easysocialfeed.com/
  * Text Domain:       easy-facebook-likebox
@@ -170,7 +170,16 @@ if ( function_exists( 'efl_fs' ) ) {
     }
     if ( $insta_status == 'activated' ) {
         require_once plugin_dir_path( __FILE__ ) . 'instagram/includes/esf-instagram-feed-widget.php';
+        /**
+         * Legacy Instagram widget (skins / ESF_Instagram_Frontend).
+         * Only register when the legacy Instagram module is active — modern
+         * mode does not load esf_insta_* helpers, and Customizer would fatal
+         * while rendering the widget form.
+         */
         function register_insta_widget() {
+            if ( function_exists( 'esf_instagram_use_new_system' ) && esf_instagram_use_new_system() ) {
+                return;
+            }
             register_widget( 'ESF_Instagram_Feed_Widget' );
         }
 
@@ -209,7 +218,7 @@ if ( function_exists( 'efl_fs' ) ) {
     }
     if ( !class_exists( 'Feed_Them_All' ) ) {
         class Feed_Them_All {
-            public $version = '6.7.7';
+            public $version = '6.7.8';
 
             public $fta_slug = 'easy-facebook-likebox';
 

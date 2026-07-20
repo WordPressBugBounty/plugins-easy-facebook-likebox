@@ -1407,3 +1407,66 @@ if ( !function_exists( 'esf_dbdelta' ) ) {
     }
 
 }
+/**
+ * Enqueue shared FancyBox control CSS (theme/button resets) after FancyBox.
+ *
+ * Call immediately after enqueueing `jquery.fancybox.min` style so toolbar
+ * and navigation buttons stay consistent across modern modules.
+ *
+ * @since 6.7.8
+ * @return void
+ */
+if ( !function_exists( 'esf_enqueue_fancybox_controls_style' ) ) {
+    function esf_enqueue_fancybox_controls_style() {
+        if ( !defined( 'FTA_PLUGIN_DIR' ) || !defined( 'FTA_PLUGIN_URL' ) ) {
+            return;
+        }
+        $path = FTA_PLUGIN_DIR . 'frontend/assets/css/esf-fancybox-controls.css';
+        if ( !file_exists( $path ) ) {
+            return;
+        }
+        wp_enqueue_style(
+            'esf-fancybox-controls',
+            FTA_PLUGIN_URL . 'frontend/assets/css/esf-fancybox-controls.css',
+            array('jquery.fancybox.min'),
+            (string) filemtime( $path )
+        );
+    }
+
+}
+/**
+ * Resolve whether a render payload filter short-circuited cache/API fetch.
+ *
+ * Integrator hooks (`esf_*_render_*_payload`) may return either:
+ *   - `array{ $items_key: array, has_local_cache?: bool }`, or
+ *   - a flat list of item arrays/objects.
+ *
+ * @since 6.7.8
+ *
+ * @param mixed  $payload   Filter return value.
+ * @param string $items_key Payload key for shaped arrays (`posts`, `tweets`, `videos`).
+ * @return array{items:array<int,mixed>,short_circuited:bool,has_local_cache:bool}
+ */
+if ( !function_exists( 'esf_resolve_render_payload_override' ) ) {
+    function esf_resolve_render_payload_override(  $payload, $items_key = 'items'  ) {
+        $result = array(
+            'items'           => array(),
+            'short_circuited' => false,
+            'has_local_cache' => false,
+        );
+        if ( !is_array( $payload ) ) {
+            return $result;
+        }
+        $items_key = ( is_string( $items_key ) ? $items_key : 'items' );
+        if ( array_key_exists( $items_key, $payload ) || array_key_exists( 'has_local_cache', $payload ) ) {
+            $result['items'] = ( isset( $payload[$items_key] ) && is_array( $payload[$items_key] ) ? $payload[$items_key] : array() );
+            $result['has_local_cache'] = !empty( $payload['has_local_cache'] );
+            $result['short_circuited'] = !empty( $result['items'] );
+            return $result;
+        }
+        $result['items'] = $payload;
+        $result['short_circuited'] = !empty( $payload );
+        return $result;
+    }
+
+}

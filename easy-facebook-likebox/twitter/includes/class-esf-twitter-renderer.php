@@ -138,9 +138,13 @@ class ESF_Twitter_Renderer {
 	}
 
 	/**
-	 * Get tweets for a feed (from cache or API).
+	 * Get tweets for a feed (from integrator payload, cache, or API).
 	 *
-	 * Public for use by the cron cache-refresh job.
+	 * Pipeline:
+	 *   1. Allow integrators to short-circuit via `esf_twitter_render_tweets_payload`.
+	 *   2. When no override, read from {@see ESF_Twitter_Cache} or fetch via API.
+	 *
+	 * Public for use by the cron cache-refresh job and Load More REST endpoint.
 	 *
 	 * @since 6.7.6
 	 * @param int    $feed_id  Feed ID (used in the cache key).
@@ -149,6 +153,37 @@ class ESF_Twitter_Renderer {
 	 * @return array|WP_Error Normalized tweet array, or WP_Error.
 	 */
 	public function get_tweets_for_feed( $feed_id, $feed_obj, $account ) {
+		$preset = array(
+			'tweets'          => array(),
+			'has_local_cache' => false,
+		);
+
+		/**
+		 * Filter the Twitter tweet payload before cache/API fetch.
+		 *
+		 * Returning tweets short-circuits the cache and API fetch. This is the
+		 * canonical hook for tests and third-party integrations.
+		 *
+		 * Listeners may return either:
+		 *   - `array{tweets:array,has_local_cache?:bool}` (preferred shape), or
+		 *   - a flat `array<int, array>` of normalized tweet items.
+		 *
+		 * @since 6.7.8
+		 *
+		 * @param array  $value    Default empty payload.
+		 * @param int    $feed_id  Feed ID.
+		 * @param object $feed_obj Feed object.
+		 * @param object $account  Owning account row.
+		 */
+		$payload = apply_filters( 'esf_twitter_render_tweets_payload', $preset, (int) $feed_id, $feed_obj, $account );
+
+		if ( function_exists( 'esf_resolve_render_payload_override' ) ) {
+			$override = esf_resolve_render_payload_override( $payload, 'tweets' );
+			if ( $override['short_circuited'] ) {
+				return $override['items'];
+			}
+		}
+
 		$account_id = (int) $feed_obj->account_id;
 		$cache_key  = 'esf_tw_tweets_' . (int) $feed_id . '_' . $account_id;
 		$meta_key   = $cache_key . '_meta';

@@ -476,7 +476,7 @@ class ESF_Instagram_Renderer {
 		 * Filter the Instagram post payload before mapping.
 		 *
 		 * Returning a non-default value short-circuits the API fetch. This is
-		 * the canonical hook for tests and integrators to inject custom posts.
+		 * Hook for extensions to supply posts before the cache or API fetch.
 		 *
 		 * Listeners may return either:
 		 *   - `array{posts:array,has_local_cache:bool}` (preferred shape), or

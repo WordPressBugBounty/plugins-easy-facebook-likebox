@@ -26,6 +26,9 @@ class ESF_Instagram_Feed_Widget extends WP_Widget {
      *
      */
     public function widget( $args, $instance ) {
+        if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
+            return;
+        }
         $ESF_Instagram_Frontend = new ESF_Instagram_Frontend();
         if ( isset( $instance['title'] ) ) {
             $title = apply_filters( 'widget_title', $instance['title'] );
@@ -49,6 +52,51 @@ class ESF_Instagram_Feed_Widget extends WP_Widget {
      *
      */
     public function form( $instance ) {
+        $defaults = array(
+            'title' => '',
+        );
+        $instance = wp_parse_args( (array) $instance, $defaults );
+        $title = ( isset( $instance['title'] ) ? $instance['title'] : '' );
+        /*
+         * Legacy helpers (esf_insta_*) only load with the legacy Instagram module.
+         * On modern Instagram, Customizer still instantiates registered widgets —
+         * bail with a clear message instead of a fatal error.
+         */
+        if ( !function_exists( 'esf_insta_personal_account' ) || !function_exists( 'esf_insta_business_accounts' ) || !function_exists( 'esf_insta_instagram_type' ) ) {
+            ?>
+			<p>
+				<label style="font-weight: bold;"
+					   for="<?php 
+            echo esc_attr( $this->get_field_id( 'title' ) );
+            ?>"><?php 
+            esc_html_e( 'Title:', 'easy-facebook-likebox' );
+            ?></label>
+				<input class="widefat"
+					   id="<?php 
+            echo esc_attr( $this->get_field_id( 'title' ) );
+            ?>"
+					   name="<?php 
+            echo esc_attr( $this->get_field_name( 'title' ) );
+            ?>"
+					   type="text" value="<?php 
+            echo esc_attr( $title );
+            ?>">
+			</p>
+			<p>
+				<?php 
+            esc_html_e( 'This legacy widget is not available with the modern Instagram module. Use an Instagram feed shortcode or block from the Instagram admin instead.', 'easy-facebook-likebox' );
+            ?>
+				<a href="<?php 
+            echo esc_url( admin_url( 'admin.php?page=esf-instagram' ) );
+            ?>">
+					<?php 
+            esc_html_e( 'Open Instagram feeds', 'easy-facebook-likebox' );
+            ?>
+				</a>
+			</p>
+			<?php 
+            return;
+        }
         $mif_skin_default_id = '';
         $Feed_Them_All = new Feed_Them_All();
         /*
