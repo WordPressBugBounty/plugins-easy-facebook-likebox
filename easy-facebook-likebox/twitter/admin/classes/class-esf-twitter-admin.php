@@ -57,13 +57,13 @@ class ESF_Twitter_Admin {
      */
     public function register_menu() {
         $this->page_hook = add_submenu_page(
-            'feed-them-all',
+            ESF_Admin_Menu_Order::PARENT_SLUG,
             __( 'X / Twitter', 'easy-facebook-likebox' ),
             __( 'X / Twitter', 'easy-facebook-likebox' ),
             'manage_options',
             'esf-twitter',
             array($this, 'render_dashboard_page'),
-            4
+            ESF_Admin_Menu_Order::TWITTER
         );
     }
 
@@ -111,6 +111,9 @@ class ESF_Twitter_Admin {
             $asset['version']
         );
         $this->localize_dashboard_script();
+        if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
+            $this->enqueue_dashboard_premium_script__premium_only();
+        }
     }
 
     /**
@@ -157,11 +160,17 @@ class ESF_Twitter_Admin {
         if ( !$has_twitter_plan ) {
             $cache_duration = 604800;
         }
+        $pro_promo = ( function_exists( 'esf_get_pro_promo_offer' ) ? esf_get_pro_promo_offer() : array(
+            'discount' => '17%',
+            'coupon'   => 'ESPF17',
+        ) );
         $data = array(
             'hasTwitterPlan'                => $has_twitter_plan,
             'hasTwitterLoadMorePlan'        => $has_load_more_plan,
             'canAddAnotherConnectedAccount' => $has_twitter_plan || $repo->get_total_connected_account_count() < 1,
-            'upgradeUrl'                    => ( function_exists( 'efl_fs' ) ? esc_url( efl_fs()->get_upgrade_url() ) : '' ),
+            'upgradeUrl'                    => esc_url( esf_get_upgrade_url( 'twitter' ) ),
+            'proDiscount'                   => ( isset( $pro_promo['discount'] ) ? (string) $pro_promo['discount'] : '17%' ),
+            'proCoupon'                     => ( isset( $pro_promo['coupon'] ) ? (string) $pro_promo['coupon'] : 'ESPF17' ),
             'defaultSettings'               => ESF_Twitter_Feed_Repository::get_default_settings(),
             'twitterSettings'               => array(
                 'cache_duration'      => $cache_duration,

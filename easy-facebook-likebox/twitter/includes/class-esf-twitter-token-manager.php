@@ -42,11 +42,10 @@ class ESF_Twitter_Token_Manager {
 	 * @return void
 	 */
 	public function init() {
-		add_action( self::CRON_HOOK, array( $this, 'auto_refresh_expiring_tokens' ) );
-
-		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
-			wp_schedule_event( time(), 'thirty_minutes', self::CRON_HOOK );
-		}
+		esf_cron_attach_thirty_minutes_recurring_job(
+			self::CRON_HOOK,
+			array( $this, 'auto_refresh_expiring_tokens' )
+		);
 	}
 
 	/**
@@ -158,10 +157,7 @@ class ESF_Twitter_Token_Manager {
 	 * @return void
 	 */
 	public function unschedule_cron() {
-		$timestamp = wp_next_scheduled( self::CRON_HOOK );
-		if ( $timestamp ) {
-			wp_unschedule_event( $timestamp, self::CRON_HOOK );
-		}
+		esf_cron_unschedule_recurring_job( self::CRON_HOOK );
 	}
 
 	/**

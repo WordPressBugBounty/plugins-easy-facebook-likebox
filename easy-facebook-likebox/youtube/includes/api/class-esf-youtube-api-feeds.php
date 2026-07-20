@@ -387,6 +387,10 @@ class ESF_YouTube_API_Feeds {
 
 		$feed = $repo->get_by_id( $id );
 
+		if ( function_exists( 'esf_review_request_record_milestone' ) ) {
+			esf_review_request_record_milestone( 'feed_saved', 'youtube' );
+		}
+
 		return rest_ensure_response( self::format_feed_for_response( $feed ), 201 );
 	}
 

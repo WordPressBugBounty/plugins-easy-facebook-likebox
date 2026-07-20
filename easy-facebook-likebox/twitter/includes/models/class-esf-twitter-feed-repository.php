@@ -76,7 +76,15 @@ class ESF_Twitter_Feed_Repository {
 				'load_more_text_color' => '',
 			),
 			'layout' => array(
-				'type' => 'timeline',
+				'type'     => 'timeline',
+				'timeline' => array_merge(
+					function_exists( 'esf_layout_dimension_defaults' )
+						? esf_layout_dimension_defaults()
+						: array(),
+					array(
+						'media_aspect_ratio' => '16:9',
+					)
+				),
 			),
 			'header' => array(
 				'show'               => true,

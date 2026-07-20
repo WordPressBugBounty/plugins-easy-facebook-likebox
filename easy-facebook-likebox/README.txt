@@ -2,16 +2,16 @@
 Contributors: DaNish Ali, maltathemes, sjaved, freemius
 Tags: Instagram feed, Facebook feed, YouTube feed, X feed, Social media feed, Instagram photos, Instagram gallery, Facebook posts, YouTube videos, YouTube gallery, Twitter feed, Twitter timeline
 Requires at least: 3.3
-Tested up to: 6.9
-Stable tag: 6.7.6
+Tested up to: 7.0
+Stable tag: 6.7.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Display Instagram, Facebook, YouTube & X/Twitter feeds with photos, videos, reels, events & galleries. Fast, responsive & easy to set up.
+Display Instagram, Facebook, YouTube & X/Twitter feeds with photos, videos, reels, events & galleries. SEO/AEO friendly, fast & easy to set up.
 
 == Description ==
 
-Easy Social Feed helps you display your latest **Instagram photos and videos, Facebook page posts and events, YouTube videos, and X/Twitter timeline posts** on your website. It is responsive, SEO-friendly, easy to set up and offers live preview customization for appearance and layout.
+Easy Social Feed helps you display your latest **Instagram photos and videos, Facebook page posts and events, YouTube videos, and X/Twitter timeline posts** on your website. It is responsive, **SEO, AEO and GEO friendly**, easy to set up and offers live preview customization for appearance and layout.
 
 
 Connect your account using the latest secure oAuth login and get a shortcode auto-generated. No app review required. Manual access token support is also available for Personal or Business accounts.
@@ -39,6 +39,7 @@ Display photos, videos, reels, stories and gallery posts from your Instagram acc
 - Quick secure oAuth connection (no app review needed)
 - Manual access token support (Personal & Business)
 - Multiple layouts: **Grid, Masonry, Full-width, Half-width, Row, Carousel**
+- **SEO, AEO & GEO friendly** server-rendered feeds with structured data for search and AI discovery
 - Live preview customization of colors, spacing, borders, font sizes, etc 
 - **Load More** button for unlimited posts (Pro) 
 - Header display and Follow button toggle
@@ -99,6 +100,7 @@ You can customize the layout and header, add per‑feed custom CSS, and control 
 
 ### Features
 - Secure Google OAuth connection to connect your YouTube channel
+- **SEO, AEO & GEO friendly** server-rendered video feeds with structured data for search and AI discovery
 - Accounts dashboard to manage connected channels (reconnect/refresh and disconnect)
 - Bulk actions for managing accounts (when multiple accounts are available)
 - Create unlimited feeds and embed each feed using a unique shortcode(Pro)
@@ -121,6 +123,7 @@ Display an X (Twitter) feed on your site with a clean, responsive design and liv
 
 ### Features
 - Secure OAuth connection for your own X/Twitter account
+- **SEO, AEO & GEO friendly** server-rendered timeline with structured data for search and AI discovery
 - Pro: Add public X accounts by username (no app setup on your site)
 - Feed editor with Connect, Customize and Embed panels and live preview
 - Responsive timeline layout with header, stats and tweet card controls
@@ -153,7 +156,7 @@ Embed the Facebook Page Plugin to display page likes, faces, timeline or events 
 - Option to load only active modules (disable unused modules for performance)  
 - Configurable feed refresh intervals
 - AI translation autofill on the Translation tab (Pro) to translate and fill feed labels into your selected language with one click  
-- SEO friendly  
+- **SEO, AEO & GEO optimized** - Server-rendered feeds with semantic markup and JSON-LD structured data (Instagram, YouTube & X/Twitter) for search engines and AI crawlers  
 
 ## TikTok Support (Separate Plugin)
 Looking to embed TikTok videos and galleries on your site? Check out our sister plugin: **[Easy TikTok Feed](https://wordpress.org/plugins/easy-tiktok-feed/)** the easiest way to display TikTok content on WordPress.  
@@ -351,6 +354,14 @@ Use the shortcode generator to select your preferred post types.
 23. Instagram skins/layouts panel
 
 == Changelog ==
+
+= 6.7.7 =
+* Added: Modern Instagram Feed module with a new dashboard (accounts, feeds, live preview), aligned with YouTube and X/Twitter.
+* Added: Modern Easy Social Feed main (hub) page and global Settings page for managing modules and plugin-wide options.
+* Improved: Legacy Instagram module is now deprecated; users can still switch between modern and legacy while migrating.
+* Added: Feed size controls per device for X/Twitter and YouTube feeds.
+* Added: Media aspect ratio option for X/Twitter and YouTube feeds to control how post media is framed.
+* Fixed: Minor issues in the X/Twitter and YouTube modules.
 
 = 6.7.6 =
 * Improved: YouTube channel header banner height increased so the channel artwork looks more prominent in the feed.

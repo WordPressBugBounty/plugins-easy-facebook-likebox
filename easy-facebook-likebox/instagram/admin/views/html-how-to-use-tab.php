@@ -197,7 +197,7 @@ if ( efl_fs()->is_plan( 'instagram_premium', true ) or efl_fs()->is_plan( 'combo
 									</p>
 									<hr/>
 									<a href="<?php 
-    echo esc_url( efl_fs()->get_upgrade_url() );
+    echo esc_url( esf_get_upgrade_url( 'instagram' ) );
     ?>"
 									   class=" btn"><span class="dashicons dashicons-unlock"></span><?php 
     esc_html_e( 'Upgrade now', 'easy-facebook-likebox' );
@@ -351,7 +351,7 @@ if ( efl_fs()->is_plan( 'instagram_premium', true ) or efl_fs()->is_plan( 'combo
 								</p>
 								<hr/>
 								<a href="<?php 
-    echo esc_url( efl_fs()->get_upgrade_url() );
+    echo esc_url( esf_get_upgrade_url( 'instagram' ) );
     ?>"
 								   class=" btn"><span class="dashicons dashicons-unlock"></span><?php 
     esc_html_e( 'Upgrade now', 'easy-facebook-likebox' );
@@ -415,7 +415,7 @@ if ( efl_fs()->is_plan( 'instagram_premium', true ) or efl_fs()->is_plan( 'combo
 									</p>
 									<hr/>
 									<a href="<?php 
-    echo esc_url( efl_fs()->get_upgrade_url() );
+    echo esc_url( esf_get_upgrade_url( 'instagram' ) );
     ?>"
 									   class=" btn"><span class="dashicons dashicons-unlock"></span><?php 
     esc_html_e( 'Upgrade now', 'easy-facebook-likebox' );
@@ -559,7 +559,7 @@ esc_html_e( 'Define cache duration to refresh feeds automatically. Like after mi
 					<span class="mif_detail_head"><?php 
 esc_html_e( 'Load More', 'easy-facebook-likebox' );
 ?> <a href="<?php 
-echo esc_url( efl_fs()->get_upgrade_url() );
+echo esc_url( esf_get_upgrade_url( 'instagram' ) );
 ?>">(<?php 
 esc_html_e( 'pro', 'easy-facebook-likebox' );
 ?>)</a> </span>

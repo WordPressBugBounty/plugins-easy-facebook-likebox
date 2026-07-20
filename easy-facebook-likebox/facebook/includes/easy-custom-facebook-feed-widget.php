@@ -295,7 +295,7 @@ class Easy_Custom_Facebook_Feed_Widget extends WP_Widget {
         echo __( "We're sorry, posts filter is not included in your plan. Please upgrade to premium version to unlock this and all other cool features. ", 'easy-facebook-likebox' );
         ?>
 					<a href="<?php 
-        echo esc_url( efl_fs()->get_upgrade_url() );
+        echo esc_url( esf_get_upgrade_url( 'facebook' ) );
         ?>"> <?php 
         echo __( 'Upgrade to PRO', 'easy-facebook-likebox' );
         ?> </a>
@@ -444,7 +444,7 @@ class Easy_Custom_Facebook_Feed_Widget extends WP_Widget {
             _e( "We're sorry, load more feature is not included in your plan. Please upgrade to premium version to unlock this and all other cool features.", 'easy-facebook-likebox' );
             ?>
 					<a href="<?php 
-            echo esc_url( efl_fs()->get_upgrade_url() );
+            echo esc_url( esf_get_upgrade_url( 'facebook' ) );
             ?>"><?php 
             _e( 'Upgrade to PRO', 'easy-facebook-likebox' );
             ?></a>
@@ -467,7 +467,7 @@ class Easy_Custom_Facebook_Feed_Widget extends WP_Widget {
             _e( "We're sorry, live stream feature is not included in your plan. Please upgrade to premium version to unlock this and all other cool features.", 'easy-facebook-likebox' );
             ?>
 				<a href="<?php 
-            echo esc_url( efl_fs()->get_upgrade_url() );
+            echo esc_url( esf_get_upgrade_url( 'facebook' ) );
             ?>"><?php 
             _e( 'Upgrade to PRO', 'easy-facebook-likebox' );
             ?></a>

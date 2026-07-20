@@ -4,6 +4,9 @@
  *
  * Returns rendered HTML (and asset URLs) for dashboard live preview.
  *
+ * Settings overrides are accepted in the POST body (not the query string) so
+ * large feed configs do not hit nginx/Apache "414 Request-URI Too Large".
+ *
  * @package Easy_Social_Feed
  * @subpackage YouTube/API
  * @since 6.7.5
@@ -28,37 +31,74 @@ class ESF_YouTube_API_Preview {
 	 * @return void
 	 */
 	public static function register_routes() {
+		$args = array(
+			'id'       => array(
+				'description'       => __( 'Feed ID.', 'easy-facebook-likebox' ),
+				'type'              => 'integer',
+				'required'          => true,
+				'validate_callback' => function ( $param ) {
+					return is_numeric( $param ) && (int) $param > 0;
+				},
+			),
+			'settings' => array(
+				'description'       => __( 'Optional settings override for live preview (prefer POST body).', 'easy-facebook-likebox' ),
+				'required'          => false,
+				'validate_callback' => array( __CLASS__, 'validate_settings_param' ),
+				'sanitize_callback' => array( __CLASS__, 'sanitize_settings_param' ),
+			),
+		);
+
 		register_rest_route(
 			'esf/v1',
 			'/youtube/feeds/(?P<id>[\d]+)/preview',
 			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( __CLASS__, 'get_preview' ),
-				'permission_callback' => array( __CLASS__, 'permissions_check' ),
-				'args'                => array(
-					'id'       => array(
-						'description'       => __( 'Feed ID.', 'easy-facebook-likebox' ),
-						'type'              => 'integer',
-						'required'          => true,
-						'validate_callback' => function ( $param ) {
-							return is_numeric( $param ) && (int) $param > 0;
-						},
-					),
-					'settings' => array(
-						'description'       => __( 'Optional settings override (JSON string) for live preview.', 'easy-facebook-likebox' ),
-						'type'              => 'string',
-						'required'          => false,
-						'sanitize_callback' => function ( $value ) {
-							if ( ! is_string( $value ) || '' === trim( $value ) ) {
-								return array();
-							}
-							$decoded = json_decode( $value, true );
-							return is_array( $decoded ) ? $decoded : array();
-						},
-					),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( __CLASS__, 'get_preview' ),
+					'permission_callback' => array( __CLASS__, 'permissions_check' ),
+					'args'                => $args,
+				),
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( __CLASS__, 'get_preview' ),
+					'permission_callback' => array( __CLASS__, 'permissions_check' ),
+					'args'                => $args,
 				),
 			)
 		);
+	}
+
+	/**
+	 * Allow object (POST JSON) or legacy JSON string (GET query).
+	 *
+	 * @param mixed           $value   Raw param.
+	 * @param WP_REST_Request $request Request.
+	 * @param string          $param   Param name.
+	 * @return bool
+	 */
+	public static function validate_settings_param( $value, $request = null, $param = '' ) {
+		unset( $request, $param );
+		return null === $value || is_array( $value ) || is_string( $value );
+	}
+
+	/**
+	 * Normalize settings override to an array.
+	 *
+	 * @param mixed           $value   Raw param.
+	 * @param WP_REST_Request $request Request.
+	 * @param string          $param   Param name.
+	 * @return array
+	 */
+	public static function sanitize_settings_param( $value, $request = null, $param = '' ) {
+		unset( $request, $param );
+		if ( is_array( $value ) ) {
+			return $value;
+		}
+		if ( ! is_string( $value ) || '' === trim( $value ) ) {
+			return array();
+		}
+		$decoded = json_decode( $value, true );
+		return is_array( $decoded ) ? $decoded : array();
 	}
 
 	/**

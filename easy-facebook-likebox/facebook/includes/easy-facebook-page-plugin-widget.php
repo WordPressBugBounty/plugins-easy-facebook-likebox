@@ -115,7 +115,7 @@ class Easy_Facebook_Page_Plugin_Widget extends WP_Widget {
 			<p>
 			<?php 
         echo __( "We're sorry, Tabs feature is not included in your plan. Please upgrade to premium version to unlock this and all other cool features. ", 'easy-facebook-likebox' );
-        echo '<a href="' . efl_fs()->get_upgrade_url() . '">' . __( 'Upgrade to PRO', 'easy-facebook-likebox' ) . '</a></p>';
+        echo '<a href="' . esc_url( esf_get_upgrade_url( 'facebook' ) ) . '">' . __( 'Upgrade to PRO', 'easy-facebook-likebox' ) . '</a></p>';
         ?>
 
 		<p>

@@ -36,19 +36,125 @@ class ESF_YouTube_API_Service {
 	 *
 	 * Uses the feed language selected on ESF Settings (General tab) so that
 	 * channel/video metadata is returned in that language when supported.
+	 * Returns an empty string when the locale has no YouTube-supported `hl`
+	 * value — callers must omit the parameter in that case.
 	 *
 	 * @since 6.7.5
-	 * @return string Two-letter language code for YouTube hl parameter, or empty string.
+	 * @return string YouTube `hl` parameter value, or empty string.
 	 */
 	public static function get_hl_for_request() {
 		if ( ! function_exists( 'esf_get_effective_api_locale' ) ) {
 			return '';
 		}
+
 		$locale = esf_get_effective_api_locale();
-		if ( '' === $locale || strlen( $locale ) < 2 ) {
+		if ( ! is_string( $locale ) || '' === $locale ) {
 			return '';
 		}
-		return strtolower( substr( $locale, 0, 2 ) );
+
+		$locale = str_replace( '-', '_', $locale );
+
+		/**
+		 * Map WordPress / Facebook-style locales to YouTube Data API `hl` codes.
+		 * Only values YouTube accepts should appear here; unknown locales omit `hl`.
+		 *
+		 * @see https://developers.google.com/youtube/v3/docs/i18nLanguages/list
+		 */
+		$map = array(
+			'af_ZA' => 'af',
+			'ar_AR' => 'ar',
+			'az_AZ' => 'az',
+			'be_BY' => 'be',
+			'bg_BG' => 'bg',
+			'bn_IN' => 'bn',
+			'bs_BA' => 'bs',
+			'ca_ES' => 'ca',
+			'cs_CZ' => 'cs',
+			'da_DK' => 'da',
+			'de_DE' => 'de',
+			'el_GR' => 'el',
+			'en_US' => 'en',
+			'en_GB' => 'en-GB',
+			'es_ES' => 'es',
+			'es_LA' => 'es-419',
+			'et_EE' => 'et',
+			'eu_ES' => 'eu',
+			'fa_IR' => 'fa',
+			'fi_FI' => 'fi',
+			'fr_FR' => 'fr',
+			'fr_CA' => 'fr-CA',
+			'gl_ES' => 'gl',
+			'hi_IN' => 'hi',
+			'hr_HR' => 'hr',
+			'hu_HU' => 'hu',
+			'hy_AM' => 'hy',
+			'id_ID' => 'id',
+			'is_IS' => 'is',
+			'it_IT' => 'it',
+			'ja_JP' => 'ja',
+			'ka_GE' => 'ka',
+			'km_KH' => 'km',
+			'ko_KR' => 'ko',
+			'lt_LT' => 'lt',
+			'lv_LV' => 'lv',
+			'mk_MK' => 'mk',
+			'ml_IN' => 'ml',
+			'ms_MY' => 'ms',
+			'nb_NO' => 'no',
+			'ne_NP' => 'ne',
+			'nl_NL' => 'nl',
+			'nn_NO' => 'no',
+			'pa_IN' => 'pa',
+			'pl_PL' => 'pl',
+			'pt_PT' => 'pt-PT',
+			'pt_BR' => 'pt',
+			'ro_RO' => 'ro',
+			'ru_RU' => 'ru',
+			'sk_SK' => 'sk',
+			'sl_SI' => 'sl',
+			'sq_AL' => 'sq',
+			'sr_RS' => 'sr',
+			'sv_SE' => 'sv',
+			'sw_KE' => 'sw',
+			'ta_IN' => 'ta',
+			'te_IN' => 'te',
+			'th_TH' => 'th',
+			'tl_PH' => 'fil',
+			'tr_TR' => 'tr',
+			'uk_UA' => 'uk',
+			'ur_PK' => 'ur',
+			'vi_VN' => 'vi',
+			'zh_CN' => 'zh-CN',
+			'zh_HK' => 'zh-HK',
+			'zh_TW' => 'zh-TW',
+		);
+
+		/**
+		 * Filter the YouTube `hl` locale map.
+		 *
+		 * @since 6.9.1
+		 * @param array<string, string> $map    Locale => YouTube hl.
+		 * @param string                $locale Effective ESF API locale.
+		 */
+		$map = apply_filters( 'esf_youtube_hl_locale_map', $map, $locale );
+
+		if ( isset( $map[ $locale ] ) ) {
+			return (string) $map[ $locale ];
+		}
+
+		// Fallback: two-letter language only when it is a known YouTube code.
+		$lang2     = strtolower( substr( $locale, 0, 2 ) );
+		$supported = array_values( array_unique( array_map( 'strval', $map ) ) );
+		$supported = array_merge(
+			$supported,
+			array( 'en', 'es', 'fr', 'de', 'it', 'ja', 'ko', 'pt', 'ru', 'ar', 'hi', 'id', 'tr', 'vi' )
+		);
+
+		if ( in_array( $lang2, $supported, true ) ) {
+			return $lang2;
+		}
+
+		return '';
 	}
 
 	/**
@@ -189,23 +295,17 @@ class ESF_YouTube_API_Service {
 			return new WP_Error( 'invalid_refresh_token', __( 'Refresh token is required.', 'easy-facebook-likebox' ) );
 		}
 
-		// External OAuth server endpoint for token refresh.
-		$app_id = ESF_YouTube_API_OAuth::get_app_id();
-
-		$refresh_url = sprintf(
-			'https://easysocialfeed.com/apps/youtube/%s/refresh.php',
-			rawurlencode( trim( (string) $app_id ) )
-		);
-
 		/**
 		 * Filter the full URL used for refreshing YouTube OAuth tokens.
 		 *
 		 * @since 6.7.5
 		 *
 		 * @param string $refresh_url Refresh endpoint URL.
-		 * @param string $app_id      App ID used in the URL.
 		 */
-		$refresh_url = apply_filters( 'esf_youtube_oauth_refresh_url', $refresh_url, $app_id );
+		$refresh_url = apply_filters(
+			'esf_youtube_oauth_refresh_url',
+			'https://easysocialfeed.com/apps/youtube/refresh.php'
+		);
 
 		// Make request to external server to refresh the token.
 		$response = wp_remote_post(

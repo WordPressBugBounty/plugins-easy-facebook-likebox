@@ -51,6 +51,11 @@ class ESF_Twitter_Main {
     private function init_hooks() {
         add_action( 'init', array($this, 'load_dependencies') );
         add_action( 'init', array($this, 'maybe_initialize_components') );
+        /*
+         * Token cron wiring runs after Feed_Them_All::includes() on init (priority 10)
+         * so shared helpers are always available (see Instagram Main).
+         */
+        add_action( 'init', array($this, 'maybe_init_token_manager'), 11 );
         add_action( 'rest_api_init', array($this, 'register_rest_routes') );
         add_filter( 'cron_schedules', array($this, 'add_cron_schedules') );
         add_action( 'admin_init', array($this, 'maybe_handle_oauth_callback') );
@@ -98,17 +103,31 @@ class ESF_Twitter_Main {
      * @return void
      */
     public function maybe_initialize_components() {
-        ESF_Twitter_Layout_Registry::register( 'timeline', 'ESF_Twitter_Layout_Timeline' );
-        ESF_Twitter_Token_Manager::get_instance()->init();
-        $this->maybe_schedule_feed_cache_refresh();
-        if ( !ESF_Twitter_DB_Installer::tables_exist() ) {
-            ESF_Twitter_DB_Installer::create_tables();
+        if ( function_exists( 'esf_is_twitter_active' ) && !esf_is_twitter_active() ) {
+            return;
         }
+        ESF_Twitter_Layout_Registry::register( 'timeline', 'ESF_Twitter_Layout_Timeline' );
+        $this->maybe_schedule_feed_cache_refresh();
         $this->maybe_migrate_db_schema();
         if ( is_admin() ) {
             ESF_Twitter_Admin::get_instance();
         } else {
             ESF_Twitter_Frontend::get_instance();
+        }
+    }
+
+    /**
+     * Start WP-Cron handler for Twitter token refresh.
+     *
+     * @since 6.9.0
+     * @return void
+     */
+    public function maybe_init_token_manager() {
+        if ( function_exists( 'esf_is_twitter_active' ) && !esf_is_twitter_active() ) {
+            return;
+        }
+        if ( class_exists( 'ESF_Twitter_Token_Manager' ) ) {
+            ESF_Twitter_Token_Manager::get_instance()->init();
         }
     }
 
@@ -144,12 +163,7 @@ class ESF_Twitter_Main {
      * @return array Modified schedules.
      */
     public function add_cron_schedules( $schedules ) {
-        if ( !isset( $schedules[self::CRON_THIRTY_MIN] ) ) {
-            $schedules[self::CRON_THIRTY_MIN] = array(
-                'interval' => 1800,
-                'display'  => __( 'Every 30 Minutes', 'easy-facebook-likebox' ),
-            );
-        }
+        $schedules = esf_cron_schedules_add_thirty_minutes( $schedules );
         $cache_schedules = array(
             'esf_twitter_12h' => array(
                 'interval' => 43200,
@@ -318,7 +332,7 @@ class ESF_Twitter_Main {
      */
     private function maybe_migrate_db_schema() {
         $installed_version = (string) get_option( 'esf_twitter_db_schema_version', '1' );
-        if ( self::DB_SCHEMA_VERSION === $installed_version ) {
+        if ( ESF_Twitter_DB_Installer::tables_exist() && self::DB_SCHEMA_VERSION === $installed_version ) {
             return;
         }
         ESF_Twitter_DB_Installer::create_tables();

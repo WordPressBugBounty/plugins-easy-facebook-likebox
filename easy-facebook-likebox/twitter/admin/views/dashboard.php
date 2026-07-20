@@ -14,7 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<div class="wrap esf-twitter-wrap">
+<div class="wrap esf-dsh-wrap">
+	<?php // Anchor for WP core notice relocation (common.js). Without this, notices insert after the first React h2 mid-page. ?>
+	<hr class="wp-header-end" />
 	<div id="esf-twitter-dashboard"></div>
-</div>
 </div>

@@ -408,12 +408,13 @@ if ( ! function_exists( 'esf_insta_readable_time' ) ) {
 }
 if ( ! function_exists( 'esf_insta_convert_to_hashtag' ) ) {
 	function esf_insta_convert_to_hashtag( $content ) {
+		if ( function_exists( 'esf_hashtags_to_links' ) ) {
+			return esf_hashtags_to_links( $content, 'instagram' );
+		}
 
 		$regex = '/#+([a-zA-Z0-9_]+)/';
 
-		$content = preg_replace( $regex, '<a target="_blank" href="https://www.instagram.com/explore/tags/$1">$0</a>', $content );
-
-		return ( $content );
+		return preg_replace( $regex, '<a target="_blank" href="https://www.instagram.com/explore/tags/$1">$0</a>', $content );
 	}
 }
 

@@ -258,14 +258,19 @@ class ESF_Twitter_API_Feeds {
 
 		$name = sanitize_text_field( (string) $request->get_param( 'name' ) );
 		if ( '' === $name ) {
-			$name = self::build_auto_feed_name( $account );
+			$name = ESF_Feed_Name::build_auto_feed_name_for_source(
+				$account,
+				sanitize_text_field( (string) $request->get_param( 'feed_type' ) ),
+				self::resolve_source_id_for_create( $request->get_param( 'source_id' ), $account ),
+				self::get_feed_name_config()
+			);
 		}
 
 		$settings = $request->get_param( 'settings' );
 		if ( ! is_array( $settings ) ) {
 			$settings = array();
 		}
-		$settings = self::set_name_meta( $settings, 'auto', $account_id );
+		$settings = ESF_Feed_Name::set_name_meta( $settings, 'auto', $account_id );
 
 		$data = array(
 			'name'       => $name,
@@ -284,6 +289,10 @@ class ESF_Twitter_API_Feeds {
 		}
 
 		$feed = $repo->get_by_id( $feed_id );
+
+		if ( function_exists( 'esf_review_request_record_milestone' ) ) {
+			esf_review_request_record_milestone( 'feed_saved', 'twitter' );
+		}
 
 		return new WP_REST_Response( self::format_feed_for_response( $feed ), 201 );
 	}
@@ -304,58 +313,93 @@ class ESF_Twitter_API_Feeds {
 			return new WP_Error( 'not_found', __( 'Feed not found.', 'easy-facebook-likebox' ), array( 'status' => 404 ) );
 		}
 
-		$data = array();
-		$current_settings = self::decode_feed_settings( $feed );
-		$next_settings    = $current_settings;
-		$name_mode        = self::get_name_mode( $current_settings );
-		$current_name     = isset( $feed->name ) ? sanitize_text_field( (string) $feed->name ) : '';
-		$current_account  = isset( $feed->account_id ) ? (int) $feed->account_id : 0;
-		$next_account     = $current_account;
-		$account_changed  = false;
-		$name_updated     = false;
+		$data                = array();
+		$current_settings    = self::decode_feed_settings( $feed );
+		$next_settings       = $current_settings;
+		$name_mode           = ESF_Feed_Name::get_name_mode( $current_settings );
+		$current_name        = isset( $feed->name ) ? sanitize_text_field( (string) $feed->name ) : '';
+		$current_account     = isset( $feed->account_id ) ? (int) $feed->account_id : 0;
+		$current_feed_type   = isset( $feed->feed_type ) ? (string) $feed->feed_type : 'user_timeline';
+		$current_source_id   = isset( $feed->source_id ) ? (string) $feed->source_id : '';
+		$next_account        = $current_account;
+		$next_feed_type      = $current_feed_type;
+		$next_source_id      = $current_source_id;
+		$account_changed     = false;
+		$feed_type_changed   = false;
+		$source_id_changed   = false;
+		$name_updated        = false;
 
 		foreach ( array( 'name', 'account_id', 'feed_type', 'source_id', 'status', 'settings' ) as $key ) {
-			if ( null !== $request->get_param( $key ) ) {
-				if ( 'settings' === $key ) {
-					$incoming_settings = $request->get_param( $key );
-					if ( is_array( $incoming_settings ) ) {
-						$next_settings = $incoming_settings;
-						$data[ $key ]  = $incoming_settings;
-						$name_mode     = self::get_name_mode( $incoming_settings );
-					}
-				} elseif ( 'account_id' === $key ) {
-					$account_id   = (int) $request->get_param( $key );
-					$account_repo = ESF_Twitter_Account_Repository::get_instance();
-					if ( $account_id > 0 && ! $account_repo->get_by_id( $account_id ) ) {
-						return new WP_Error( 'invalid_account', __( 'Selected account not found.', 'easy-facebook-likebox' ), array( 'status' => 400 ) );
-					}
-					$data[ $key ]   = $account_id;
-					$next_account   = $account_id;
-					$account_changed = ( $current_account !== $next_account );
-				} else {
-					$value = sanitize_text_field( (string) $request->get_param( $key ) );
-					$data[ $key ] = $value;
-					if ( 'name' === $key ) {
-						$name_updated = ( $value !== $current_name );
-					}
+			if ( null === $request->get_param( $key ) ) {
+				continue;
+			}
+
+			if ( 'settings' === $key ) {
+				$incoming_settings = $request->get_param( $key );
+				if ( is_array( $incoming_settings ) ) {
+					$next_settings = $incoming_settings;
+					$data[ $key ]  = $incoming_settings;
+					$name_mode     = ESF_Feed_Name::get_name_mode( $incoming_settings );
 				}
+				continue;
+			}
+
+			if ( 'account_id' === $key ) {
+				$account_id   = (int) $request->get_param( $key );
+				$account_repo = ESF_Twitter_Account_Repository::get_instance();
+				if ( $account_id > 0 && ! $account_repo->get_by_id( $account_id ) ) {
+					return new WP_Error( 'invalid_account', __( 'Selected account not found.', 'easy-facebook-likebox' ), array( 'status' => 400 ) );
+				}
+				$data[ $key ]      = $account_id;
+				$next_account      = $account_id;
+				$account_changed   = ( $current_account !== $next_account );
+				continue;
+			}
+
+			$value = sanitize_text_field( (string) $request->get_param( $key ) );
+			if ( 'feed_type' === $key ) {
+				$next_feed_type    = $value;
+				$feed_type_changed = ( $current_feed_type !== $value );
+			}
+			if ( 'source_id' === $key ) {
+				$next_source_id    = $value;
+				$source_id_changed = ( $current_source_id !== $value );
+			}
+			$data[ $key ] = $value;
+			if ( 'name' === $key ) {
+				$name_updated = ( $value !== $current_name );
 			}
 		}
 
-		if ( $name_updated ) {
-			$next_settings    = self::set_name_meta( $next_settings, 'manual', $next_account );
+		$source_context_changed = $account_changed || $feed_type_changed || $source_id_changed;
+
+		if ( ESF_Feed_Name::should_switch_to_manual_mode( $name_updated, $name_mode, $source_context_changed ) ) {
+			$next_settings    = ESF_Feed_Name::set_name_meta( $next_settings, 'manual', $next_account );
 			$data['settings'] = $next_settings;
 			$name_mode        = 'manual';
 		}
 
-		if ( $account_changed && 'auto' === $name_mode ) {
-			$account_repo = ESF_Twitter_Account_Repository::get_instance();
-			$account      = $account_repo->get_by_id( $next_account );
-			if ( $account ) {
-				$data['name'] = self::build_auto_feed_name( $account );
-			}
-			$data['settings'] = self::set_name_meta( $next_settings, 'auto', $next_account );
+		$account_repo = ESF_Twitter_Account_Repository::get_instance();
+		$account      = $account_repo->get_by_id( $next_account );
+		if ( ! $account ) {
+			return new WP_Error( 'invalid_account', __( 'Selected account not found.', 'easy-facebook-likebox' ), array( 'status' => 400 ) );
 		}
+
+		ESF_Feed_Name::apply_auto_name_on_source_change(
+			$data,
+			$next_settings,
+			$name_mode,
+			$account,
+			$next_feed_type,
+			$next_source_id,
+			$next_account,
+			array_merge(
+				self::get_feed_name_config(),
+				array(
+					'source_context_changed' => $source_context_changed,
+				)
+			)
+		);
 
 		$updated = $repo->update( $feed_id, $data );
 		if ( ! $updated ) {
@@ -558,27 +602,15 @@ class ESF_Twitter_API_Feeds {
 	}
 
 	/**
-	 * Build the default feed name from account username.
+	 * Module-specific feed naming config for shared helpers.
 	 *
-	 * @since 6.7.6
+	 * @since 6.9.0
 	 *
-	 * @param object $account Account row selected for the feed.
-	 * @return string
+	 * @return array<string,mixed>
 	 */
-	private static function build_auto_feed_name( $account ) {
-		$username = '';
-		if ( is_object( $account ) && isset( $account->username ) ) {
-			$username = ltrim( sanitize_text_field( (string) $account->username ), '@' );
-		}
-
-		if ( '' === $username ) {
-			return __( 'Twitter Feed', 'easy-facebook-likebox' );
-		}
-
-		return sprintf(
-			/* translators: %s: account username */
-			__( '@%s Feed', 'easy-facebook-likebox' ),
-			$username
+	private static function get_feed_name_config() {
+		return array(
+			'account_fallback' => __( 'Twitter Feed', 'easy-facebook-likebox' ),
 		);
 	}
 
@@ -601,43 +633,5 @@ class ESF_Twitter_API_Feeds {
 		}
 
 		return $decoded;
-	}
-
-	/**
-	 * Read name mode from settings meta.
-	 *
-	 * @since 6.7.6
-	 *
-	 * @param array $settings Feed settings array.
-	 * @return string
-	 */
-	private static function get_name_mode( $settings ) {
-		$mode = isset( $settings['meta']['name_mode'] ) ? sanitize_text_field( (string) $settings['meta']['name_mode'] ) : 'auto';
-		return in_array( $mode, array( 'auto', 'manual' ), true ) ? $mode : 'auto';
-	}
-
-	/**
-	 * Write name mode metadata into settings.
-	 *
-	 * @since 6.7.6
-	 *
-	 * @param array  $settings   Feed settings array.
-	 * @param string $mode       Name mode (auto|manual).
-	 * @param int    $account_id Related account ID.
-	 * @return array
-	 */
-	private static function set_name_meta( $settings, $mode, $account_id ) {
-		if ( ! is_array( $settings ) ) {
-			$settings = array();
-		}
-
-		if ( ! isset( $settings['meta'] ) || ! is_array( $settings['meta'] ) ) {
-			$settings['meta'] = array();
-		}
-
-		$settings['meta']['name_mode']            = in_array( $mode, array( 'auto', 'manual' ), true ) ? $mode : 'auto';
-		$settings['meta']['auto_name_account_id'] = max( 0, (int) $account_id );
-
-		return $settings;
 	}
 }

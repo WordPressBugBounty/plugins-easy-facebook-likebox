@@ -376,7 +376,7 @@ class ESF_Instagram_Feed_Widget extends WP_Widget {
             _e( "We're sorry, Account Stories not included in your plan. Please upgrade to premium version to unlock this and all other cool features.", 'easy-facebook-likebox' );
             ?>
 					<a href="<?php 
-            echo esc_url( efl_fs()->get_upgrade_url() );
+            echo esc_url( esf_get_upgrade_url( 'instagram' ) );
             ?>"><?php 
             _e( 'Upgrade to PRO', 'easy-facebook-likebox' );
             ?></a>
@@ -398,7 +398,7 @@ class ESF_Instagram_Feed_Widget extends WP_Widget {
             _e( "We're sorry, load more feature is not included in your plan. Please upgrade to premium version to unlock this and all other cool features.", 'easy-facebook-likebox' );
             ?>
 					<a href="<?php 
-            echo esc_url( efl_fs()->get_upgrade_url() );
+            echo esc_url( esf_get_upgrade_url( 'instagram' ) );
             ?>"><?php 
             _e( 'Upgrade to PRO', 'easy-facebook-likebox' );
             ?></a>

@@ -123,7 +123,7 @@ class ESF_Twitter_API_Accounts {
     /**
      * GET /esf/v1/twitter/accounts
      *
-     * Returns account data for the current admin user.
+     * Returns all X accounts for the site (users who can manage the module).
      * Never exposes access_token or refresh_token.
      *
      * @since 6.7.6
@@ -132,10 +132,6 @@ class ESF_Twitter_API_Accounts {
      */
     public static function get_accounts( $request ) {
         global $wpdb;
-        $user_id = get_current_user_id();
-        if ( !$user_id ) {
-            return rest_ensure_response( array() );
-        }
         $table = $wpdb->prefix . 'esf_twitter_accounts';
         $table_escaped = esc_sql( $table );
         $available_fields = array(
@@ -180,11 +176,10 @@ class ESF_Twitter_API_Accounts {
             array_unshift( $fields, 'id' );
         }
         $select = implode( ', ', array_map( 'esc_sql', $fields ) );
-        $uid = (int) $user_id;
         $rows = $wpdb->get_results( 
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            "SELECT {$select} FROM `{$table_escaped}` WHERE user_id = {$uid} ORDER BY created_at DESC",
+            "SELECT {$select} FROM `{$table_escaped}` ORDER BY created_at DESC",
             ARRAY_A
          );
         if ( !$rows ) {
@@ -266,13 +261,14 @@ class ESF_Twitter_API_Accounts {
             ));
         }
         if ( empty( $account->refresh_token ) ) {
-            return new WP_Error('no_refresh_token', __( 'No refresh token available for this account.', 'easy-facebook-likebox' ), array(
+            return ( function_exists( 'esf_oauth_reconnect_required_error' ) ? esf_oauth_reconnect_required_error() : new WP_Error('no_refresh_token', __( 'No refresh token available for this account. Please reconnect.', 'easy-facebook-likebox' ), array(
                 'status' => 400,
-            ));
+            )) );
         }
         $token_data = $api_service->refresh_access_token( (string) $account->refresh_token );
         if ( is_wp_error( $token_data ) ) {
-            return $token_data;
+            $repository->update_status( $account_id, 'expired' );
+            return ( function_exists( 'esf_oauth_map_refresh_failure' ) ? esf_oauth_map_refresh_failure( $token_data ) : $token_data );
         }
         $updated = $repository->update_tokens(
             $account_id,

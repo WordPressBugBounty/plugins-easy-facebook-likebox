@@ -102,7 +102,7 @@ class ESF_YouTube_API_Accounts {
 	}
 
 	/**
-	 * Get YouTube accounts for current user.
+	 * Get all YouTube accounts for the site (users who can manage the module).
 	 *
 	 * Returns account data including channel name, thumbnail, banner (Pro), and statistics.
 	 * Supports field filtering via 'fields' query parameter.
@@ -115,12 +115,6 @@ class ESF_YouTube_API_Accounts {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function get_accounts( $request ) {
-		$user_id = get_current_user_id();
-
-		if ( ! $user_id ) {
-			return rest_ensure_response( array() );
-		}
-
 		global $wpdb;
 
 		$table         = $wpdb->prefix . 'esf_youtube_accounts';
@@ -177,12 +171,9 @@ class ESF_YouTube_API_Accounts {
 		// Build SELECT query dynamically.
 		$select_fields = implode( ', ', array_map( 'esc_sql', $fields ) );
 
-		// Fetch channel data.
-		$user_id = (int) $user_id;
-
 		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and field list are whitelisted; user ID is cast to int.
-			'SELECT ' . $select_fields . ' FROM `' . $table_escaped . '` WHERE user_id = ' . $user_id . ' ORDER BY created_at DESC',
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and field list are whitelisted.
+			'SELECT ' . $select_fields . ' FROM `' . $table_escaped . '` ORDER BY created_at DESC',
 			ARRAY_A
 		);
 

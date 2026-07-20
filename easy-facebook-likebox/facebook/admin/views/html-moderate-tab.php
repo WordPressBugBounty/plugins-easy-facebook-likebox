@@ -108,10 +108,10 @@ if ( ! isset( $banner_info ) || ! is_array( $banner_info ) ) {
 						$banner_info = $ESF_Admin->esf_upgrade_banner();
 						?>
 						<div class="efbl-moderate-pro">
-							<a href="<?php echo efl_fs()->get_upgrade_url(); ?>&trial=true"
+							<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 							   class="trial-btn"><?php esc_html_e( 'Free 7-day PRO trial', 'easy-facebook-likebox' ); ?>
 							</a>
-							<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+							<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 							   class=" btn pro-btn"><span class="dashicons dashicons-unlock right"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
 							</a>
 							<p><?php esc_html_e( 'Upgrade today and get ' . $banner_info['discount'] . ' discount! On the checkout click on "Have a promotional code?" and enter', 'easy-facebook-likebox' ); ?>

@@ -110,7 +110,6 @@ class ESF_YouTube_API_Refresh extends WP_REST_Controller {
 	 */
 	public function refresh_token( $request ) {
 		$account_id = (int) $request['id'];
-		$user_id    = get_current_user_id();
 
 		// Get account from database.
 		$repository = ESF_YouTube_Account_Repository::get_instance();
@@ -124,22 +123,15 @@ class ESF_YouTube_API_Refresh extends WP_REST_Controller {
 			);
 		}
 
-		// Verify account belongs to current user.
-		if ( (int) $account->user_id !== $user_id ) {
-			return new WP_Error(
-				'forbidden',
-				__( 'You do not have permission to refresh this account.', 'easy-facebook-likebox' ),
-				array( 'status' => 403 )
-			);
-		}
-
 		// Check if refresh token exists.
 		if ( empty( $account->refresh_token ) ) {
-			return new WP_Error(
-				'no_refresh_token',
-				__( 'No refresh token available. Please reconnect your account.', 'easy-facebook-likebox' ),
-				array( 'status' => 400 )
-			);
+			return function_exists( 'esf_oauth_reconnect_required_error' )
+				? esf_oauth_reconnect_required_error()
+				: new WP_Error(
+					'no_refresh_token',
+					__( 'No refresh token available. Please reconnect your account.', 'easy-facebook-likebox' ),
+					array( 'status' => 400 )
+				);
 		}
 
 		// Call API service to refresh token.
@@ -150,7 +142,9 @@ class ESF_YouTube_API_Refresh extends WP_REST_Controller {
 			// Mark account as expired if refresh failed.
 			$repository->update_status( $account_id, 'expired' );
 
-			return $token_data;
+			return function_exists( 'esf_oauth_map_refresh_failure' )
+				? esf_oauth_map_refresh_failure( $token_data )
+				: $token_data;
 		}
 
 		// Update account with new token data.

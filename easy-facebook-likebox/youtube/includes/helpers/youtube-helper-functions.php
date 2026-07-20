@@ -158,27 +158,6 @@ function esf_youtube_flag_lightbox_script() {
 }
 
 /**
- * Convert hashtags in text to YouTube search links.
- *
- * Turns #tag into clickable links to YouTube search results.
- * Mirrors the behavior of Facebook/Instagram caption hashtag conversion.
- *
- * @since 6.7.5
- * @param string $text Plain or HTML text containing #hashtags.
- * @return string Text with #hashtags wrapped in anchor tags to YouTube search.
- */
-function esf_youtube_hashtags_to_links(  $text  ) {
-    if ( !is_string( $text ) || '' === trim( $text ) ) {
-        return $text;
-    }
-    return preg_replace_callback( '/(^|\\s)(#[\\w]+)/', function ( $m ) {
-        $hash = $m[2];
-        $url = 'https://www.youtube.com/results?search_query=' . rawurlencode( $hash );
-        return $m[1] . '<a href="' . esc_url( $url ) . '" class="esf-yt-hash" target="_blank" rel="noopener noreferrer">' . esc_html( $hash ) . '</a>';
-    }, $text );
-}
-
-/**
  * Format date for display.
  *
  * Converts database datetime to WordPress formatted date.

@@ -40,8 +40,10 @@ class ESF_Twitter_Layout_Timeline extends ESF_Twitter_Layout_Base {
 		$header_html = $this->render_header();
 		$header_html = apply_filters( 'esf_twitter_layout_timeline_header_html', $header_html, $this->feed, $this->account, $this->tweets, $this );
 
+		$shell_attrs = $this->get_timeline_shell_attributes();
+
 		if ( empty( $this->tweets ) ) {
-			$html = '<div class="esf-tw-feed__timeline">'
+			$html = '<div class="' . esc_attr( $shell_attrs['class'] ) . '"' . $shell_attrs['style_attr'] . '>'
 				. $header_html
 				. $this->render_empty_state()
 				. '</div>';
@@ -70,7 +72,7 @@ class ESF_Twitter_Layout_Timeline extends ESF_Twitter_Layout_Base {
 
 		do_action( 'esf_twitter_layout_timeline_before_cards', $tweets, $this->feed, $this->account, $this );
 
-		$html = '<div class="esf-tw-feed__timeline">'
+		$html = '<div class="' . esc_attr( $shell_attrs['class'] ) . '"' . $shell_attrs['style_attr'] . '>'
 			. $header_html
 			. '<div class="esf-tw-feed__timeline-list">'
 			. $cards_html
@@ -81,6 +83,56 @@ class ESF_Twitter_Layout_Timeline extends ESF_Twitter_Layout_Base {
 		do_action( 'esf_twitter_layout_timeline_after_cards', $tweets, $this->feed, $this->account, $this, $cards_html );
 
 		return apply_filters( 'esf_twitter_layout_timeline_html', $html, $this->feed, $this->account, $tweets, $this );
+	}
+
+	/**
+	 * Build timeline shell class + inline CSS vars (feed size / aspect ratio).
+	 *
+	 * @since 6.9.5
+	 * @return array{class:string,style_attr:string}
+	 */
+	private function get_timeline_shell_attributes() {
+		$settings  = isset( $this->feed->settings ) && is_array( $this->feed->settings ) ? $this->feed->settings : array();
+		$layout    = isset( $settings['layout'] ) && is_array( $settings['layout'] ) ? $settings['layout'] : array();
+		$timeline  = isset( $layout['timeline'] ) && is_array( $layout['timeline'] ) ? $layout['timeline'] : array();
+		if ( function_exists( 'esf_layout_normalize_dimension_scope' ) ) {
+			$timeline = esf_layout_normalize_dimension_scope( $timeline );
+		}
+
+		$class = 'esf-tw-feed__timeline';
+		$parts = array();
+
+		if ( function_exists( 'esf_layout_dimension_style_vars' ) ) {
+			foreach ( esf_layout_dimension_style_vars( $timeline, '--esf-tw' ) as $var => $value ) {
+				$parts[] = $var . ':' . $value;
+			}
+		}
+		if ( function_exists( 'esf_layout_has_feed_height_limit' ) && esf_layout_has_feed_height_limit( $timeline ) ) {
+			$class .= ' esf-tw-feed__timeline--has-feed-height';
+		}
+
+		$has_plan = function_exists( 'esf_twitter_has_twitter_plan' ) && esf_twitter_has_twitter_plan();
+		$ratio    = '16:9';
+		if ( $has_plan && function_exists( 'esf_layout_sanitize_aspect_ratio' ) ) {
+			$ratio = esf_layout_sanitize_aspect_ratio(
+				isset( $timeline['media_aspect_ratio'] ) ? (string) $timeline['media_aspect_ratio'] : '16:9',
+				array( '16:9', '1:1', '3:4' ),
+				'16:9'
+			);
+		}
+		if ( function_exists( 'esf_layout_aspect_ratio_to_css' ) ) {
+			$parts[] = '--esf-tw-media-ratio:' . esf_layout_aspect_ratio_to_css( $ratio, '16 / 9' );
+		}
+
+		$style_attr = '';
+		if ( ! empty( $parts ) ) {
+			$style_attr = ' style="' . esc_attr( implode( ';', $parts ) ) . '"';
+		}
+
+		return array(
+			'class'      => $class,
+			'style_attr' => $style_attr,
+		);
 	}
 
 	/**

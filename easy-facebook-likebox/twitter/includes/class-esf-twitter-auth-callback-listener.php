@@ -123,6 +123,10 @@ class ESF_Twitter_Auth_Callback_Listener {
 			isset( $token_data['expires_in'] ) ? (int) $token_data['expires_in'] : 7200
 		);
 
+		if ( false !== $account_id && function_exists( 'esf_review_request_record_milestone' ) ) {
+			esf_review_request_record_milestone( 'account_connected', 'twitter' );
+		}
+
 		return false !== $account_id ? 'connected' : 'error';
 	}
 
@@ -162,6 +166,10 @@ class ESF_Twitter_Auth_Callback_Listener {
 		}
 
 		$account_id = $repo->upsert_from_tokens( $user_id, $access_token, $refresh_token, $expires_in );
+
+		if ( false !== $account_id && function_exists( 'esf_review_request_record_milestone' ) ) {
+			esf_review_request_record_milestone( 'account_connected', 'twitter' );
+		}
 
 		return false !== $account_id ? 'connected' : 'error';
 	}

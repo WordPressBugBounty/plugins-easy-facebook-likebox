@@ -428,12 +428,7 @@ class ESF_YouTube_Main {
      * @return array Modified cron schedules.
      */
     public function add_cron_schedules( $schedules ) {
-        if ( !isset( $schedules['thirty_minutes'] ) ) {
-            $schedules['thirty_minutes'] = array(
-                'interval' => 1800,
-                'display'  => __( 'Every 30 Minutes', 'easy-facebook-likebox' ),
-            );
-        }
+        $schedules = esf_cron_schedules_add_thirty_minutes( $schedules );
         $cache_schedules = array(
             'esf_youtube_1h'  => array(
                 'interval' => 3600,

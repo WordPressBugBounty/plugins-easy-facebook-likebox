@@ -4,6 +4,9 @@
  *
  * Returns rendered HTML (and asset URLs) for dashboard live preview.
  *
+ * Settings overrides are accepted in the POST body (not the query string) so
+ * large feed configs do not hit nginx/Apache "414 Request-URI Too Large".
+ *
  * @package Easy_Social_Feed
  * @subpackage Twitter/API
  * @since 6.7.6
@@ -29,44 +32,81 @@ class ESF_Twitter_API_Preview {
 	 * @return void
 	 */
 	public static function register_routes() {
+		$args = array(
+			'id'         => array(
+				/* translators: %s: feed ID. */
+				'description'       => __( 'Feed ID.', 'easy-facebook-likebox' ),
+				'type'              => 'integer',
+				'required'          => true,
+				'validate_callback' => static function ( $param ) {
+					return is_numeric( $param ) && (int) $param > 0;
+				},
+			),
+			'settings'   => array(
+				'description'       => __( 'Optional settings override for live preview (prefer POST body).', 'easy-facebook-likebox' ),
+				'required'          => false,
+				'validate_callback' => array( __CLASS__, 'validate_settings_param' ),
+				'sanitize_callback' => array( __CLASS__, 'sanitize_settings_param' ),
+			),
+			'account_id' => array(
+				'description'       => __( 'Optional account ID override for unsaved source changes.', 'easy-facebook-likebox' ),
+				'type'              => 'integer',
+				'required'          => false,
+				'sanitize_callback' => 'absint',
+			),
+		);
+
 		register_rest_route(
 			'esf/v1',
 			'/twitter/feeds/(?P<id>[\d]+)/preview',
 			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( __CLASS__, 'get_preview' ),
-				'permission_callback' => array( __CLASS__, 'permissions_check' ),
-				'args'                => array(
-					'id'         => array(
-						/* translators: %s: feed ID. */
-						'description'       => __( 'Feed ID.', 'easy-facebook-likebox' ),
-						'type'              => 'integer',
-						'required'          => true,
-						'validate_callback' => static function ( $param ) {
-							return is_numeric( $param ) && (int) $param > 0;
-						},
-					),
-					'settings'   => array(
-						'description'       => __( 'Optional settings override (JSON string) for live preview.', 'easy-facebook-likebox' ),
-						'type'              => 'string',
-						'required'          => false,
-						'sanitize_callback' => static function ( $value ) {
-							if ( ! is_string( $value ) || '' === trim( $value ) ) {
-								return array();
-							}
-							$decoded = json_decode( $value, true );
-							return is_array( $decoded ) ? $decoded : array();
-						},
-					),
-					'account_id' => array(
-						'description'       => __( 'Optional account ID override for unsaved source changes.', 'easy-facebook-likebox' ),
-						'type'              => 'integer',
-						'required'          => false,
-						'sanitize_callback' => 'absint',
-					),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( __CLASS__, 'get_preview' ),
+					'permission_callback' => array( __CLASS__, 'permissions_check' ),
+					'args'                => $args,
+				),
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( __CLASS__, 'get_preview' ),
+					'permission_callback' => array( __CLASS__, 'permissions_check' ),
+					'args'                => $args,
 				),
 			)
 		);
+	}
+
+	/**
+	 * Allow object (POST JSON) or legacy JSON string (GET query).
+	 *
+	 * @param mixed           $value   Raw param.
+	 * @param WP_REST_Request $request Request.
+	 * @param string          $param   Param name.
+	 * @return bool
+	 */
+	public static function validate_settings_param( $value, $request = null, $param = '' ) {
+		unset( $request, $param );
+		return null === $value || is_array( $value ) || is_string( $value );
+	}
+
+	/**
+	 * Normalize settings override to an array.
+	 *
+	 * @param mixed           $value   Raw param.
+	 * @param WP_REST_Request $request Request.
+	 * @param string          $param   Param name.
+	 * @return array
+	 */
+	public static function sanitize_settings_param( $value, $request = null, $param = '' ) {
+		unset( $request, $param );
+		if ( is_array( $value ) ) {
+			return $value;
+		}
+		if ( ! is_string( $value ) || '' === trim( $value ) ) {
+			return array();
+		}
+		$decoded = json_decode( $value, true );
+		return is_array( $decoded ) ? $decoded : array();
 	}
 
 	/**
@@ -117,12 +157,12 @@ class ESF_Twitter_API_Preview {
 			);
 		}
 
-		$feed_repo = ESF_Twitter_Feed_Repository::get_instance();
-		$feed_row  = $feed_repo->get_by_id( $feed_id );
+		$feed_repo           = ESF_Twitter_Feed_Repository::get_instance();
+		$feed_row            = $feed_repo->get_by_id( $feed_id );
 		$resolved_account_id = $account_id > 0
 			? $account_id
 			: ( $feed_row && ! empty( $feed_row->account_id ) ? (int) $feed_row->account_id : 0 );
-		$has_local_cache    = false;
+		$has_local_cache     = false;
 		if ( $resolved_account_id > 0 ) {
 			$cache_key        = 'esf_tw_tweets_' . $feed_id . '_' . $resolved_account_id;
 			$cached_tweet_set = ESF_Twitter_Cache::get( $cache_key );
@@ -142,11 +182,11 @@ class ESF_Twitter_API_Preview {
 
 		return rest_ensure_response(
 			array(
-				'html'           => $html,
-				'css_url'        => $css_url,
-				'layout_css_url' => $layout_css_url,
+				'html'            => $html,
+				'css_url'         => $css_url,
+				'layout_css_url'  => $layout_css_url,
 				'has_local_cache' => $has_local_cache,
-				'js_url'         => null,
+				'js_url'          => null,
 			)
 		);
 	}

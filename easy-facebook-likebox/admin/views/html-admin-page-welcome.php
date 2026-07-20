@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<?php esc_html_e( 'The Easy Social Feed setup wizard requires JavaScript. Please enable JavaScript and reload this page.', 'easy-facebook-likebox' ); ?>
 				</p>
 				<p>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=feed-them-all' ) ); ?>">
+					<a href="<?php echo esc_url( ESF_Admin_Paths::hub_admin_url() ); ?>">
 						<?php esc_html_e( 'Skip and go to the dashboard', 'easy-facebook-likebox' ); ?>
 					</a>
 				</p>

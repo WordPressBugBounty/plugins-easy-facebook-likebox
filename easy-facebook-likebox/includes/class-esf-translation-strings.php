@@ -358,6 +358,11 @@ class ESF_Translation_Strings {
 						'context' => __( 'Suffix shown in media grids for extra item count (e.g. "+2 more").', 'easy-facebook-likebox' ),
 					),
 					array(
+						'key'     => 'media_more',
+						'default' => 'more',
+						'context' => __( 'Suffix shown in multi-image collages for extra item count (e.g. "+1 more").', 'easy-facebook-likebox' ),
+					),
+					array(
 						'key'     => 'tw_replies',
 						'default' => 'Replies',
 						'context' => __( 'Tooltip label for reply count in Twitter/X card and popup metrics.', 'easy-facebook-likebox' ),

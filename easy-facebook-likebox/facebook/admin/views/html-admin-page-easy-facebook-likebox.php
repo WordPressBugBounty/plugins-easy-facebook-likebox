@@ -216,7 +216,7 @@ $esf_autostart_connect = (
 					<?php } ?>
 				</p>
 				<hr/>
-				<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Buy Now', 'easy-facebook-likebox' ); ?>
 				</a>
 
@@ -237,7 +237,7 @@ $esf_autostart_connect = (
 					<?php } ?>
 				</p>
 				<hr/>
-				<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Buy Now', 'easy-facebook-likebox' ); ?>
 				</a>
 
@@ -259,7 +259,7 @@ $esf_autostart_connect = (
 					<?php } ?>
 				</p>
 				<hr/>
-				<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
 				</a>
 			</div>
@@ -280,7 +280,7 @@ $esf_autostart_connect = (
 					<?php } ?>
 				</p>
 				<hr/>
-				<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
@@ -303,7 +303,7 @@ $esf_autostart_connect = (
 					<?php } ?>
 				</p>
 				<hr/>
-				<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
@@ -323,7 +323,7 @@ $esf_autostart_connect = (
 					<?php } ?>
 				</p>
 				<hr/>
-				<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
@@ -343,7 +343,7 @@ $esf_autostart_connect = (
 					<?php } ?>
 				</p>
 				<hr/>
-				<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
@@ -363,7 +363,7 @@ $esf_autostart_connect = (
 					<?php } ?>
 				</p>
 				<hr/>
-				<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
@@ -383,7 +383,7 @@ $esf_autostart_connect = (
 					<?php } ?>
 				</p>
 				<hr/>
-				<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 				   class="btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
@@ -418,7 +418,7 @@ $esf_autostart_connect = (
 				<a target="_blank" href="https://easysocialfeed.com/custom-facebook-feed/multifeed"><?php esc_html_e( 'Check out the demo', 'easy-facebook-likebox' ); ?></a>
 			</p>
 			<hr>
-			<a href="<?php echo esc_url( efl_fs()->get_upgrade_url() ); ?>"
+			<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 			   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Get Started', 'easy-facebook-likebox' ); ?>
 			</a>
 		</div>

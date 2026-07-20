@@ -152,7 +152,7 @@ if ( class_exists( 'WP_Customize_Control' ) && ! class_exists( 'Customize_MIF_Po
 			<p><?php esc_html_e( $this->description ); ?></p>
 
 			<p><?php echo __( 'Upgrade today and get a ' . $banner_info['discount'] . ' discount with coupon code <code>' . $banner_info['coupon'] . '</code>', 'easy-facebook-likebox' ); ?> </p>
-			<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+			<a href="<?php echo esc_url( esf_get_upgrade_url( 'instagram' ) ); ?>"
 			   class="fta-upgrade-btn"><?php echo __( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
 			</a>
 			<?php

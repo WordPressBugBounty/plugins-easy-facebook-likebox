@@ -73,11 +73,17 @@ class ESF_YouTube_Feed_Repository {
 			),
 			'layout' => array(
 				'type' => 'grid',
-				'grid' => array(
-					'columns'        => 3,
-					'columns_tablet' => 2,
-					'columns_mobile' => 1,
-					'gap'            => 16,
+				'grid' => array_merge(
+					function_exists( 'esf_layout_dimension_defaults' )
+						? esf_layout_dimension_defaults()
+						: array(),
+					array(
+						'columns'            => 3,
+						'columns_tablet'     => 2,
+						'columns_mobile'     => 1,
+						'gap'                => 16,
+						'media_aspect_ratio' => '16:9',
+					)
 				),
 			),
 			'header' => array(

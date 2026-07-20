@@ -19,6 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 
 <div class="wrap esf-youtube-wrap">
+	<?php // Anchor for WP core notice relocation (common.js). Without this, notices insert after the first React h2 mid-page. ?>
+	<hr class="wp-header-end" />
 	<div class="esf-youtube-dashboard">
 		<!-- React Application Mount Point -->
 		<div id="esf-youtube-dashboard-root" class="esf-youtube-dashboard__app">
@@ -38,7 +40,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</noscript>
 		</div>
 	</div>
-</div>
 </div>
 <script>
 ( function () {

@@ -80,7 +80,7 @@ class ESF_Twitter_DB_Installer {
 			stats_refreshed_at datetime DEFAULT NULL COMMENT 'Last time profile stats were fetched',
 			created_at datetime NOT NULL,
 			updated_at datetime DEFAULT NULL,
-			PRIMARY KEY (id),
+			PRIMARY KEY  (id),
 			KEY user_id (user_id),
 			KEY x_user_id (x_user_id),
 			KEY username (username),
@@ -89,8 +89,12 @@ class ESF_Twitter_DB_Installer {
 			KEY stats_refreshed_at (stats_refreshed_at)
 		) {$charset_collate};";
 
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta( $sql ); // phpcs:ignore WordPress.DB.SchemaChange.SchemaChange
+		if ( function_exists( 'esf_dbdelta' ) ) {
+			esf_dbdelta( $sql );
+		} else {
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+			dbDelta( $sql ); // phpcs:ignore WordPress.DB.SchemaChange.SchemaChange
+		}
 
 		return ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
@@ -119,14 +123,18 @@ class ESF_Twitter_DB_Installer {
 			status enum('active','inactive') DEFAULT 'active',
 			created_at datetime NOT NULL,
 			updated_at datetime DEFAULT NULL,
-			PRIMARY KEY (id),
+			PRIMARY KEY  (id),
 			KEY account_id (account_id),
 			KEY status (status),
 			KEY feed_type (feed_type)
 		) {$charset_collate};";
 
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta( $sql ); // phpcs:ignore WordPress.DB.SchemaChange.SchemaChange
+		if ( function_exists( 'esf_dbdelta' ) ) {
+			esf_dbdelta( $sql );
+		} else {
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+			dbDelta( $sql ); // phpcs:ignore WordPress.DB.SchemaChange.SchemaChange
+		}
 
 		return ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
@@ -155,7 +163,7 @@ class ESF_Twitter_DB_Installer {
 			account_id bigint(20) UNSIGNED DEFAULT NULL COMMENT 'Account ID for account-scoped cache',
 			expires_at datetime NOT NULL,
 			created_at datetime NOT NULL,
-			PRIMARY KEY (id),
+			PRIMARY KEY  (id),
 			UNIQUE KEY cache_key (cache_key),
 			KEY expires_at (expires_at),
 			KEY cache_type (cache_type),
@@ -164,8 +172,12 @@ class ESF_Twitter_DB_Installer {
 			KEY cache_key_expires (cache_key, expires_at)
 		) {$charset_collate};";
 
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta( $sql ); // phpcs:ignore WordPress.DB.SchemaChange.SchemaChange
+		if ( function_exists( 'esf_dbdelta' ) ) {
+			esf_dbdelta( $sql );
+		} else {
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+			dbDelta( $sql ); // phpcs:ignore WordPress.DB.SchemaChange.SchemaChange
+		}
 
 		return ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	}

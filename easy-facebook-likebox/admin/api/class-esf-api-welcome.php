@@ -212,20 +212,34 @@ if ( ! class_exists( 'ESF_API_Welcome' ) ) {
 				);
 			}
 
-			$fta_settings = get_option( 'fta_settings', array() );
-			if ( ! is_array( $fta_settings ) ) {
-				$fta_settings = array();
-			}
-			if ( ! isset( $fta_settings['plugins'] ) || ! is_array( $fta_settings['plugins'] ) ) {
-				$fta_settings['plugins'] = array();
-			}
-			if ( ! isset( $fta_settings['plugins'][ $slug ] ) || ! is_array( $fta_settings['plugins'][ $slug ] ) ) {
-				$fta_settings['plugins'][ $slug ] = array();
+			if ( class_exists( 'ESF_Settings' ) ) {
+				$saved = ESF_Settings::set_module_status( $slug, $status );
+			} else {
+				$fta_settings = get_option( 'fta_settings', array() );
+				if ( ! is_array( $fta_settings ) ) {
+					$fta_settings = array();
+				}
+				if ( ! isset( $fta_settings['plugins'] ) || ! is_array( $fta_settings['plugins'] ) ) {
+					$fta_settings['plugins'] = array();
+				}
+				if ( ! isset( $fta_settings['plugins'][ $slug ] ) || ! is_array( $fta_settings['plugins'][ $slug ] ) ) {
+					$fta_settings['plugins'][ $slug ] = array();
+				}
+				$fta_settings['plugins'][ $slug ]['status'] = $status;
+				$saved                                      = update_option( 'fta_settings', $fta_settings );
 			}
 
-			$fta_settings['plugins'][ $slug ]['status'] = $status;
+			if ( ! $saved ) {
+				return new WP_Error(
+					'esf_welcome_module_save_failed',
+					__( 'Could not update module status.', 'easy-facebook-likebox' ),
+					array( 'status' => 500 )
+				);
+			}
 
-			update_option( 'fta_settings', $fta_settings );
+			if ( 'deactivated' === $status && 'twitter' === $slug && function_exists( 'esf_twitter_teardown_scheduled_jobs' ) ) {
+				esf_twitter_teardown_scheduled_jobs();
+			}
 
 			return rest_ensure_response(
 				array(
@@ -264,96 +278,23 @@ if ( ! class_exists( 'ESF_API_Welcome' ) ) {
 		 * @return array<int,array<string,mixed>>
 		 */
 		private static function get_module_catalogue() {
-			$fta = class_exists( 'Feed_Them_All' ) ? new Feed_Them_All() : null;
-
-			$catalogue = array(
-				'facebook'  => array(
-					'name'             => __( 'Custom Facebook Feed', 'easy-facebook-likebox' ),
-					'tagline'          => __( 'Posts, albums, events and the Like Box (Page Plugin).', 'easy-facebook-likebox' ),
-					'features'         => array(
-						__( 'Custom feed of posts, photos and videos', 'easy-facebook-likebox' ),
-						__( 'Facebook Page Plugin (Like Box)', 'easy-facebook-likebox' ),
-						__( 'Lightbox / popup gallery', 'easy-facebook-likebox' ),
-					),
-					'configure_url'    => admin_url( 'admin.php?page=easy-facebook-likebox' ),
-					'is_modern'        => false,
-					'has_inline_oauth' => false,
-					'brand_color'      => '#1877f2',
-					'brand_color_2'    => '#0a4ea1',
-				),
-				'instagram' => array(
-					'name'             => __( 'Custom Instagram Feed', 'easy-facebook-likebox' ),
-					'tagline'          => __( 'Photos, videos and hashtag feeds from your Instagram account.', 'easy-facebook-likebox' ),
-					'features'         => array(
-						__( 'Account, hashtag and gallery feeds', 'easy-facebook-likebox' ),
-						__( 'Lightbox / popup gallery', 'easy-facebook-likebox' ),
-						__( 'Shoppable feeds (Pro)', 'easy-facebook-likebox' ),
-					),
-					'configure_url'    => admin_url( 'admin.php?page=mif' ),
-					'is_modern'        => false,
-					'has_inline_oauth' => false,
-					'brand_color'      => '#e1306c',
-					'brand_color_2'    => '#f77737',
-				),
-				'youtube'   => array(
-					'name'             => __( 'YouTube Feed', 'easy-facebook-likebox' ),
-					'tagline'          => __( 'Latest videos from your channel via secure OAuth.', 'easy-facebook-likebox' ),
-					'features'         => array(
-						__( 'Secure OAuth 2.0 connection (no API key)', 'easy-facebook-likebox' ),
-						__( 'Modern dashboard with live preview', 'easy-facebook-likebox' ),
-						__( 'Customisable layouts and caching', 'easy-facebook-likebox' ),
-					),
-					'configure_url'    => admin_url( 'admin.php?page=esf-youtube' ),
-					'is_modern'        => true,
-					'has_inline_oauth' => true,
-					'brand_color'      => '#ff0000',
-					'brand_color_2'    => '#cc0000',
-				),
-				'twitter'   => array(
-					'name'             => __( 'X / Twitter Feed', 'easy-facebook-likebox' ),
-					'tagline'          => __( 'Display your X timeline or any public account (Pro).', 'easy-facebook-likebox' ),
-					'features'         => array(
-						__( 'Secure OAuth connection to your X account', 'easy-facebook-likebox' ),
-						__( 'DB-backed caching for fast page loads', 'easy-facebook-likebox' ),
-						__( 'Public account feeds (Pro)', 'easy-facebook-likebox' ),
-					),
-					'configure_url'    => admin_url( 'admin.php?page=esf-twitter' ),
-					'is_modern'        => true,
-					'has_inline_oauth' => true,
-					'supports_public_username' => true,
-					'can_add_public_username'  => (
-						function_exists( 'efl_fs' ) &&
-						method_exists( efl_fs(), 'can_use_premium_code__premium_only' ) &&
-						efl_fs()->can_use_premium_code__premium_only() &&
-						function_exists( 'esf_twitter_has_twitter_plan' ) &&
-						esf_twitter_has_twitter_plan()
-					),
-					'brand_color'      => '#000000',
-					'brand_color_2'    => '#2a2a2a',
-				),
-			);
-
-			$ordered = array();
-			foreach ( ESF_Welcome_State::ALLOWED_MODULES as $slug ) {
-				if ( ! isset( $catalogue[ $slug ] ) ) {
-					continue;
-				}
-
-				$status = $fta ? $fta->module_status( $slug ) : 'activated';
-				if ( ! in_array( $status, array( 'activated', 'deactivated' ), true ) ) {
-					$status = 'activated';
-				}
-
-				$ordered[] = array_merge(
-					array(
-						'slug'   => $slug,
-						'status' => $status,
-					),
-					$catalogue[ $slug ]
-				);
+			if ( ! class_exists( 'ESF_Module_Catalogue' ) ) {
+				return array();
 			}
 
-			return $ordered;
+			$modules = ESF_Module_Catalogue::get_modules();
+			$allowed = array_flip( ESF_Welcome_State::ALLOWED_MODULES );
+
+			return array_values(
+				array_filter(
+					$modules,
+					static function ( $module ) use ( $allowed ) {
+						return is_array( $module )
+							&& isset( $module['slug'] )
+							&& isset( $allowed[ $module['slug'] ] );
+					}
+				)
+			);
 		}
 
 		/**
@@ -380,10 +321,10 @@ if ( ! class_exists( 'ESF_API_Welcome' ) ) {
 		 * @return array<string,string>
 		 */
 		private static function get_links_payload() {
-			$upgrade = function_exists( 'efl_fs' ) ? efl_fs()->get_upgrade_url() : '';
+			$upgrade = esf_get_upgrade_url( 'general' );
 
 			return array(
-				'dashboard' => admin_url( 'admin.php?page=feed-them-all' ),
+				'dashboard' => ESF_Admin_Paths::hub_admin_url(),
 				'support'   => 'https://easysocialfeed.com/support/',
 				'docs'      => 'https://easysocialfeed.com/documentation/',
 				'upgrade'   => esc_url_raw( $upgrade ),

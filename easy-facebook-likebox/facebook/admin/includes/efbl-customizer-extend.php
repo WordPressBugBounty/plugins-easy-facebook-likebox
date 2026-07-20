@@ -156,7 +156,7 @@ if ( class_exists( 'WP_Customize_Control' ) && ! class_exists( 'Customize_EFBL_P
 			<p><?php echo $this->description; ?></p>
 
 			<p><?php echo __( 'Upgrade today and get a ' . $banner_info['discount'] . ' discount with coupon code <code>' . $banner_info['coupon'] . '</code>', 'easy-facebook-likebox' ); ?> </p>
-			<a href="<?php echo efl_fs()->get_upgrade_url(); ?>"
+			<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
 			   class="fta-upgrade-btn"><?php echo __( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
 			</a>
 			<?php

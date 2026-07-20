@@ -8,20 +8,14 @@ if ( !defined( 'ABSPATH' ) ) {
 }
 if ( !class_exists( 'ESF_Admin' ) ) {
     class ESF_Admin {
-        /**
-         * Ensure footer review notice hook is only added once,
-         * even if ESF_Admin is instantiated multiple times.
-         *
-         * @var bool
-         */
-        protected static $footer_review_hook_added = false;
-
         function __construct() {
             $this->load_welcome_dependencies();
             add_action( 'rest_api_init', array($this, 'register_welcome_rest_routes') );
             add_action( 'admin_init', array($this, 'maybe_redirect_completed_welcome') );
+            add_action( 'admin_init', array('ESF_Admin_Paths', 'maybe_redirect_legacy_hub'), 1 );
             add_action( 'admin_menu', array($this, 'esf_menu') );
             add_action( 'admin_menu', array($this, 'esf_settings_submenu'), 101 );
+            add_action( 'admin_menu', array('ESF_Admin_Menu_Order', 'reorder_submenus'), 999 );
             add_action( 'admin_head', array($this, 'esf_debug_token') );
             add_action( 'admin_enqueue_scripts', array($this, 'esf_admin_assets') );
             add_action( 'wp_ajax_esf_change_module_status', array($this, 'esf_change_module_status') );
@@ -33,10 +27,6 @@ if ( !class_exists( 'ESF_Admin' ) ) {
             add_action( 'wp_ajax_esf_hide_rating_notice', array($this, 'esf_hide_rating_notice') );
             add_action( 'wp_ajax_esf_hide_row_notice', array($this, 'hide_row_notice') );
             add_action( 'admin_head', array($this, 'esf_hide_notices') );
-            if ( !self::$footer_review_hook_added ) {
-                add_action( 'admin_footer', array($this, 'esf_admin_footer_review_notice') );
-                self::$footer_review_hook_added = true;
-            }
             add_action( 'pre_get_posts', array($this, 'esf_exclude_demo_pages'), 1 );
         }
 
@@ -61,6 +51,32 @@ if ( !class_exists( 'ESF_Admin' ) ) {
             if ( !class_exists( 'ESF_API_Welcome' ) && file_exists( $api_file ) ) {
                 require_once $api_file;
             }
+            $missing_feed_api = $base . 'admin/api/class-esf-api-missing-feed.php';
+            if ( !class_exists( 'ESF_API_Missing_Feed' ) && file_exists( $missing_feed_api ) ) {
+                require_once $missing_feed_api;
+            }
+            if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
+                $moderation_api = $base . 'admin/api/class-esf-api-moderation.php';
+                if ( !class_exists( 'ESF_API_Moderation' ) && file_exists( $moderation_api ) ) {
+                    require_once $moderation_api;
+                }
+                $shoppable_api = $base . 'admin/api/class-esf-api-shoppable.php';
+                if ( !class_exists( 'ESF_API_Shoppable' ) && file_exists( $shoppable_api ) ) {
+                    require_once $shoppable_api;
+                }
+            }
+            $review_request_api = $base . 'admin/api/class-esf-api-review-request.php';
+            if ( !class_exists( 'ESF_API_Review_Request' ) && file_exists( $review_request_api ) ) {
+                require_once $review_request_api;
+            }
+            $hub_api = $base . 'admin/api/class-esf-api-hub.php';
+            if ( !class_exists( 'ESF_API_Hub' ) && file_exists( $hub_api ) ) {
+                require_once $hub_api;
+            }
+            $settings_api = $base . 'admin/api/class-esf-api-settings.php';
+            if ( !class_exists( 'ESF_API_Settings' ) && file_exists( $settings_api ) ) {
+                require_once $settings_api;
+            }
         }
 
         /**
@@ -72,6 +88,24 @@ if ( !class_exists( 'ESF_Admin' ) ) {
         public function register_welcome_rest_routes() {
             if ( class_exists( 'ESF_API_Welcome' ) ) {
                 ESF_API_Welcome::register_routes();
+            }
+            if ( class_exists( 'ESF_API_Missing_Feed' ) ) {
+                ESF_API_Missing_Feed::register_routes();
+            }
+            if ( class_exists( 'ESF_API_Moderation' ) ) {
+                ESF_API_Moderation::register_routes();
+            }
+            if ( class_exists( 'ESF_API_Shoppable' ) ) {
+                ESF_API_Shoppable::register_routes();
+            }
+            if ( class_exists( 'ESF_API_Review_Request' ) ) {
+                ESF_API_Review_Request::register_routes();
+            }
+            if ( class_exists( 'ESF_API_Hub' ) ) {
+                ESF_API_Hub::register_routes();
+            }
+            if ( class_exists( 'ESF_API_Settings' ) ) {
+                ESF_API_Settings::register_routes();
             }
         }
 
@@ -103,7 +137,7 @@ if ( !class_exists( 'ESF_Admin' ) ) {
             if ( !class_exists( 'ESF_Welcome_State' ) || !ESF_Welcome_State::is_completed() ) {
                 return;
             }
-            wp_safe_redirect( admin_url( 'admin.php?page=feed-them-all' ) );
+            wp_safe_redirect( ESF_Admin_Paths::hub_admin_url() );
             exit;
         }
 
@@ -155,34 +189,110 @@ if ( !class_exists( 'ESF_Admin' ) ) {
         }
 
         /**
+         * Enqueue React + SCSS bundle for the main module hub page.
+         *
+         * @since 6.9.0
+         * @return void
+         */
+        public function enqueue_hub_assets() {
+            $base_url = ( defined( 'FTA_PLUGIN_URL' ) ? FTA_PLUGIN_URL : plugin_dir_url( dirname( __FILE__ ) ) );
+            $base_dir = ( defined( 'FTA_PLUGIN_DIR' ) ? FTA_PLUGIN_DIR : plugin_dir_path( dirname( __FILE__ ) ) );
+            $asset_path = $base_dir . 'admin/assets/build/hub/hub.asset.php';
+            if ( !file_exists( $asset_path ) ) {
+                return;
+            }
+            $asset = (include $asset_path);
+            if ( !is_array( $asset ) ) {
+                return;
+            }
+            $dependencies = ( isset( $asset['dependencies'] ) && is_array( $asset['dependencies'] ) ? $asset['dependencies'] : array() );
+            $version = ( isset( $asset['version'] ) ? (string) $asset['version'] : (( defined( 'FTA_VERSION' ) ? FTA_VERSION : '1.0.0' )) );
+            wp_enqueue_script(
+                'esf-module-hub',
+                $base_url . 'admin/assets/build/hub/hub.js',
+                $dependencies,
+                $version,
+                true
+            );
+            wp_enqueue_style(
+                'esf-module-hub',
+                $base_url . 'admin/assets/build/hub/hub.css',
+                array('wp-components'),
+                $version
+            );
+            wp_set_script_translations( 'esf-module-hub', 'easy-facebook-likebox' );
+            wp_localize_script( 'esf-module-hub', 'esfHubBootstrap', array(
+                'restUrl'   => esc_url_raw( rest_url() ),
+                'restNonce' => wp_create_nonce( 'wp_rest' ),
+                'pluginUrl' => esc_url_raw( $base_url ),
+                'logoUrl'   => esc_url_raw( $base_url . 'admin/assets/images/plugin-logo.png' ),
+            ) );
+        }
+
+        /**
+         * Enqueue React + SCSS bundle for the global settings page.
+         *
+         * @since 6.9.0
+         * @return void
+         */
+        public function enqueue_settings_assets() {
+            $base_url = ( defined( 'FTA_PLUGIN_URL' ) ? FTA_PLUGIN_URL : plugin_dir_url( dirname( __FILE__ ) ) );
+            $base_dir = ( defined( 'FTA_PLUGIN_DIR' ) ? FTA_PLUGIN_DIR : plugin_dir_path( dirname( __FILE__ ) ) );
+            $asset_path = $base_dir . 'admin/assets/build/settings/settings.asset.php';
+            if ( !file_exists( $asset_path ) ) {
+                return;
+            }
+            $asset = (include $asset_path);
+            if ( !is_array( $asset ) ) {
+                return;
+            }
+            $dependencies = ( isset( $asset['dependencies'] ) && is_array( $asset['dependencies'] ) ? $asset['dependencies'] : array() );
+            $version = ( isset( $asset['version'] ) ? (string) $asset['version'] : (( defined( 'FTA_VERSION' ) ? FTA_VERSION : '1.0.0' )) );
+            wp_enqueue_script(
+                'esf-settings',
+                $base_url . 'admin/assets/build/settings/settings.js',
+                $dependencies,
+                $version,
+                true
+            );
+            wp_enqueue_style(
+                'esf-settings',
+                $base_url . 'admin/assets/build/settings/settings.css',
+                array('wp-components'),
+                $version
+            );
+            wp_set_script_translations( 'esf-settings', 'easy-facebook-likebox' );
+            wp_localize_script( 'esf-settings', 'esfSettingsBootstrap', array(
+                'restUrl'   => esc_url_raw( rest_url() ),
+                'restNonce' => wp_create_nonce( 'wp_rest' ),
+                'pluginUrl' => esc_url_raw( $base_url ),
+                'logoUrl'   => esc_url_raw( $base_url . 'admin/assets/images/plugin-logo.png' ),
+                'isPro'     => function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only(),
+            ) );
+        }
+
+        /**
          * On ESF admin pages, show only notices from this plugin (and Freemius) and hide all others via CSS.
          * ESF notices use .fta_msg, Freemius notices use .fs-notice; other plugins use .notice or .update-nag.
          */
         public function esf_hide_notices() {
             $screen = get_current_screen();
             if ( !isset( $screen->id ) ) {
-                echo '<style>.toplevel_page_feed-them-all .wp-menu-image img{padding-top: 4px!important;}</style>';
+                echo '<style>.toplevel_page_easy-social-feed .wp-menu-image img{padding-top: 4px!important;}</style>';
                 return;
             }
-            $esf_admin_screens = array(
-                'toplevel_page_feed-them-all',
-                'easy-social-feed_page_easy-facebook-likebox',
-                'easy-social-feed_page_mif',
-                'admin_page_esf_welcome',
-                'easy-social-feed_page_feed-them-all-addons',
-                'easy-social-feed_page_esf-settings'
-            );
+            $esf_admin_screens = ( class_exists( 'ESF_Review_Request' ) ? ESF_Review_Request::get_esf_admin_screen_ids() : (( class_exists( 'ESF_Admin_Paths' ) ? ESF_Admin_Paths::get_esf_admin_screen_ids() : array('toplevel_page_easy-social-feed') )) );
             if ( in_array( $screen->id, $esf_admin_screens, true ) ) {
                 $body_class = esc_attr( sanitize_html_class( $screen->id ) );
                 echo '<style>';
-                echo '.toplevel_page_feed-them-all .wp-menu-image img{padding-top: 4px!important;}';
+                echo '.toplevel_page_easy-social-feed .wp-menu-image img{padding-top: 4px!important;}';
                 // Hide other plugins' notices: show only our Freemius (.fs-slug-easy-facebook-likebox) and ESF (.fta_msg).
                 echo "body.{$body_class} .notice:not(.fs-notice){display:none !important;}";
                 echo "body.{$body_class} .fs-notice:not(.fs-slug-easy-facebook-likebox){display:none !important;}";
                 echo "body.{$body_class} .update-nag:not(.fta_msg){display:none !important;}";
                 echo '</style>';
             } else {
-                echo '<style>.toplevel_page_feed-them-all .wp-menu-image img{padding-top: 4px!important;}</style>';
+                echo '<style>.toplevel_page_easy-social-feed .wp-menu-image img{padding-top: 4px!important;}</style>';
             }
         }
 
@@ -195,15 +305,23 @@ if ( !class_exists( 'ESF_Admin' ) ) {
          */
         public function esf_admin_assets( $hook ) {
             // load plugin files only on it's pages
-            if ( 'toplevel_page_feed-them-all' !== $hook && 'easy-social-feed_page_mif' !== $hook && 'easy-social-feed_page_easy-facebook-likebox' !== $hook && 'easy-social-feed_page_esf-settings' !== $hook && 'admin_page_esf_welcome' !== $hook ) {
+            if ( ESF_Admin_Paths::hub_screen_id() !== $hook && ESF_Admin_Paths::submenu_screen_id( 'mif' ) !== $hook && ESF_Admin_Paths::submenu_screen_id( 'easy-facebook-likebox' ) !== $hook && ESF_Admin_Paths::submenu_screen_id( ESF_Admin_Paths::SETTINGS_SLUG ) !== $hook && 'admin_page_' . ESF_Admin_Paths::WELCOME_SLUG !== $hook ) {
                 return false;
             }
             // Welcome wizard owns its own React bundle and does not need
             // the legacy admin assets (Materialize-era jQuery + CSS). Loading
             // them would conflict with the wp-components styles and add ~80KB
             // of unused JS to the wizard page.
-            if ( 'admin_page_esf_welcome' === $hook ) {
+            if ( 'admin_page_' . ESF_Admin_Paths::WELCOME_SLUG === $hook ) {
                 $this->enqueue_welcome_assets();
+                return false;
+            }
+            if ( ESF_Admin_Paths::hub_screen_id() === $hook ) {
+                $this->enqueue_hub_assets();
+                return false;
+            }
+            if ( ESF_Admin_Paths::submenu_screen_id( ESF_Admin_Paths::SETTINGS_SLUG ) === $hook ) {
+                $this->enqueue_settings_assets();
                 return false;
             }
             wp_deregister_script( 'bootstrap.min' );
@@ -211,15 +329,6 @@ if ( !class_exists( 'ESF_Admin' ) ) {
             wp_deregister_script( 'jquery-ui-tabs' );
             wp_enqueue_style( 'esf-animations', FTA_PLUGIN_URL . 'admin/assets/css/esf-animations.css' );
             wp_enqueue_style( 'esf-admin', FTA_PLUGIN_URL . 'admin/assets/css/esf-admin.css' );
-            // Settings page reuses Facebook admin tab markup (efbl_wrap, efbl_tabs_*); load its CSS for tab bar styling.
-            if ( 'easy-social-feed_page_esf-settings' === $hook ) {
-                wp_enqueue_style(
-                    'efbl-admin-styles',
-                    FTA_PLUGIN_URL . 'facebook/admin/assets/css/admin.css',
-                    array(),
-                    '1.0'
-                );
-            }
             wp_enqueue_script( 'jquery-effects-slide' );
             wp_enqueue_script(
                 'clipboard-js',
@@ -246,6 +355,9 @@ if ( !class_exists( 'ESF_Admin' ) ) {
                 'reset_done'          => __( 'Defaults restored.', 'easy-facebook-likebox' ),
                 'ajax_url'            => admin_url( 'admin-ajax.php' ),
                 'nonce'               => wp_create_nonce( 'esf-ajax-nonce' ),
+                'rest_url'            => esc_url_raw( rest_url( 'esf/v1/' ) ),
+                'rest_nonce'          => wp_create_nonce( 'wp_rest' ),
+                'review_url'          => ( class_exists( 'ESF_Review_Request' ) ? ESF_Review_Request::REVIEW_URL : 'https://wordpress.org/support/plugin/easy-facebook-likebox/reviews/?filter=5#new-post' ),
             ) );
             wp_enqueue_script( 'thickbox' );
             wp_enqueue_style( 'thickbox' );
@@ -275,7 +387,7 @@ if ( !class_exists( 'ESF_Admin' ) ) {
                 __( 'Easy Social Feed', 'easy-facebook-likebox' ),
                 __( 'Easy Social Feed', 'easy-facebook-likebox' ),
                 'administrator',
-                'feed-them-all',
+                ESF_Admin_Paths::HUB_SLUG,
                 array($this, 'esf_page'),
                 FTA_PLUGIN_URL . 'admin/assets/images/plugin_icon.png',
                 25
@@ -297,12 +409,13 @@ if ( !class_exists( 'ESF_Admin' ) ) {
          */
         public function esf_settings_submenu() {
             add_submenu_page(
-                'feed-them-all',
+                ESF_Admin_Paths::HUB_SLUG,
                 __( 'Settings', 'easy-facebook-likebox' ),
                 __( 'Settings', 'easy-facebook-likebox' ),
                 'manage_options',
                 'esf-settings',
-                array($this, 'esf_settings_page')
+                array($this, 'esf_settings_page'),
+                ESF_Admin_Menu_Order::SETTINGS
             );
         }
 
@@ -342,6 +455,12 @@ if ( !class_exists( 'ESF_Admin' ) ) {
          */
         public function esf_save_general_settings() {
             esf_check_ajax_referer();
+            $preserve = isset( $_POST['preserve_settings_on_uninstall'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['preserve_settings_on_uninstall'] ) );
+            $api_locale = ( isset( $_POST['api_locale'] ) ? sanitize_text_field( wp_unslash( $_POST['api_locale'] ) ) : '' );
+            if ( class_exists( 'ESF_Settings' ) ) {
+                ESF_Settings::save_general( $preserve, $api_locale );
+                wp_send_json_success( __( 'Settings saved successfully!', 'easy-facebook-likebox' ) );
+            }
             $FTA = new Feed_Them_All();
             $fta_settings = $FTA->fta_get_settings();
             if ( !is_array( $fta_settings ) ) {
@@ -375,6 +494,13 @@ if ( !class_exists( 'ESF_Admin' ) ) {
          */
         public function esf_save_gdpr_settings() {
             esf_check_ajax_referer();
+            if ( isset( $_POST['gdpr'] ) && class_exists( 'ESF_Settings' ) ) {
+                $gdpr = sanitize_text_field( wp_unslash( $_POST['gdpr'] ) );
+                if ( ESF_Settings::save_gdpr( $gdpr ) ) {
+                    wp_send_json_success( __( 'Settings saved successfully!', 'easy-facebook-likebox' ) );
+                }
+                wp_send_json_error( __( 'Something went wrong! Please try again.', 'easy-facebook-likebox' ) );
+            }
             $FTA = new Feed_Them_All();
             $fta_settings = $FTA->fta_get_settings();
             $original = $fta_settings;
@@ -401,6 +527,17 @@ if ( !class_exists( 'ESF_Admin' ) ) {
          */
         public function esf_save_translation_settings() {
             esf_check_ajax_referer();
+            $posted = ( isset( $_POST['esf_translation'] ) && is_array( $_POST['esf_translation'] ) ? wp_unslash( $_POST['esf_translation'] ) : array() );
+            if ( class_exists( 'ESF_Settings' ) ) {
+                $flat = array();
+                foreach ( $posted as $key => $value ) {
+                    if ( is_string( $key ) && is_string( $value ) ) {
+                        $flat[$key] = $value;
+                    }
+                }
+                ESF_Settings::save_translation( $flat );
+                wp_send_json_success( __( 'Settings saved successfully!', 'easy-facebook-likebox' ) );
+            }
             $FTA = new Feed_Them_All();
             $fta_settings = $FTA->fta_get_settings();
             if ( !is_array( $fta_settings ) ) {
@@ -437,10 +574,17 @@ if ( !class_exists( 'ESF_Admin' ) ) {
             esf_check_ajax_referer();
             $module_name = sanitize_text_field( $_POST['plugin'] );
             $module_status = sanitize_text_field( $_POST['status'] );
-            $Feed_Them_All = new Feed_Them_All();
-            $esf_settings = $Feed_Them_All->fta_get_settings();
-            $esf_settings['plugins'][$module_name]['status'] = $module_status;
-            $status_updated = update_option( 'fta_settings', $esf_settings );
+            if ( class_exists( 'ESF_Settings' ) ) {
+                $status_updated = ESF_Settings::set_module_status( $module_name, $module_status );
+            } else {
+                $Feed_Them_All = new Feed_Them_All();
+                $esf_settings = $Feed_Them_All->fta_get_settings();
+                $esf_settings['plugins'][$module_name]['status'] = $module_status;
+                $status_updated = update_option( 'fta_settings', $esf_settings );
+            }
+            if ( 'deactivated' === $module_status && 'twitter' === $module_name ) {
+                esf_twitter_teardown_scheduled_jobs();
+            }
             if ( $module_status === 'activated' ) {
                 $status = __( ' Activated', 'easy-facebook-likebox' );
             } else {
@@ -484,113 +628,30 @@ if ( !class_exists( 'ESF_Admin' ) ) {
         }
 
         /**
-         * Displays the admin notices
+         * Displays the shared review-request admin notice on legacy ESF pages.
          *
          * @since 1.0.0
-         *
-         * @throws \Exception
+         * @return void
          */
         public function esf_admin_notice() {
-            if ( !current_user_can( 'install_plugins' ) ) {
-                return false;
+            if ( class_exists( 'ESF_Review_Request' ) ) {
+                ESF_Review_Request::render_legacy_admin_notice();
             }
-            $Feed_Them_All = new Feed_Them_All();
-            $install_date = $Feed_Them_All->fta_get_settings( 'installDate' );
-            $fta_settings = $Feed_Them_All->fta_get_settings();
-            $display_date = date( 'Y-m-d h:i:s' );
-            if ( !is_string( $install_date ) || empty( $install_date ) ) {
-                $install_date = $display_date;
-            }
-            $datetime1 = new DateTime($install_date);
-            $datetime2 = new DateTime($display_date);
-            $diff_intrval = round( ($datetime2->format( 'U' ) - $datetime1->format( 'U' )) / (60 * 60 * 24) );
-            if ( empty( $diff_intrval ) ) {
-                $diff_intrval = 0;
-            }
-            if ( $diff_intrval >= 6 && get_site_option( 'fta_supported' ) !== 'yes' ) {
-                ?>
-
-				<div style="position:relative;padding-right:80px;background: #fff;" class="update-nag fta_msg fta_review">
-					<p>
-						<?php 
-                esc_html_e( 'Awesome, you have been using Easy Social Feed ', 'easy-facebook-likebox' );
-                ?>
-						<?php 
-                esc_html_e( 'for more than a week. I would really appreciate it if you ', 'easy-facebook-likebox' );
-                ?>
-						<b><?php 
-                esc_html_e( 'review and rate ', 'easy-facebook-likebox' );
-                ?></b>
-						<?php 
-                esc_html_e( 'the plugin to help spread the word and ', 'easy-facebook-likebox' );
-                ?>
-						<b><?php 
-                esc_html_e( 'encourage us to make it even better.', 'easy-facebook-likebox' );
-                ?></b>
-					</p>
-					<div class="fl_support_btns">
-						<a href="https://wordpress.org/support/plugin/easy-facebook-likebox/reviews/?filter=5#new-post"
-							class="esf_HideRating button button-primary"
-							target="_blank">
-							<?php 
-                esc_html_e( 'I Like Easy Social Feed - It increased engagement on my site', 'easy-facebook-likebox' );
-                ?>
-						</a>
-						<a href="javascript:void(0);"
-							class="esf_HideRating button">
-							<?php 
-                esc_html_e( 'I already rated it', 'easy-facebook-likebox' );
-                ?>
-						</a>
-						<br>
-						<a style="margin-top:5px;float:left;"
-							href="javascript:void(0);" class="esf_HideRating">
-							<?php 
-                esc_html_e( 'No, not good enough, I do not like to rate it', 'easy-facebook-likebox' );
-                ?>
-						</a>
-						<div class="esf_HideRating" style="position:absolute;right:10px;cursor:pointer;top:4px;color: #029be4;">
-							<div style="font-weight:bold;" class="dashicons dashicons-no-alt"></div>
-							<span style="margin-left: 2px;">
-								<?php 
-                esc_html_e( 'Dismiss', 'easy-facebook-likebox' );
-                ?>
-							</span>
-						</div>
-					</div>
-				</div>
-				<script>
-					jQuery('.esf_HideRating').click(function() {
-					var data = {'action': 'esf_hide_rating_notice'};
-						jQuery.ajax({
-								url: "<?php 
-                echo esc_url( admin_url( 'admin-ajax.php' ) );
-                ?>",
-								type: 'post',
-								data: data,
-								dataType: 'json',
-								async: !0,
-								success: function(e) {
-								if(e === 'success'){
-									jQuery('.fta_msg').slideUp('fast');
-								}
-								},
-						});
-						});
-				</script>
-				<?php 
-            }
-            return false;
         }
 
         /**
-         * Hide rating notice permenately
+         * Legacy AJAX handler for old rating notice dismiss controls.
          *
          * @since 1.0.0
+         * @return void
          */
         public function esf_hide_rating_notice() {
-            update_site_option( 'fta_supported', 'yes' );
-            echo wp_json_encode( array('success') );
+            if ( class_exists( 'ESF_Review_Request' ) ) {
+                ESF_Review_Request::handle_action( 'dismiss' );
+            } else {
+                update_site_option( 'fta_supported', 'yes' );
+            }
+            echo wp_json_encode( 'success' );
             wp_die();
         }
 
@@ -620,14 +681,11 @@ if ( !class_exists( 'ESF_Admin' ) ) {
             if ( 'edit.php' === $pagenow && (get_query_var( 'post_type' ) && 'page' === get_query_var( 'post_type' )) ) {
                 $fta_class = new Feed_Them_All();
                 $fta_settings = $fta_class->fta_get_settings();
-                if ( isset( $fta_settings['plugins']['facebook']['default_page_id'] ) ) {
-                    $fb_id = $fta_settings['plugins']['facebook']['default_page_id'];
-                }
-                if ( isset( $fta_settings['plugins']['instagram']['default_page_id'] ) ) {
-                    $insta_id = $fta_settings['plugins']['instagram']['default_page_id'];
-                }
-                if ( $fb_id || $insta_id ) {
-                    $query->set( 'post__not_in', array($fb_id, $insta_id) );
+                $fb_id = ( isset( $fta_settings['plugins']['facebook']['default_page_id'] ) ? absint( $fta_settings['plugins']['facebook']['default_page_id'] ) : 0 );
+                $insta_id = ( isset( $fta_settings['plugins']['instagram']['default_page_id'] ) ? absint( $fta_settings['plugins']['instagram']['default_page_id'] ) : 0 );
+                $exclude_ids = array_values( array_filter( array($fb_id, $insta_id) ) );
+                if ( !empty( $exclude_ids ) ) {
+                    $query->set( 'post__not_in', $exclude_ids );
                 }
             }
             return $query;
@@ -725,77 +783,32 @@ if ( !class_exists( 'ESF_Admin' ) ) {
 
         /**
          * Get upgrade banner info from main site
+         *
+         * Discount/coupon come from {@see esf_get_pro_promo_offer()} so promo
+         * numbers stay in one place.
+         *
          * @return mixed|string[]
          */
         public function esf_upgrade_banner() {
+            $promo = ( function_exists( 'esf_get_pro_promo_offer' ) ? esf_get_pro_promo_offer() : array(
+                'discount' => '17%',
+                'coupon'   => 'ESPF17',
+            ) );
+            $discount = ( isset( $promo['discount'] ) ? (string) $promo['discount'] : '17%' );
+            $coupon = ( isset( $promo['coupon'] ) ? (string) $promo['coupon'] : 'ESPF17' );
             $banner_info = array(
                 'name'              => 'Easy Social Feed',
                 'bold'              => 'PRO',
-                'fb-description'    => 'Increase social followers, engage more users and get 10x traffic with 17% off on all plans (including monthly billings). So grab this offer now before it will go forever.',
-                'insta-description' => 'Increase social followers, engage more users and get 10x traffic with 17% off on all plans (including monthly billings). So grab this offer now before it will go forever.',
+                'fb-description'    => sprintf( 'Increase social followers, engage more users and get 10x traffic with %s off on all plans (including monthly billings). So grab this offer now before it will go forever.', $discount ),
+                'insta-description' => sprintf( 'Increase social followers, engage more users and get 10x traffic with %s off on all plans (including monthly billings). So grab this offer now before it will go forever.', $discount ),
                 'discount-text'     => '',
-                'coupon'            => 'ESPF17',
-                'discount'          => '17%',
+                'coupon'            => $coupon,
+                'discount'          => $discount,
                 'button-text'       => 'Upgrade Now',
-                'button-url'        => efl_fs()->get_upgrade_url(),
-                'target'            => '',
+                'button-url'        => esf_get_upgrade_url( 'general' ),
+                'target'            => '_blank',
             );
             return $banner_info;
-        }
-
-        /**
-         * Admin footer small review notice, similar to WP Reset example.
-         *
-         * @return void
-         */
-        public function esf_admin_footer_review_notice() {
-            $screen = get_current_screen();
-            // Show only on Easy Social Feed screens.
-            $allowed_screens = array(
-                'toplevel_page_feed-them-all',
-                'easy-social-feed_page_easy-facebook-likebox',
-                'easy-social-feed_page_mif',
-                'easy-social-feed_page_esf-twitter',
-                'easy-social-feed_page_esf-youtube',
-                'admin_page_esf_welcome',
-                'easy-social-feed_page_feed-them-all-addons',
-                'easy-social-feed_page_esf-settings'
-            );
-            if ( !isset( $screen->id ) || !in_array( $screen->id, $allowed_screens, true ) ) {
-                return;
-            }
-            ?>
-			<style>
-				.toplevel_page_feed-them-all #wpfooter,
-				.easy-social-feed_page_easy-facebook-likebox #wpfooter,
-				.easy-social-feed_page_mif #wpfooter,
-				.easy-social-feed_page_esf-twitter #wpfooter,
-				.easy-social-feed_page_esf-youtube #wpfooter,
-				.admin_page_esf_welcome #wpfooter,
-				.easy-social-feed_page_feed-them-all-addons #wpfooter,
-				.easy-social-feed_page_esf-settings #wpfooter {
-					display: none;
-				}
-			</style>
-			<div class="esf-admin-footer-review" style="padding: 20px 15px; background: #ffffff; border: 1px solid #e5e5e5; font-size: 12px; color: #555; margin-left: 160px;">
-				<span style="margin-top: 10px;display: block;">
-					<?php 
-            esc_html_e( 'Enjoying Easy Social Feed? Please take a moment to', 'easy-facebook-likebox' );
-            ?>
-					<a href="https://wordpress.org/support/plugin/easy-facebook-likebox/reviews/?filter=5#new-post" target="_blank">
-						<b>
-						<?php 
-            esc_html_e( 'rate the plugin', 'easy-facebook-likebox' );
-            ?>
-						<span style="color:#ffb900;">★★★★★</span>
-						</b>
-					</a>
-					<?php 
-            esc_html_e( 'Your feedback truly helps us grow and continue improving Easy Social Feed. Thank you for your support!', 'easy-facebook-likebox' );
-            ?>
-				</span>
-			</div>
-			<?php 
         }
 
     }

@@ -338,7 +338,7 @@ esc_html_e( 'Your Facebook fanpage URL. You can find your page URL from browser 
 esc_html_e( 'Tabs', 'easy-facebook-likebox' );
 ?> <a
 								href="<?php 
-echo esc_url( efl_fs()->get_upgrade_url() );
+echo esc_url( esf_get_upgrade_url( 'facebook' ) );
 ?>">(<?php 
 esc_html_e( 'pro', 'easy-facebook-likebox' );
 ?>)</a></span>

@@ -2,7 +2,9 @@
 /**
  * YouTube OAuth REST API.
  *
- * Provides endpoints for generating OAuth URLs and, later, handling tokens.
+ * Provides the REST endpoint for generating the OAuth connect URL.
+ * The OAuth flow itself runs on the ESF bridge; this class only
+ * builds the entry-point URL with the nonce-protected return URL.
  *
  * @package Easy_Social_Feed
  * @subpackage YouTube/API
@@ -22,32 +24,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ESF_YouTube_API_OAuth {
 
 	/**
-	 * Default external app ID used for YouTube OAuth.
+	 * ESF bridge URL for YouTube OAuth.
 	 *
 	 * @since 6.7.5
-	 *
 	 * @var string
 	 */
-	const DEFAULT_APP_ID = '245898365669';
-
-	/**
-	 * Get the external app ID for the YouTube OAuth app.
-	 *
-	 * Centralizes the app ID and passes it through a filter so
-	 * other apps/IDs can be used without touching core code.
-	 *
-	 * @since 6.7.5
-	 *
-	 * @return string
-	 */
-	public static function get_app_id() {
-		$app_id = apply_filters( 'esf_youtube_oauth_app_id', self::DEFAULT_APP_ID );
-		if ( ! is_string( $app_id ) || '' === trim( $app_id ) ) {
-			$app_id = self::DEFAULT_APP_ID;
-		}
-
-		return trim( (string) $app_id );
-	}
+	const BRIDGE_URL = 'https://easysocialfeed.com/apps/youtube/index.php';
 
 	/**
 	 * Register REST API routes.
@@ -88,7 +70,7 @@ class ESF_YouTube_API_OAuth {
 	}
 
 	/**
-	 * Build external OAuth URL for YouTube app.
+	 * Build external OAuth URL for YouTube via the ESF bridge.
 	 *
 	 * @since 6.7.5
 	 *
@@ -111,22 +93,14 @@ class ESF_YouTube_API_OAuth {
 			);
 		}
 
-		$app_id = self::get_app_id();
-
-		$base_url = sprintf(
-			'https://easysocialfeed.com/apps/youtube/%s/index.php',
-			rawurlencode( trim( (string) $app_id ) )
-		);
-
 		/**
-		 * Filter the base URL used for the YouTube OAuth app.
+		 * Filter the YouTube OAuth bridge URL.
 		 *
 		 * @since 6.7.5
 		 *
-		 * @param string $base_url Base URL.
-		 * @param string $app_id   App ID used in the URL.
+		 * @param string $bridge_url Bridge entry URL.
 		 */
-		$base_url = apply_filters( 'esf_youtube_oauth_base_url', $base_url, $app_id );
+		$base_url = apply_filters( 'esf_youtube_oauth_base_url', self::BRIDGE_URL );
 
 		$site_url = site_url();
 

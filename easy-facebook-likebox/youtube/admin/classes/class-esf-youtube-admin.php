@@ -66,20 +66,20 @@ class ESF_YouTube_Admin {
      * Register admin menu.
      *
      * Adds YouTube submenu under Easy Social Feed main menu.
-     * Position 100 ensures it appears after Facebook and Instagram.
+     * Position is fixed via {@see ESF_Admin_Menu_Order::YOUTUBE}.
      *
      * @since 6.7.5
      * @return void
      */
     public function register_menu() {
         $this->page_hook = add_submenu_page(
-            'feed-them-all',
+            ESF_Admin_Menu_Order::PARENT_SLUG,
             __( 'YouTube', 'easy-facebook-likebox' ),
             __( 'YouTube', 'easy-facebook-likebox' ),
             'manage_options',
             'esf-youtube',
             array($this, 'render_dashboard_page'),
-            3
+            ESF_Admin_Menu_Order::YOUTUBE
         );
     }
 
@@ -200,10 +200,16 @@ class ESF_YouTube_Admin {
         if ( !in_array( $cache_duration, $allowed_durations, true ) ) {
             $cache_duration = 43200;
         }
+        $pro_promo = ( function_exists( 'esf_get_pro_promo_offer' ) ? esf_get_pro_promo_offer() : array(
+            'discount' => '17%',
+            'coupon'   => 'ESPF17',
+        ) );
         $data = array(
             'hasYoutubePlan'       => $has_youtube_plan,
             'canAddAnotherAccount' => $has_youtube_plan || $repo->get_total_account_count() < 1,
-            'upgradeUrl'           => ( function_exists( 'efl_fs' ) ? esc_url( efl_fs()->get_upgrade_url() ) : '' ),
+            'upgradeUrl'           => esc_url( esf_get_upgrade_url( 'youtube' ) ),
+            'proDiscount'          => ( isset( $pro_promo['discount'] ) ? (string) $pro_promo['discount'] : '17%' ),
+            'proCoupon'            => ( isset( $pro_promo['coupon'] ) ? (string) $pro_promo['coupon'] : 'ESPF17' ),
             'defaultSettings'      => ESF_YouTube_Feed_Repository::get_default_settings(),
             'youtubeSettings'      => array(
                 'cache_duration' => $cache_duration,

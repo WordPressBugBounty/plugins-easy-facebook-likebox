@@ -548,9 +548,13 @@ abstract class ESF_Twitter_Layout_Base {
 			'author_avatar'  => $author_avatar,
 			'author_is_verified' => $author_is_verified,
 			'profile_url'    => $profile_url,
+			'media_alt'      => function_exists( 'esf_seo_media_alt' )
+				? esf_seo_media_alt( $text_html, $author_name, 'photo' )
+				: $author_name,
 			'feed_id'        => $feed_id_attr,
 		);
 		$tweet_context = apply_filters( 'esf_twitter_layout_tweet_context', $tweet_context, $tweet, $this->feed, $this->account, $this );
+		$media_alt     = isset( $tweet_context['media_alt'] ) ? (string) $tweet_context['media_alt'] : $author_name;
 
 		ob_start();
 		?>
@@ -648,33 +652,33 @@ abstract class ESF_Twitter_Layout_Base {
 									<?php if ( 2 === count( $grid_items ) ) : ?>
 										<div class="esf-tw-feed__card-media-grid esf-tw-feed__card-media-grid--two">
 											<div class="esf-tw-feed__card-media-grid-cell">
-												<img src="<?php echo esc_url( $grid_items[0]['src'] ); ?>" alt="<?php echo esc_attr( $author_name ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
+												<img src="<?php echo esc_url( $grid_items[0]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
 											</div>
 											<div class="esf-tw-feed__card-media-grid-cell">
-												<img src="<?php echo esc_url( $grid_items[1]['src'] ); ?>" alt="<?php echo esc_attr( $author_name ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
+												<img src="<?php echo esc_url( $grid_items[1]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
 											</div>
 										</div>
 									<?php else : ?>
 										<div class="esf-tw-feed__card-media-grid">
 											<div class="esf-tw-feed__card-media-grid-left">
-												<img src="<?php echo esc_url( $grid_items[0]['src'] ); ?>" alt="<?php echo esc_attr( $author_name ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
+												<img src="<?php echo esc_url( $grid_items[0]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
 											</div>
 											<div class="esf-tw-feed__card-media-grid-right">
 												<?php if ( isset( $grid_items[1] ) ) : ?>
 													<div class="esf-tw-feed__card-media-grid-cell">
-														<img src="<?php echo esc_url( $grid_items[1]['src'] ); ?>" alt="<?php echo esc_attr( $author_name ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
+														<img src="<?php echo esc_url( $grid_items[1]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
 													</div>
 												<?php endif; ?>
 												<?php if ( isset( $grid_items[2] ) ) : ?>
 													<div class="esf-tw-feed__card-media-grid-cell">
-														<img src="<?php echo esc_url( $grid_items[2]['src'] ); ?>" alt="<?php echo esc_attr( $author_name ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
+														<img src="<?php echo esc_url( $grid_items[2]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
 														<?php if ( $extra_count > 0 ) : ?>
 															<span class="esf-tw-feed__card-media-grid-more">+<?php echo esc_html( (string) $extra_count ); ?> <?php esc_html_e( esf_get_translated_string( 'tw_more' ), 'easy-facebook-likebox' ); ?></span>
 														<?php endif; ?>
 													</div>
 												<?php elseif ( isset( $grid_items[1] ) && $extra_count > 0 ) : ?>
 													<div class="esf-tw-feed__card-media-grid-cell">
-														<img src="<?php echo esc_url( $grid_items[1]['src'] ); ?>" alt="<?php echo esc_attr( $author_name ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
+														<img src="<?php echo esc_url( $grid_items[1]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
 														<span class="esf-tw-feed__card-media-grid-more">+<?php echo esc_html( (string) $extra_count ); ?> <?php esc_html_e( esf_get_translated_string( 'tw_more' ), 'easy-facebook-likebox' ); ?></span>
 													</div>
 												<?php endif; ?>
@@ -702,7 +706,7 @@ abstract class ESF_Twitter_Layout_Base {
 									data-esf-tw-media-type="<?php echo esc_attr( 'photo' === $media_type ? 'image' : 'video' ); ?>"
 								<?php endif; ?>>
 								<img src="<?php echo esc_url( $media_url ); ?>"
-									alt="<?php echo esc_attr( $author_name ); ?>"
+									alt="<?php echo esc_attr( $media_alt ); ?>"
 									class="esf-tw-feed__card-media-img" loading="lazy" />
 								<span class="esf-tw-feed__card-media-overlay" aria-hidden="true">
 									<span class="esf-tw-feed__card-media-overlay-plus">+</span>

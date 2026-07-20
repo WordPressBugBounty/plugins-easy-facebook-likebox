@@ -67,13 +67,13 @@ if ( !class_exists( 'Easy_Facebook_Likebox_Admin' ) ) {
          */
         public function efbl_menu() {
             add_submenu_page(
-                'feed-them-all',
+                ESF_Admin_Menu_Order::PARENT_SLUG,
                 __( 'Facebook', 'easy-facebook-likebox' ),
                 __( 'Facebook', 'easy-facebook-likebox' ),
                 'manage_options',
                 'easy-facebook-likebox',
                 array($this, 'efbl_page'),
-                1
+                ESF_Admin_Menu_Order::FACEBOOK
             );
         }
 

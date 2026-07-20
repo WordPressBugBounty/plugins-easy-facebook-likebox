@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Easy Social Feed\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-30 12:25+0000\n"
+"POT-Creation-Date: 2026-07-10 19:06+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: \n"
@@ -22,11 +22,11 @@ msgid ""
 "do not delete to make the plugin work properly."
 msgstr ""
 
-#: admin/class-esf-admin.php:748
+#: admin/class-esf-admin.php:777
 msgid " Activated"
 msgstr ""
 
-#: admin/class-esf-admin.php:750
+#: admin/class-esf-admin.php:779
 msgid " Deactivated"
 msgstr ""
 
@@ -61,7 +61,7 @@ msgid ""
 " discount! On the checkout click on \"Have a promotional code?\" and enter "
 msgstr ""
 
-#: admin/class-esf-admin.php:755
+#: admin/class-esf-admin.php:784
 msgid " Successfully"
 msgstr ""
 
@@ -75,6 +75,19 @@ msgstr ""
 
 #: instagram/admin/views/html-autenticate-tab.php:363
 msgid " with your Instagram account before clicking the connect button."
+msgstr ""
+
+#. %s: hashtag without #
+#: includes/class-esf-feed-name.php:152
+#, php-format
+msgid "#%s Feed"
+msgstr ""
+
+#. %d: number of videos without a poster image
+#: instagram/includes/class-esf-instagram-renderer.php:976
+msgid ""
+"%d videos have no thumbnail — Instagram's hashtag API does not include video "
+"posters, so placeholders are shown instead."
 msgstr ""
 
 #. %dd = number of days ago
@@ -92,8 +105,14 @@ msgstr ""
 msgid "%dm"
 msgstr ""
 
+#. %s: social network name
+#: includes/class-esf-review-request.php:616
+#, php-format
+msgid "%s account connected successfully!"
+msgstr ""
+
 #. %s: human readable time difference, e.g. "2 hours"
-#: includes/core-functions.php:306
+#: includes/core-functions.php:849
 #, php-format
 msgid "%s ago"
 msgstr ""
@@ -115,7 +134,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. %s: number of views
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:459
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:455
 #, php-format
 msgid "%s view"
 msgid_plural "%s views"
@@ -125,6 +144,7 @@ msgstr[1] ""
 #. appended to feed name when duplicating
 #: twitter/includes/models/class-esf-twitter-feed-repository.php:417
 #: youtube/includes/models/class-esf-youtube-feed-repository.php:435
+#: instagram/includes/models/class-esf-instagram-feed-repository.php:535
 msgid "(Copy)"
 msgstr ""
 
@@ -149,11 +169,13 @@ msgstr ""
 
 #: twitter/includes/class-esf-twitter-auth-callback-listener.php:59
 #: youtube/includes/class-esf-youtube-auth-callback-listener.php:58
+#: instagram/includes/class-esf-instagram-auth-callback-listener.php:62
 msgid "401 Unauthorized"
 msgstr ""
 
 #: twitter/includes/class-esf-twitter-auth-callback-listener.php:49
 #: youtube/includes/class-esf-youtube-auth-callback-listener.php:46
+#: instagram/includes/class-esf-instagram-auth-callback-listener.php:53
 msgid "403 Forbidden"
 msgstr ""
 
@@ -169,21 +191,39 @@ msgid "<strong>Save %1$s with code </strong><code>%2$s</code>."
 msgstr ""
 
 #. %s: account username
-#: twitter/includes/api/class-esf-twitter-api-feeds.php:580
+#: includes/class-esf-feed-name.php:119
 #, php-format
 msgid "@%s Feed"
 msgstr ""
 
+#. %s: Site title
+#: instagram/includes/class-esf-instagram-token-notifications.php:69
+#, php-format
+msgid "[%s] Instagram account needs reconnecting"
+msgstr ""
+
 #. %s: site name
-#: twitter/includes/class-esf-twitter-token-manager.php:189
+#: twitter/includes/class-esf-twitter-token-manager.php:185
 #, php-format
 msgid "[%s] X Account Token Expired"
 msgstr ""
 
 #. %s: Site name
-#: youtube/includes/class-esf-youtube-token-manager.php:149
+#: youtube/includes/class-esf-youtube-token-manager.php:145
 #, php-format
 msgid "[%s] YouTube Account Token Expired"
+msgstr ""
+
+#: instagram/class-esf-instagram-main.php:615
+msgid "A mixed-size wall of Instagram tiles for a dynamic, editorial look."
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1372
+msgid "A new Instagram experience is here"
+msgstr ""
+
+#: instagram/class-esf-instagram-main.php:357
+msgid "A sleek, single-row layout — great for headers, footers or sections."
 msgstr ""
 
 #: facebook/admin/views/html-authenticate-tab.php:145
@@ -226,7 +266,7 @@ msgid ""
 "page events you can follow the steps explained "
 msgstr ""
 
-#: youtube/includes/api/class-esf-youtube-api-accounts.php:257
+#: youtube/includes/api/class-esf-youtube-api-accounts.php:248
 msgid "Account deleted successfully. Access has been revoked from Google."
 msgstr ""
 
@@ -243,16 +283,33 @@ msgstr ""
 msgid "Account ID."
 msgstr ""
 
+#: instagram/includes/api/class-esf-instagram-api-accounts.php:266
+msgid "Account not found after refresh."
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-migrator.php:1236
+msgid "Account not found after token refresh."
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-migrator.php:1215
+#: instagram/includes/class-esf-instagram-migrator.php:1222
 #: twitter/includes/api/class-esf-twitter-api-load-more.php:124
-#: twitter/includes/api/class-esf-twitter-api-accounts.php:269
-#: twitter/includes/api/class-esf-twitter-api-accounts.php:309
-#: youtube/includes/api/class-esf-youtube-api-refresh.php:122
-#: youtube/includes/api/class-esf-youtube-api-accounts.php:234
+#: twitter/includes/api/class-esf-twitter-api-accounts.php:263
+#: twitter/includes/api/class-esf-twitter-api-accounts.php:303
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:121
+#: youtube/includes/api/class-esf-youtube-api-accounts.php:225
 #: youtube/includes/api/class-esf-youtube-api-load-more.php:107
+#: instagram/includes/api/class-esf-instagram-api-moderate.php:236
+#: instagram/includes/api/class-esf-instagram-api-post-comments.php:302
+#: instagram/includes/api/class-esf-instagram-api-load-more.php:231
+#: instagram/includes/api/class-esf-instagram-api-load-more.php:243
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:233
+#: instagram/includes/api/class-esf-instagram-api-accounts.php:231
+#: instagram/includes/api/class-esf-instagram-api-warm-media.php:111
 msgid "Account not found."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-accounts.php:286
+#: twitter/includes/api/class-esf-twitter-api-accounts.php:280
 msgid "Account removed successfully."
 msgstr ""
 
@@ -262,7 +319,7 @@ msgstr ""
 msgid "Account(s)"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:288
+#: admin/api/class-esf-api-welcome.php:292
 msgid "Account, hashtag and gallery feeds"
 msgstr ""
 
@@ -278,18 +335,22 @@ msgid "Activate"
 msgstr ""
 
 #. %d: Number of days
-#: youtube/includes/class-esf-youtube-token-manager.php:249
+#: youtube/includes/class-esf-youtube-token-manager.php:245
 msgid "Active - Auto-refresh in %d days"
 msgstr ""
 
 #. %d: Number of hours
-#: youtube/includes/class-esf-youtube-token-manager.php:252
+#: youtube/includes/class-esf-youtube-token-manager.php:248
 msgid "Active - Auto-refresh in %d hours"
 msgstr ""
 
 #. %d: Number of minutes
-#: youtube/includes/class-esf-youtube-token-manager.php:256
+#: youtube/includes/class-esf-youtube-token-manager.php:252
 msgid "Active - Auto-refresh in %d minutes"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1301
+msgid "Add a comment on Instagram…"
 msgstr ""
 
 #: instagram/includes/esf-instagram-feed-widget.php:211
@@ -358,6 +419,10 @@ msgstr ""
 msgid "Approved Pages"
 msgstr ""
 
+#: includes/class-esf-review-request.php:401
+msgid "Are you enjoying Easy Social Feed so far?"
+msgstr ""
+
 #: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:163
 #: instagram/admin/views/html-admin-page-mif.php:181
 #: instagram/admin/views/html-admin-page-mif.php:195
@@ -377,14 +442,20 @@ msgstr ""
 msgid "ARIA label for the YouTube Load More button."
 msgstr ""
 
-#: admin/class-esf-admin.php:1064
+#: admin/class-esf-admin.php:1027
 msgid "Attention! Access token is expired. Please re-authenticate the app."
 msgstr ""
 
-#: admin/class-esf-admin.php:1054
+#: admin/class-esf-admin.php:1017
 msgid ""
 "Attention! Data access to the current access token is expired. Please re-"
 "authenticate the app."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-oauth.php:70
+msgid ""
+"Auth flow: instagram_login (Instagram Login) or facebook_page (Facebook Page)"
+". Legacy: basic, business."
 msgstr ""
 
 #: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:57
@@ -393,7 +464,7 @@ msgstr ""
 msgid "Authenticate"
 msgstr ""
 
-#: admin/class-esf-admin.php:662
+#: admin/class-esf-admin.php:687
 msgid "Auto-translation is available in the premium version only."
 msgstr ""
 
@@ -423,12 +494,9 @@ msgstr ""
 msgid "Autoplay carousel"
 msgstr ""
 
-#: admin/class-esf-admin.php:833
-msgid "Awesome, you have been using Easy Social Feed "
-msgstr ""
-
-#: includes/core-functions.php:264
+#: includes/core-functions.php:807
 #: instagram/includes/esf-insta-helper-functions.php:312
+#: instagram/includes/helpers/instagram-helper-functions.php:1329
 msgid "B"
 msgstr ""
 
@@ -545,8 +613,8 @@ msgstr ""
 msgid "Cache duration in seconds. Must be one of the allowed values."
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:312
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:349
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:304
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:341
 msgid "Cache is successfully deleted."
 msgstr ""
 
@@ -581,6 +649,14 @@ msgstr ""
 
 #: instagram/admin/views/html-how-to-use-tab.php:212
 msgid "Caption Words (Leave empty to show full text)"
+msgstr ""
+
+#: instagram/class-esf-instagram-main.php:692
+msgid "Carousel"
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/CarouselTrack.php:97
+msgid "Carousel pagination"
 msgstr ""
 
 #: facebook/frontend/views/html-feed-header.php:62
@@ -676,6 +752,14 @@ msgstr ""
 msgid "Click the save button and visit your site to see likebox in widget"
 msgstr ""
 
+#: instagram/includes/helpers/instagram-helper-functions.php:1325
+msgid "Close stories"
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-accounts.php:37
+msgid "Comma-separated list of account fields to return."
+msgstr ""
+
 #: youtube/includes/api/class-esf-youtube-api-feeds.php:40
 msgid ""
 "Comma-separated list of fields to return (id, name, account_id, feed_type, "
@@ -691,9 +775,39 @@ msgstr ""
 msgid "Comma-separated list of fields to return. Omit for full response."
 msgstr ""
 
+#: instagram/includes/api/class-esf-instagram-api-post-comments.php:315
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:247
+msgid "Comment list is disabled for this feed."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:197
+msgid "Comment replies in the popup are a premium feature."
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1308
+#: instagram/includes/layouts/src/Layouts/Masonry.php:359
+#: instagram/includes/layouts/src/Layouts/Carousel.php:407
+#: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:556
+#: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:534
+msgid "Comments"
+msgstr ""
+
 #: facebook/admin/includes/efbl-customizer.php:2531
 #: instagram/admin/includes/class-esf-insta-customizer.php:2394
 msgid "Comments Color"
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-post-comments.php:263
+msgid "Comments in the popup are a premium feature."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-post-comments.php:84
+msgid "Comments per page (dashboard preview override)."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-post-comments.php:339
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:277
+msgid "Comments service is unavailable."
 msgstr ""
 
 #: includes/class-esf-gdpr-integrations.php:206
@@ -705,6 +819,10 @@ msgstr ""
 #: admin/views/html-admin-page-easy-social-feed.php:188
 #: admin/views/html-admin-page-easy-social-feed.php:236
 msgid "Configure"
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:450
+msgid "Connect an Instagram account before syncing stories."
 msgstr ""
 
 #: instagram/admin/views/html-autenticate-tab.php:299
@@ -734,13 +852,13 @@ msgstr ""
 msgid "Connect your Instagram account"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:435
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:427
 #: instagram/admin/views/html-autenticate-tab.php:143
 #: instagram/admin/views/html-autenticate-tab.php:172
 msgid "Connected Instagram Account"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:537
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:529
 msgid "Connected Instagram Accounts"
 msgstr ""
 
@@ -782,7 +900,7 @@ msgstr ""
 msgid "CookieYes | GDPR Cookie Consent by CookieYes"
 msgstr ""
 
-#: admin/class-esf-admin.php:408
+#: admin/class-esf-admin.php:429
 #: admin/views/html-admin-page-easy-social-feed.php:251
 #: admin/views/html-admin-page-esf-settings.php:71
 #: facebook/admin/class-easy-facebook-likebox-admin.php:150
@@ -792,9 +910,13 @@ msgstr ""
 msgid "Copied"
 msgstr ""
 
+#: instagram/frontend/class-esf-instagram-frontend.php:336
+msgid "Copied!"
+msgstr ""
+
 #: facebook/admin/class-easy-facebook-likebox-admin.php:458
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:440
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:665
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:432
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:657
 #: facebook/admin/views/html-likebox-tab.php:33
 #: facebook/admin/views/html-likebox-tab.php:261
 #: facebook/admin/views/html-authenticate-tab.php:218
@@ -819,6 +941,10 @@ msgid ""
 "display the likebox/page plugin."
 msgstr ""
 
+#: instagram/frontend/class-esf-instagram-frontend.php:335
+msgid "Copy shortcode"
+msgstr ""
+
 #: facebook/admin/views/html-skins-tab.php:111
 #: facebook/admin/views/html-skins-tab.php:150
 #: facebook/admin/views/html-skins-tab.php:184
@@ -837,18 +963,32 @@ msgid ""
 "options."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-accounts.php:430
+#: twitter/includes/api/class-esf-twitter-api-accounts.php:424
 msgid ""
 "Could not add the X account. The username may not exist or the ESF server "
 "could not be reached."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:267
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:276
+msgid "Could not delete this cached hashtag."
 msgstr ""
 
 #: twitter/includes/api/class-esf-twitter-api-oauth.php:102
 msgid "Could not determine current user for OAuth request."
 msgstr ""
 
+#: instagram/includes/api/class-esf-instagram-api-migrate.php:224
+msgid "Could not dismiss the legacy notice."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-migrate.php:193
+msgid "Could not dismiss the welcome notice."
+msgstr ""
+
 #: twitter/includes/api/class-esf-twitter-api-preview.php:115
 #: youtube/includes/api/class-esf-youtube-api-preview.php:105
+#: instagram/includes/api/class-esf-instagram-api-preview.php:136
 msgid "Could not generate preview."
 msgstr ""
 
@@ -860,23 +1000,47 @@ msgstr ""
 msgid "Could not initialize OAuth request. Please try again."
 msgstr ""
 
+#: instagram/includes/class-esf-instagram-facebook-graph.php:213
+msgid "Could not list Facebook Pages for this account."
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1314
+msgid "Could not load comments."
+msgstr ""
+
+#: instagram/frontend/class-esf-instagram-frontend.php:340
+msgid "Could not load feed preview."
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-facebook-graph.php:154
+msgid "Could not read Facebook profile for this token."
+msgstr ""
+
 #: twitter/includes/api/class-esf-twitter-api-service.php:270
 msgid "Could not retrieve X user data."
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:271
+#: includes/class-esf-module-system.php:361
+msgid "Could not switch back to the legacy system. Please try again."
+msgstr ""
+
+#: instagram/frontend/class-esf-instagram-frontend.php:341
+msgid "Could not update the shortcode on this page."
+msgstr ""
+
+#: admin/api/class-esf-api-welcome.php:275
 msgid "Custom Facebook Feed"
 msgstr ""
 
-#: easy-facebook-likebox.php:368
+#: easy-facebook-likebox.php:382
 msgid "Custom Facebook Feed - Page Plugin (Likebox)"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:274
+#: admin/api/class-esf-api-welcome.php:278
 msgid "Custom feed of posts, photos and videos"
 msgstr ""
 
-#: easy-facebook-likebox.php:376 admin/api/class-esf-api-welcome.php:285
+#: easy-facebook-likebox.php:390 admin/api/class-esf-api-welcome.php:289
 msgid "Custom Instagram Feed"
 msgstr ""
 
@@ -885,7 +1049,7 @@ msgstr ""
 msgid "Custom URL"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:304
+#: admin/api/class-esf-api-welcome.php:308
 msgid "Customisable layouts and caching"
 msgstr ""
 
@@ -934,7 +1098,7 @@ msgstr ""
 msgid "days"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:317
+#: admin/api/class-esf-api-welcome.php:321
 msgid "DB-backed caching for fast page loads"
 msgstr ""
 
@@ -953,11 +1117,11 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: includes/core-functions.php:526
+#: includes/core-functions.php:1182
 msgid "Default (use site language)"
 msgstr ""
 
-#: admin/class-esf-admin.php:415
+#: admin/class-esf-admin.php:436
 msgid "Defaults restored."
 msgstr ""
 
@@ -992,26 +1156,26 @@ msgid "Delete"
 msgstr ""
 
 #: facebook/admin/class-easy-facebook-likebox-admin.php:401
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:436
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:540
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:428
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:532
 #: facebook/admin/views/html-authenticate-tab.php:165
 #: instagram/admin/views/html-autenticate-tab.php:148
 #: instagram/admin/views/html-autenticate-tab.php:176
 msgid "Delete Access Token"
 msgstr ""
 
-#: admin/class-esf-admin.php:796
+#: admin/class-esf-admin.php:825
 #: facebook/admin/class-easy-facebook-likebox-admin.php:272
 #: facebook/admin/class-easy-facebook-likebox-admin.php:319
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:733
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:725
 msgid "Deleted"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:991
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:983
 msgid "Deleted!"
 msgstr ""
 
-#: admin/class-esf-admin.php:409
+#: admin/class-esf-admin.php:430
 #: facebook/admin/class-easy-facebook-likebox-admin.php:153
 #: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:182
 msgid "Deleting"
@@ -1020,6 +1184,10 @@ msgstr ""
 #: includes/class-esf-gdpr-integrations.php:187
 #, php-format
 msgid "Detected: %s"
+msgstr ""
+
+#: includes/class-esf-review-request.php:397
+msgid "Developer preview"
 msgstr ""
 
 #: instagram/admin/views/html-shoppable-tab.php:95
@@ -1039,10 +1207,6 @@ msgstr ""
 msgid ""
 "Disabled: GDPR controls are turned off. All images, videos, popups, and Load "
 "More will always load normally for visitors."
-msgstr ""
-
-#: admin/class-esf-admin.php:857
-msgid "Dismiss"
 msgstr ""
 
 #: includes/class-module-search.php:247 includes/class-module-search.php:252
@@ -1065,7 +1229,7 @@ msgid ""
 "subscribers and customers."
 msgstr ""
 
-#: easy-facebook-likebox.php:371
+#: easy-facebook-likebox.php:385
 msgid ""
 "Display customizable and mobile-friendly Facebook post, images, videos, "
 "events, albums feed and Facebook page plugin using shortcode and widget"
@@ -1112,7 +1276,7 @@ msgstr ""
 msgid "Display stunning photos from the Instagram account in the feed"
 msgstr ""
 
-#: easy-facebook-likebox.php:379
+#: easy-facebook-likebox.php:393
 msgid ""
 "Display stunning photos from the Instagram account in the feed, any Hashtag "
 "Feed and gallery of photos in the PopUp using shortcode, widget, inside "
@@ -1127,18 +1291,18 @@ msgid ""
 "multiple layouts."
 msgstr ""
 
-#: easy-facebook-likebox.php:395
+#: easy-facebook-likebox.php:409
 msgid ""
 "Display your X (Twitter) timeline using secure OAuth connection with DB-"
 "backed caching. Connect your own account (free) or display any public "
 "account feed (Pro)."
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:314
+#: admin/api/class-esf-api-welcome.php:318
 msgid "Display your X timeline or any public account (Pro)."
 msgstr ""
 
-#: easy-facebook-likebox.php:387
+#: easy-facebook-likebox.php:401
 msgid ""
 "Display YouTube videos from your channel using secure OAuth connection with "
 "customizable layouts and caching"
@@ -1219,7 +1383,7 @@ msgstr ""
 
 #. Name of the plugin
 #. Author of the plugin
-#: admin/class-esf-admin.php:453 admin/class-esf-admin.php:454
+#: admin/class-esf-admin.php:477 admin/class-esf-admin.php:478
 msgid "Easy Social Feed"
 msgstr ""
 
@@ -1227,9 +1391,22 @@ msgstr ""
 msgid "Easy Social Feed (Previously Easy Facebook Likebox)"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:372
+#: admin/api/class-esf-api-welcome.php:376
 msgid "Easy Social Feed quick-start video"
 msgstr ""
+
+#. %d: number of Instagram accounts that need reconnect
+#: instagram/admin/classes/class-esf-instagram-admin.php:229
+msgid ""
+"Easy Social Feed: %d Instagram account must be reconnected (token expired or "
+"automatic renewal failed). Feeds for that account may stop updating until "
+"you authorize again."
+msgid_plural ""
+"Easy Social Feed: %d Instagram accounts must be reconnected (tokens expired "
+"or automatic renewal failed). Feeds for those accounts may stop updating "
+"until you authorize again."
+msgstr[0] ""
+msgstr[1] ""
 
 #: includes/class-module-search.php:155
 #, php-format
@@ -1249,16 +1426,14 @@ msgstr ""
 msgid "Edit"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:526
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:518
 msgid "Empty response from Facebook."
 msgstr ""
 
-#: admin/class-esf-admin.php:837
-msgid "encourage us to make it even better."
-msgstr ""
-
-#: admin/class-esf-admin.php:1134
-msgid "Enjoying Easy Social Feed? Please take a moment to"
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:255
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:313
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:358
+msgid "Enter a valid hashtag."
 msgstr ""
 
 #: instagram/includes/esf-instagram-feed-widget.php:235
@@ -1297,46 +1472,46 @@ msgstr ""
 msgid "Events Filter"
 msgstr ""
 
-#: youtube/class-esf-youtube-main.php:504
+#: youtube/class-esf-youtube-main.php:499
 msgid "Every 1 Hour"
 msgstr ""
 
-#: twitter/class-esf-twitter-main.php:168
-#: youtube/class-esf-youtube-main.php:516
+#: twitter/class-esf-twitter-main.php:186
+#: youtube/class-esf-youtube-main.php:511
 msgid "Every 12 Hours"
 msgstr ""
 
-#: twitter/class-esf-twitter-main.php:172
-#: youtube/class-esf-youtube-main.php:520
+#: twitter/class-esf-twitter-main.php:190
+#: youtube/class-esf-youtube-main.php:515
 msgid "Every 24 Hours"
 msgstr ""
 
-#: youtube/class-esf-youtube-main.php:508
+#: youtube/class-esf-youtube-main.php:503
 msgid "Every 3 Hours"
 msgstr ""
 
-#: twitter/class-esf-twitter-main.php:161
-#: youtube/class-esf-youtube-main.php:497
+#: includes/class-esf-token-cron-helpers.php:30
 msgid "Every 30 Minutes"
 msgstr ""
 
-#: youtube/class-esf-youtube-main.php:512
+#: youtube/class-esf-youtube-main.php:507
 msgid "Every 6 Hours"
 msgstr ""
 
-#: twitter/class-esf-twitter-main.php:176
-#: youtube/class-esf-youtube-main.php:524
+#: twitter/class-esf-twitter-main.php:194
+#: youtube/class-esf-youtube-main.php:519
 msgid "Every 7 Days"
 msgstr ""
 
-#: youtube/includes/class-esf-youtube-token-manager.php:236
+#: youtube/includes/class-esf-youtube-token-manager.php:232
 msgid "Expired - Auto-refresh failed. Please reconnect."
 msgstr ""
 
-#: youtube/includes/class-esf-youtube-token-manager.php:241
+#: youtube/includes/class-esf-youtube-token-manager.php:237
 msgid "Expiring soon - Auto-refresh scheduled"
 msgstr ""
 
+#: includes/class-esf-review-request.php:661
 #: facebook/admin/class-easy-facebook-likebox-admin.php:171
 #: facebook/admin/class-easy-facebook-likebox-admin.php:172
 #: instagram/admin/views/html-admin-page-mif.php:137
@@ -1363,12 +1538,25 @@ msgstr ""
 msgid "Facebook Like box(Page Plugin)"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:275
+#: instagram/includes/api/class-esf-instagram-api-oauth.php:105
+msgid "Facebook Page ids to import from the pending session."
+msgstr ""
+
+#: admin/api/class-esf-api-welcome.php:279
 msgid "Facebook Page Plugin (Like Box)"
 msgstr ""
 
 #: admin/views/html-admin-page-easy-social-feed.php:79
 msgid "Facebook Page Plugin (previously like box)"
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-facebook-graph.php:163
+msgid "Facebook returned an unexpected response for this token."
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-facebook-graph.php:212
+#: instagram/includes/class-esf-instagram-facebook-graph.php:225
+msgid "Facebook returned an unexpected response when listing Pages."
 msgstr ""
 
 #: facebook/admin/includes/efbl-skins.php:51
@@ -1387,23 +1575,27 @@ msgstr ""
 msgid "Failed to connect to YouTube API: %s"
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-feeds.php:283
+#: twitter/includes/api/class-esf-twitter-api-feeds.php:288
 #: youtube/includes/api/class-esf-youtube-api-feeds.php:383
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:208
 msgid "Failed to create feed."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-accounts.php:278
-#: youtube/includes/api/class-esf-youtube-api-accounts.php:249
+#: twitter/includes/api/class-esf-twitter-api-accounts.php:272
+#: youtube/includes/api/class-esf-youtube-api-accounts.php:240
+#: instagram/includes/api/class-esf-instagram-api-accounts.php:239
 msgid "Failed to delete account."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-feeds.php:387
-#: youtube/includes/api/class-esf-youtube-api-feeds.php:484
+#: twitter/includes/api/class-esf-twitter-api-feeds.php:431
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:488
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:369
 msgid "Failed to delete feed."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-feeds.php:414
-#: youtube/includes/api/class-esf-youtube-api-feeds.php:522
+#: twitter/includes/api/class-esf-twitter-api-feeds.php:458
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:526
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:398
 msgid "Failed to duplicate feed."
 msgstr ""
 
@@ -1419,13 +1611,14 @@ msgstr ""
 msgid "Failed to refresh token: %s"
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-accounts.php:345
-#: youtube/includes/api/class-esf-youtube-api-refresh.php:167
+#: twitter/includes/api/class-esf-twitter-api-accounts.php:339
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:157
 msgid "Failed to update account tokens."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-feeds.php:362
-#: youtube/includes/api/class-esf-youtube-api-feeds.php:449
+#: twitter/includes/api/class-esf-twitter-api-feeds.php:406
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:453
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:338
 msgid "Failed to update feed."
 msgstr ""
 
@@ -1437,6 +1630,7 @@ msgstr ""
 msgid "Fanpage Url:"
 msgstr ""
 
+#: includes/class-esf-feed-name.php:160
 #: facebook/admin/includes/efbl-customizer.php:1691
 #: instagram/admin/includes/class-esf-insta-customizer.php:1585
 msgid "Feed"
@@ -1447,7 +1641,7 @@ msgstr ""
 msgid "Feed (Copy)"
 msgstr ""
 
-#: youtube/includes/api/class-esf-youtube-api-feeds.php:492
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:496
 msgid "Feed deleted successfully."
 msgstr ""
 
@@ -1470,6 +1664,11 @@ msgstr ""
 msgid "Feed ID to duplicate."
 msgstr ""
 
+#: instagram/includes/api/class-esf-instagram-api-post-comments.php:66
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:72
+msgid "Feed ID used to resolve the account token."
+msgstr ""
+
 #. %s: feed ID.
 #: twitter/includes/api/class-esf-twitter-api-load-more.php:49
 #: twitter/includes/api/class-esf-twitter-api-preview.php:42
@@ -1477,6 +1676,9 @@ msgstr ""
 #: youtube/includes/api/class-esf-youtube-api-preview.php:40
 #: youtube/includes/api/class-esf-youtube-api-feeds.php:91
 #: youtube/includes/api/class-esf-youtube-api-feeds.php:113
+#: instagram/includes/api/class-esf-instagram-api-load-more.php:115
+#: instagram/includes/api/class-esf-instagram-api-warm-media.php:38
+#: instagram/includes/api/class-esf-instagram-api-preview.php:40
 msgid "Feed ID."
 msgstr ""
 
@@ -1495,18 +1697,46 @@ msgstr ""
 msgid "Feed name."
 msgstr ""
 
+#: instagram/frontend/class-esf-instagram-frontend.php:327
+msgid "Feed not found"
+msgstr ""
+
+#: admin/api/class-esf-api-moderation.php:203
+#: admin/api/class-esf-api-moderation.php:238
+#: admin/api/class-esf-api-moderation.php:277
+#: admin/api/class-esf-api-moderation.php:317
+#: admin/api/class-esf-api-moderation.php:362
+#: admin/api/class-esf-api-shoppable.php:297
+#: admin/api/class-esf-api-shoppable.php:332
+#: admin/api/class-esf-api-shoppable.php:376
+#: admin/api/class-esf-api-shoppable.php:445
+#: admin/api/class-esf-api-shoppable.php:489
 #: twitter/includes/api/class-esf-twitter-api-load-more.php:103
 #: twitter/includes/api/class-esf-twitter-api-feeds.php:227
-#: twitter/includes/api/class-esf-twitter-api-feeds.php:304
-#: twitter/includes/api/class-esf-twitter-api-feeds.php:383
-#: twitter/includes/api/class-esf-twitter-api-feeds.php:409
-#: twitter/includes/api/class-esf-twitter-api-feeds.php:442
+#: twitter/includes/api/class-esf-twitter-api-feeds.php:313
+#: twitter/includes/api/class-esf-twitter-api-feeds.php:427
+#: twitter/includes/api/class-esf-twitter-api-feeds.php:453
+#: twitter/includes/api/class-esf-twitter-api-feeds.php:486
 #: youtube/includes/api/class-esf-youtube-api-load-more.php:86
 #: youtube/includes/api/class-esf-youtube-api-feeds.php:325
-#: youtube/includes/api/class-esf-youtube-api-feeds.php:409
-#: youtube/includes/api/class-esf-youtube-api-feeds.php:475
-#: youtube/includes/api/class-esf-youtube-api-feeds.php:513
-#: youtube/includes/api/class-esf-youtube-api-feeds.php:546
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:413
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:479
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:517
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:550
+#: instagram/includes/api/class-esf-instagram-api-moderate.php:109
+#: instagram/includes/api/class-esf-instagram-api-moderate.php:202
+#: instagram/includes/api/class-esf-instagram-api-moderate.php:207
+#: instagram/includes/api/class-esf-instagram-api-post-comments.php:286
+#: instagram/includes/api/class-esf-instagram-api-load-more.php:187
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:223
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:151
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:231
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:366
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:415
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:443
+#: instagram/includes/api/class-esf-instagram-api-warm-media.php:97
+#: instagram/includes/helpers/instagram-helper-functions.php:1577
+#: instagram/includes/helpers/instagram-helper-functions.php:1687
 msgid "Feed not found."
 msgstr ""
 
@@ -1527,6 +1757,10 @@ msgstr ""
 #: instagram/admin/includes/class-esf-insta-customizer.php:1769
 #: instagram/admin/includes/class-esf-insta-customizer.php:1958
 msgid "Feed Type Icon color"
+msgstr ""
+
+#: includes/class-esf-shoppable.php:255
+msgid "Feed-wide shop links require an active feed destination."
 msgstr ""
 
 #: instagram/admin/views/html-clear-cache-tab.php:91
@@ -1582,7 +1816,8 @@ msgstr ""
 msgid "Filter Posts:"
 msgstr ""
 
-#: twitter/includes/class-esf-twitter-auth-callback-listener.php:233
+#: twitter/includes/class-esf-twitter-auth-callback-listener.php:241
+#: instagram/includes/class-esf-instagram-auth-callback-listener.php:411
 msgid ""
 "Finishing authentication. You can close this window if it does not close "
 "automatically."
@@ -1592,7 +1827,13 @@ msgstr ""
 msgid "Follow button label in Twitter/X feed and popup."
 msgstr ""
 
+#: instagram/includes/layouts/src/InstagramHeaderSupport.php:45
+#: instagram/includes/layouts/src/InstagramHeaderSupport.php:70
+msgid "Follow on Instagram"
+msgstr ""
+
 #: facebook/frontend/views/html-feed-header.php:74
+#: instagram/includes/layouts/src/InstagramHeaderSupport.php:66
 msgid "Followers"
 msgstr ""
 
@@ -1606,10 +1847,6 @@ msgstr ""
 msgid ""
 "Following are the pages cached data from Facebook API. Delete the cache to "
 "refresh your feeds manually"
-msgstr ""
-
-#: admin/class-esf-admin.php:834
-msgid "for more than a week. I would really appreciate it if you "
 msgstr ""
 
 #. Description of the plugin
@@ -1635,8 +1872,13 @@ msgstr ""
 msgid "Frontend not loaded."
 msgstr ""
 
+#: instagram/class-esf-instagram-main.php:538
+msgid "Full Width"
+msgstr ""
+
 #: twitter/frontend/class-esf-twitter-frontend.php:192
 #: twitter/admin/classes/class-esf-twitter-admin.php:241
+#: instagram/includes/helpers/instagram-helper-functions.php:1303
 msgid "Gallery"
 msgstr ""
 
@@ -1703,6 +1945,14 @@ msgstr ""
 msgid "Go to Appearance > Widgets."
 msgstr ""
 
+#: instagram/includes/api/class-esf-instagram-api-load-more.php:132
+msgid "Graph API pagination cursor from the previous response."
+msgstr ""
+
+#: instagram/class-esf-instagram-main.php:323
+msgid "Grid"
+msgstr ""
+
 #: facebook/admin/views/html-how-to-use-tab.php:273
 msgid "Grid Carousel | Layout: Carousel (pro)"
 msgstr ""
@@ -1719,6 +1969,10 @@ msgstr ""
 msgid "Group(s) Feed"
 msgstr ""
 
+#: instagram/class-esf-instagram-main.php:462
+msgid "Half Width"
+msgstr ""
+
 #: instagram/includes/esf-instagram-feed-widget.php:227
 #: instagram/admin/views/html-how-to-use-tab.php:125
 #: instagram/admin/views/html-how-to-use-tab.php:145
@@ -1729,6 +1983,20 @@ msgstr ""
 msgid ""
 "Hashtag feature only works with the Business profiles. Please select "
 "“Business” from Authenticate -> Connect My Instagram Account."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:202
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:244
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:302
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:558
+msgid "Hashtag feeds are a premium feature."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:369
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:726
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:577
+msgid ""
+"Hashtag feeds require an Instagram Business account connected via Facebook."
 msgstr ""
 
 #: facebook/admin/includes/efbl-customizer.php:483
@@ -1783,6 +2051,10 @@ msgstr ""
 
 #: facebook/includes/easy-facebook-page-plugin-widget.php:239
 msgid "Hide CTA button"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1317
+msgid "Hide replies"
 msgstr ""
 
 #: facebook/admin/views/html-moderate-tab.php:70
@@ -1840,12 +2112,8 @@ msgstr ""
 msgid "https://wordpress.org/plugins/easy-facebook-likebox"
 msgstr ""
 
-#: admin/class-esf-admin.php:847
-msgid "I already rated it"
-msgstr ""
-
-#: admin/class-esf-admin.php:843
-msgid "I Like Easy Social Feed - It increased engagement on my site"
+#: includes/class-esf-review-request.php:419
+msgid "I already reviewed it"
 msgstr ""
 
 #: instagram/admin/views/html-autenticate-tab.php:154
@@ -1854,8 +2122,8 @@ msgid "ID"
 msgstr ""
 
 #: facebook/admin/class-easy-facebook-likebox-admin.php:440
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:440
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:663
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:432
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:655
 #: facebook/admin/views/html-authenticate-tab.php:179
 msgid "ID:"
 msgstr ""
@@ -1897,6 +2165,12 @@ msgstr ""
 msgid "If checked show profile photos of friends who already liked the page."
 msgstr ""
 
+#: includes/class-esf-review-request.php:603
+msgid ""
+"If Easy Social Feed has been helpful, sharing your experience on WordPress."
+"org helps other site owners discover it."
+msgstr ""
+
 #: admin/views/html-settings-tab-gdpr.php:106
 msgid "If set to \"Always Enabled\":"
 msgstr ""
@@ -1907,6 +2181,12 @@ msgstr ""
 
 #: admin/views/html-settings-tab-gdpr.php:110
 msgid "If set to \"Disabled\":"
+msgstr ""
+
+#: includes/class-esf-review-request.php:630
+msgid ""
+"If the plugin has been useful on your site, we would really appreciate a "
+"kind review on WordPress.org."
 msgstr ""
 
 #: facebook/admin/views/html-authenticate-tab.php:251
@@ -1929,6 +2209,7 @@ msgstr ""
 
 #: twitter/frontend/class-esf-twitter-frontend.php:193
 #: twitter/admin/classes/class-esf-twitter-admin.php:242
+#: instagram/includes/helpers/instagram-helper-functions.php:1306
 msgid "Image"
 msgstr ""
 
@@ -1960,14 +2241,113 @@ msgid ""
 "fr_FR for frecnh."
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:210
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:211
+#: includes/class-esf-review-request.php:658
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:202
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:203
 #: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:101
+#: instagram/admin/classes/class-esf-instagram-admin.php:49
+#: instagram/admin/classes/class-esf-instagram-admin.php:50
 msgid "Instagram"
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-auth-callback-listener.php:410
+msgid "Instagram Account Connected"
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:363
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:477
+#: instagram/includes/api/class-esf-instagram-api-stories.php:102
+#: instagram/includes/api/class-esf-instagram-api-media.php:91
+msgid "Instagram account is missing its user ID."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:787
+#: instagram/includes/api/class-esf-instagram-api-comments.php:390
+#: instagram/includes/api/class-esf-instagram-api-stories.php:312
+#: instagram/includes/api/class-esf-instagram-api-media.php:233
+msgid "Instagram API error."
+msgstr ""
+
+#. %d: HTTP response status code returned by Instagram.
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:802
+#: instagram/includes/api/class-esf-instagram-api-comments.php:406
+#: instagram/includes/api/class-esf-instagram-api-stories.php:327
+#: instagram/includes/api/class-esf-instagram-api-media.php:249
+msgid "Instagram API request failed with status %d."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-moderate.php:459
+msgid "Instagram cache is unavailable."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:60
+msgid "Instagram comment ID."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-comments.php:171
+msgid "Instagram comments request failed."
 msgstr ""
 
 #: instagram/admin/includes/class-esf-insta-skins.php:223
 msgid "Instagram Demo - Customizer"
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:285
+msgid "Instagram did not return a valid refreshed token."
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-migrator.php:1106
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:597
+msgid "Instagram Feed"
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-moderate.php:104
+#: instagram/includes/helpers/instagram-helper-functions.php:1571
+#: instagram/includes/helpers/instagram-helper-functions.php:1681
+msgid "Instagram feeds are unavailable."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-moderate.php:467
+msgid "Instagram hashtag API is unavailable."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-moderate.php:491
+msgid "Instagram media API is unavailable."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-moderate.php:231
+#: instagram/includes/api/class-esf-instagram-api-shoppable.php:98
+msgid "Instagram media cache is unavailable."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-post-comments.php:60
+msgid "Instagram media ID."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-migrate.php:132
+msgid "Instagram migration failed."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-migrate.php:123
+msgid "Instagram migration is unavailable."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:463
+msgid "Instagram Pro is required to sync stories."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:781
+#: instagram/includes/api/class-esf-instagram-api-comments.php:384
+#: instagram/includes/api/class-esf-instagram-api-stories.php:306
+#: instagram/includes/api/class-esf-instagram-api-media.php:227
+msgid "Instagram returned a malformed response."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:773
+#: instagram/includes/api/class-esf-instagram-api-comments.php:376
+#: instagram/includes/api/class-esf-instagram-api-stories.php:298
+#: instagram/includes/api/class-esf-instagram-api-media.php:219
+msgid "Instagram returned a response larger than the maximum allowed size."
 msgstr ""
 
 #: instagram/admin/views/html-how-to-use-tab.php:311
@@ -1976,12 +2356,69 @@ msgid ""
 "select “Business” from Authenticate -> Connect My Instagram Account."
 msgstr ""
 
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:276
+msgid "Instagram token refresh failed."
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:136
+msgid "Instagram token refresh URL is not configured."
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1318
+msgid "Instagram user"
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-migrator.php:1197
+#: instagram/includes/class-esf-instagram-migrator.php:1205
+msgid "Invalid account."
+msgstr ""
+
 #: youtube/includes/api/class-esf-youtube-api-settings.php:153
 msgid "Invalid cache duration. Choose one of the allowed values."
 msgstr ""
 
+#: admin/api/class-esf-api-missing-feed.php:127
 #: twitter/includes/api/class-esf-twitter-api-preview.php:104
+#: instagram/includes/api/class-esf-instagram-api-warm-media.php:80
+#: instagram/includes/api/class-esf-instagram-api-preview.php:125
 msgid "Invalid feed ID."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:440
+msgid "Invalid hashtag ID."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-moderate.php:312
+#: instagram/includes/api/class-esf-instagram-api-load-more.php:322
+msgid "Invalid hashtag."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:351
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:435
+#: instagram/includes/api/class-esf-instagram-api-comments.php:96
+#: instagram/includes/api/class-esf-instagram-api-comments.php:187
+#: instagram/includes/api/class-esf-instagram-api-stories.php:97
+#: instagram/includes/api/class-esf-instagram-api-media.php:86
+msgid "Invalid Instagram account."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-comments.php:192
+msgid "Invalid Instagram comment ID."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:214
+msgid "Invalid Instagram comment or media ID."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-post-comments.php:277
+#: instagram/includes/api/class-esf-instagram-api-comments.php:101
+msgid "Invalid Instagram media ID."
+msgstr ""
+
+#: includes/class-esf-moderation.php:213 includes/class-esf-moderation.php:234
+#: includes/class-esf-moderation.php:272 includes/class-esf-moderation.php:418
+#: instagram/includes/helpers/instagram-helper-functions.php:1567
+msgid "Invalid moderation target."
 msgstr ""
 
 #: twitter/includes/api/class-esf-twitter-api-service.php:159
@@ -1992,7 +2429,7 @@ msgstr ""
 msgid "Invalid request body."
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:500
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:492
 msgid "Invalid request. Missing required parameters."
 msgstr ""
 
@@ -2000,6 +2437,7 @@ msgstr ""
 msgid "Invalid response from ESF proxy."
 msgstr ""
 
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:104
 #: youtube/includes/api/class-esf-youtube-api-service.php:256
 msgid "Invalid response from token refresh server."
 msgstr ""
@@ -2008,12 +2446,28 @@ msgstr ""
 msgid "Invalid security token."
 msgstr ""
 
+#: instagram/includes/api/class-esf-instagram-api-oauth.php:219
+msgid "Invalid selection payload."
+msgstr ""
+
+#: includes/class-esf-shoppable.php:201 includes/class-esf-shoppable.php:245
+#: includes/class-esf-shoppable.php:311 includes/class-esf-shoppable.php:334
+#: includes/class-esf-shoppable.php:1034
+#: instagram/includes/helpers/instagram-helper-functions.php:1677
+msgid "Invalid shoppable target."
+msgstr ""
+
 #: admin/api/class-esf-api-welcome.php:210
 msgid "Invalid status."
 msgstr ""
 
 #: twitter/includes/api/class-esf-twitter-api-service.php:236
 msgid "Invalid token refresh response from server."
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-facebook-oauth-service.php:62
+#: instagram/includes/class-esf-instagram-facebook-oauth-service.php:175
+msgid "Invalid user."
 msgstr ""
 
 #: facebook/admin/views/html-how-to-use-tab.php:75
@@ -2041,8 +2495,9 @@ msgstr ""
 msgid "just now"
 msgstr ""
 
-#: includes/core-functions.php:272
+#: includes/core-functions.php:815
 #: instagram/includes/esf-insta-helper-functions.php:304
+#: instagram/includes/helpers/instagram-helper-functions.php:1327
 msgid "K"
 msgstr ""
 
@@ -2058,7 +2513,7 @@ msgstr ""
 msgid "Language of your page"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:300
+#: admin/api/class-esf-api-welcome.php:304
 msgid "Latest videos from your channel via secure OAuth."
 msgstr ""
 
@@ -2081,8 +2536,16 @@ msgstr ""
 msgid "Learn more about GDPR options"
 msgstr ""
 
+#: includes/class-esf-review-request.php:416
+msgid "Leave a ★★★★★ review"
+msgstr ""
+
 #: admin/views/html-settings-tab-translation.php:134
 msgid "Leave blank for default"
+msgstr ""
+
+#: instagram/frontend/class-esf-instagram-frontend.php:330
+msgid "Legacy Instagram shortcode"
 msgstr ""
 
 #: instagram/admin/views/html-autenticate-tab.php:103
@@ -2093,9 +2556,25 @@ msgstr ""
 msgid "Let's connect your Facebook account with the plugin."
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:276
-#: admin/api/class-esf-api-welcome.php:289
+#: admin/api/class-esf-api-welcome.php:280
+#: admin/api/class-esf-api-welcome.php:293
 msgid "Lightbox / popup gallery"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1307
+#: instagram/includes/layouts/src/Layouts/Masonry.php:358
+#: instagram/includes/layouts/src/Layouts/Carousel.php:406
+#: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:555
+#: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:533
+msgid "Likes"
+msgstr ""
+
+#: admin/api/class-esf-api-shoppable.php:462
+msgid "Link removed."
+msgstr ""
+
+#: admin/api/class-esf-api-shoppable.php:417
+msgid "Link saved."
 msgstr ""
 
 #: instagram/admin/views/template-shoppable.php:85
@@ -2142,6 +2621,13 @@ msgstr ""
 msgid "Load More"
 msgstr ""
 
+#: instagram/includes/layouts/src/Layouts/AbstractTileLayout.php:192
+#: instagram/includes/layouts/src/Layouts/Carousel.php:288
+#: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:319
+#: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:293
+msgid "Load more"
+msgstr ""
+
 #: includes/class-esf-translation-strings.php:243
 msgid "Load More / Pagination"
 msgstr ""
@@ -2163,6 +2649,10 @@ msgstr ""
 msgid "Load More Color"
 msgstr ""
 
+#: instagram/includes/helpers/instagram-helper-functions.php:1310
+msgid "Load more comments"
+msgstr ""
+
 #: facebook/admin/includes/efbl-customizer.php:411
 #: instagram/admin/includes/class-esf-insta-customizer.php:352
 msgid "Load More Hover Background Color"
@@ -2173,12 +2663,41 @@ msgstr ""
 msgid "Load More Hover Color"
 msgstr ""
 
+#: instagram/includes/layouts/src/Layouts/AbstractTileLayout.php:193
+#: instagram/includes/layouts/src/Layouts/Carousel.php:289
+msgid "Load more Instagram posts"
+msgstr ""
+
 #: twitter/includes/api/class-esf-twitter-api-load-more.php:89
 #: youtube/includes/api/class-esf-youtube-api-load-more.php:73
+#: instagram/includes/api/class-esf-instagram-api-load-more.php:173
 msgid "Load More is a premium feature."
 msgstr ""
 
+#: instagram/includes/api/class-esf-instagram-api-load-more.php:254
+msgid "Load More is disabled for this feed."
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:320
+#: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:294
+msgid "Load more posts"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1311
+msgid "Load more replies"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1312
+msgid "Loading comments…"
+msgstr ""
+
+#: instagram/admin/views/dashboard.php:16
+msgid "Loading Instagram dashboard…"
+msgstr ""
+
 #: youtube/frontend/class-esf-youtube-frontend.php:150
+#: instagram/frontend/class-esf-instagram-frontend.php:258
+#: instagram/frontend/class-esf-instagram-frontend.php:326
 msgid "Loading…"
 msgstr ""
 
@@ -2211,14 +2730,23 @@ msgstr ""
 msgid "Loop"
 msgstr ""
 
-#: includes/core-functions.php:268
+#: includes/core-functions.php:811
 #: instagram/includes/esf-insta-helper-functions.php:308
+#: instagram/includes/helpers/instagram-helper-functions.php:1328
 msgid "M"
 msgstr ""
 
 #: facebook/admin/views/html-authenticate-tab.php:252
 #: instagram/admin/views/html-autenticate-tab.php:408
 msgid "manage it in Facebook Business Integrations"
+msgstr ""
+
+#: instagram/class-esf-instagram-main.php:614
+msgid "Masonry"
+msgstr ""
+
+#: includes/class-esf-review-request.php:407
+msgid "Maybe later"
 msgstr ""
 
 #: includes/class-esf-translation-strings.php:143
@@ -2233,6 +2761,16 @@ msgstr ""
 #: facebook/admin/includes/efbl-customizer.php:2550
 #: instagram/admin/includes/class-esf-insta-customizer.php:2413
 msgid "Media Lightbox Settings"
+msgstr ""
+
+#: instagram/class-esf-instagram-main.php:463
+msgid ""
+"Media on the left, caption and engagement on the right — the classic Half "
+"Width layout, redesigned."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-warm-media.php:88
+msgid "Media warm is not available."
 msgstr ""
 
 #: admin/views/html-admin-page-easy-social-feed.php:223
@@ -2299,6 +2837,11 @@ msgstr ""
 msgid "minutes"
 msgstr ""
 
+#: instagram/includes/class-esf-instagram-facebook-graph.php:136
+#: instagram/includes/class-esf-instagram-facebook-graph.php:181
+msgid "Missing Facebook user token."
+msgstr ""
+
 #: twitter/includes/api/class-esf-twitter-api-service.php:109
 msgid "Missing OAuth authorization data."
 msgstr ""
@@ -2308,8 +2851,33 @@ msgstr ""
 msgid "Moderate"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:303
+#: admin/api/class-esf-api-moderation.php:228
+#: admin/api/class-esf-api-moderation.php:233
+#: admin/api/class-esf-api-moderation.php:267
+#: admin/api/class-esf-api-moderation.php:272
+#: admin/api/class-esf-api-moderation.php:307
+#: admin/api/class-esf-api-moderation.php:312
+#: admin/api/class-esf-api-moderation.php:352
+#: admin/api/class-esf-api-moderation.php:357
+#: instagram/includes/api/class-esf-instagram-api-moderate.php:95
+msgid "Moderation is a premium feature."
+msgstr ""
+
+#: admin/api/class-esf-api-moderation.php:290
+msgid "Moderation settings reset."
+msgstr ""
+
+#: admin/api/class-esf-api-welcome.php:307
 msgid "Modern dashboard with live preview"
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-migrate.php:185
+#: instagram/includes/api/class-esf-instagram-api-migrate.php:216
+msgid "Module system is unavailable."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-migrate.php:157
+msgid "Module system switching is unavailable."
 msgstr ""
 
 #: instagram/includes/esf-insta-helper-functions.php:370
@@ -2339,6 +2907,10 @@ msgid ""
 "Multifeed: Display posts from multiple pages in single feed (pro-feature)"
 msgstr ""
 
+#: instagram/includes/helpers/instagram-helper-functions.php:1323
+msgid "Mute video"
+msgstr ""
+
 #: facebook/admin/includes/efbl-customizer.php:291
 #: instagram/admin/includes/class-esf-insta-customizer.php:233
 msgid "Navigation Active Color"
@@ -2355,8 +2927,31 @@ msgstr ""
 msgid "Need More Options?"
 msgstr ""
 
+#: instagram/includes/helpers/instagram-helper-functions.php:1305
+msgid "Next"
+msgstr ""
+
 #: instagram/admin/views/template-shoppable.php:146
 msgid "Next post"
+msgstr ""
+
+#: instagram/includes/layouts/src/Layouts/Carousel.php:276
+msgid "Next posts"
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/CarouselTrack.php:59
+msgid "Next slide"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1322
+msgid "Next story"
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-comments.php:109
+#: instagram/includes/api/class-esf-instagram-api-comments.php:200
+#: instagram/includes/api/class-esf-instagram-api-stories.php:117
+#: instagram/includes/api/class-esf-instagram-api-media.php:99
+msgid "No access token is stored for this Instagram account. Please reconnect."
 msgstr ""
 
 #: instagram/includes/esf-instagram-feed-widget.php:126
@@ -2378,6 +2973,10 @@ msgid ""
 "No accounts found, Please connect your Instagram account with plugin first"
 msgstr ""
 
+#: instagram/includes/helpers/instagram-helper-functions.php:1313
+msgid "No comments yet."
+msgstr ""
+
 #. %s: link to "supported GDPR / Cookie plugin"
 #: admin/views/html-settings-tab-gdpr.php:57
 #, php-format
@@ -2386,11 +2985,29 @@ msgid ""
 "until you install and configure a %s."
 msgstr ""
 
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:69
+msgid "No Facebook user token to refresh."
+msgstr ""
+
+#: instagram/frontend/class-esf-instagram-frontend.php:338
+msgid "No feeds available. Create one in the dashboard first."
+msgstr ""
+
 #: includes/class-esf-gdpr-integrations.php:180
 msgid "No GDPR consent plugin detected."
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:532
+#: instagram/includes/class-esf-instagram-facebook-oauth-service.php:95
+msgid ""
+"No Instagram Business or Creator accounts were found on the Facebook Pages "
+"returned for this login."
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:60
+msgid "No Instagram user token to refresh."
+msgstr ""
+
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:524
 msgid "No page found"
 msgstr ""
 
@@ -2408,16 +3025,36 @@ msgid ""
 "authenticate tab"
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-accounts.php:325
+#: instagram/includes/class-esf-instagram-facebook-oauth-service.php:182
+msgid "No pending Facebook connection. Please start connect again."
+msgstr ""
+
+#: instagram/includes/layouts/src/Layouts/AbstractTileLayout.php:164
+#: instagram/includes/layouts/src/Layouts/Carousel.php:221
+#: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:296
+#: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:270
+msgid "No posts to display yet."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:413
+msgid "No posts were found for this hashtag."
+msgstr ""
+
+#: twitter/includes/api/class-esf-twitter-api-accounts.php:319
 msgid "No refresh token available for this account."
 msgstr ""
 
-#: youtube/includes/api/class-esf-youtube-api-refresh.php:140
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:130
 msgid "No refresh token available. Please reconnect your account."
 msgstr ""
 
 #: twitter/includes/api/class-esf-twitter-api-settings.php:143
+#: instagram/includes/api/class-esf-instagram-api-settings.php:125
 msgid "No settings provided."
+msgstr ""
+
+#: admin/api/class-esf-api-shoppable.php:337
+msgid "No shoppable defaults were provided."
 msgstr ""
 
 #: facebook/admin/includes/efbl-skins.php:432
@@ -2426,6 +3063,10 @@ msgstr ""
 
 #: instagram/admin/includes/class-esf-insta-skins.php:403
 msgid "No skins found."
+msgstr ""
+
+#: includes/class-esf-moderation.php:288
+msgid "No valid posts were provided."
 msgstr ""
 
 #: facebook/admin/views/html-how-to-use-tab.php:429
@@ -2446,11 +3087,7 @@ msgid ""
 "No YouTube channel found for this account. Please create a channel first."
 msgstr ""
 
-#: admin/class-esf-admin.php:852
-msgid "No, not good enough, I do not like to rate it"
-msgstr ""
-
-#: includes/core-functions.php:386
+#: includes/core-functions.php:1042
 msgid "Nonce not verified or you don't have appropriate permissions"
 msgstr ""
 
@@ -2462,7 +3099,11 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: admin/class-esf-admin.php:412
+#: includes/class-esf-review-request.php:410
+msgid "Not really"
+msgstr ""
+
+#: admin/class-esf-admin.php:433
 msgid "Nothing to autofill."
 msgstr ""
 
@@ -2471,13 +3112,25 @@ msgstr ""
 msgid "Number of columns"
 msgstr ""
 
+#: instagram/includes/api/class-esf-instagram-api-post-comments.php:75
+msgid "Number of comments already displayed."
+msgstr ""
+
 #: facebook/admin/includes/efbl-customizer.php:163
 #: facebook/admin/views/html-how-to-use-tab.php:485
 msgid "Number of posts"
 msgstr ""
 
+#: instagram/includes/api/class-esf-instagram-api-load-more.php:123
+msgid "Number of posts already displayed."
+msgstr ""
+
 #: facebook/admin/views/html-how-to-use-tab.php:281
 msgid "Number of posts to display"
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:81
+msgid "Number of replies already displayed."
 msgstr ""
 
 #: twitter/includes/api/class-esf-twitter-api-load-more.php:57
@@ -2499,13 +3152,27 @@ msgstr ""
 msgid "OAuth token request failed: %s"
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-accounts.php:317
+#: instagram/includes/class-esf-instagram-renderer.php:971
+msgid ""
+"One video has no thumbnail — Instagram's hashtag API does not include video "
+"posters, so a placeholder is shown instead."
+msgstr ""
+
+#: twitter/includes/api/class-esf-twitter-api-accounts.php:311
 msgid "Only connected accounts can refresh tokens."
 msgstr ""
 
 #: facebook/admin/views/html-moderate-tab.php:76
 #: instagram/admin/views/html-moderate-tab.php:85
 msgid "Only show the selected posts"
+msgstr ""
+
+#: instagram/frontend/class-esf-instagram-frontend.php:337
+msgid "Open dashboard"
+msgstr ""
+
+#: instagram/admin/classes/class-esf-instagram-admin.php:242
+msgid "Open Instagram settings"
 msgstr ""
 
 #: facebook/includes/easy-custom-facebook-feed-widget.php:446
@@ -2525,12 +3192,31 @@ msgstr ""
 msgid "Open PopUp Icon color"
 msgstr ""
 
+#: instagram/includes/api/class-esf-instagram-api-load-more.php:151
+#: instagram/includes/api/class-esf-instagram-api-warm-media.php:46
+msgid "Optional account ID override for customize preview."
+msgstr ""
+
 #: twitter/includes/api/class-esf-twitter-api-preview.php:62
+#: instagram/includes/api/class-esf-instagram-api-preview.php:60
 msgid "Optional account ID override for unsaved source changes."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-preview.php:66
+msgid "Optional feed type override for live preview."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-preview.php:72
+msgid "Optional hashtag source override for live preview."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-load-more.php:139
+msgid "Optional settings override (JSON string) for customize preview."
 msgstr ""
 
 #: twitter/includes/api/class-esf-twitter-api-preview.php:50
 #: youtube/includes/api/class-esf-youtube-api-preview.php:48
+#: instagram/includes/api/class-esf-instagram-api-preview.php:48
 msgid "Optional settings override (JSON string) for live preview."
 msgstr ""
 
@@ -2596,6 +3282,10 @@ msgstr ""
 msgid "Page Feed"
 msgstr ""
 
+#: admin/api/class-esf-api-missing-feed.php:145
+msgid "Page not found."
+msgstr ""
+
 #: facebook/admin/views/html-likebox-tab.php:287
 msgid "Page URL"
 msgstr ""
@@ -2616,6 +3306,10 @@ msgstr ""
 msgid "Pagination token returned by the previous response."
 msgstr ""
 
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:66
+msgid "Parent media ID used for cache scoping."
+msgstr ""
+
 #: facebook/includes/easy-custom-facebook-feed-widget.php:289
 #: facebook/admin/views/html-how-to-use-tab.php:232
 msgid "Past"
@@ -2627,14 +3321,26 @@ msgstr ""
 msgid "Paste in the page/post content or in text widget"
 msgstr ""
 
+#: instagram/includes/helpers/instagram-helper-functions.php:1319
+msgid "Pause stories"
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-facebook-oauth-service.php:192
+msgid "Pending session is invalid. Please connect again."
+msgstr ""
+
 #: facebook/admin/views/html-authenticate-tab.php:267
 #: instagram/admin/views/html-autenticate-tab.php:368
 #: instagram/admin/views/html-autenticate-tab.php:426
 msgid "Permissions Needed"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:286
+#: admin/api/class-esf-api-welcome.php:290
 msgid "Photos, videos and hashtag feeds from your Instagram account."
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1320
+msgid "Play stories"
 msgstr ""
 
 #: youtube/includes/api/class-esf-youtube-api-feeds.php:217
@@ -2682,7 +3388,7 @@ msgid ""
 "(This selection is only for preview, it can be used with any page.)"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:266
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:258
 msgid "Please wait! We are generating a preview for you"
 msgstr ""
 
@@ -2693,6 +3399,10 @@ msgstr ""
 #: facebook/admin/class-easy-facebook-likebox-admin.php:156
 #: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:185
 msgid "Please wait, we are generating preview for you"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1413
+msgid "Please wait. You will be redirected when migration finishes."
 msgstr ""
 
 #: facebook/includes/easy-custom-facebook-feed-widget.php:470
@@ -2730,12 +3440,33 @@ msgstr ""
 msgid "Post Time Color"
 msgstr ""
 
+#. %s: Relative post time.
+#: instagram/includes/layouts/src/Layouts/Masonry.php:346
+#: instagram/includes/layouts/src/Layouts/Carousel.php:394
+#, php-format
+msgid "Posted %s"
+msgstr ""
+
+#: instagram/includes/layouts/src/InstagramHeaderSupport.php:67
+msgid "Posts"
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/CarouselTrack.php:101
+msgid "Posts carousel"
+msgstr ""
+
+#: instagram/class-esf-instagram-main.php:539
+msgid ""
+"Posts stacked in a single column with expandable captions — the classic Full "
+"Width feed, redesigned."
+msgstr ""
+
 #: facebook/includes/easy-custom-facebook-feed-widget.php:354
 #: instagram/includes/esf-instagram-feed-widget.php:301
 msgid "Posts to display:"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:272
+#: admin/api/class-esf-api-welcome.php:276
 msgid "Posts, albums, events and the Like Box (Page Plugin)."
 msgstr ""
 
@@ -2782,8 +3513,28 @@ msgid ""
 "disabled or limited for all visitors."
 msgstr ""
 
+#: instagram/frontend/class-esf-instagram-frontend.php:332
+msgid "Preview feed"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1304
+msgid "Previous"
+msgstr ""
+
 #: instagram/admin/views/template-shoppable.php:143
 msgid "Previous post"
+msgstr ""
+
+#: instagram/includes/layouts/src/Layouts/Carousel.php:275
+msgid "Previous posts"
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/CarouselTrack.php:58
+msgid "Previous slide"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1321
+msgid "Previous story"
 msgstr ""
 
 #: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:79
@@ -2817,19 +3568,19 @@ msgstr ""
 msgid "Profile Picture"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:318
+#: admin/api/class-esf-api-welcome.php:322
 msgid "Public account feeds (Pro)"
 msgstr ""
 
 #: twitter/includes/api/class-esf-twitter-api-service.php:288
 #: twitter/includes/api/class-esf-twitter-api-service.php:426
 #: twitter/includes/api/class-esf-twitter-api-service.php:453
-#: twitter/includes/api/class-esf-twitter-api-accounts.php:396
+#: twitter/includes/api/class-esf-twitter-api-accounts.php:390
 msgid "Public account feeds require the Twitter Pro plan."
 msgstr ""
 
 #: twitter/includes/api/class-esf-twitter-api-service.php:292
-#: twitter/includes/api/class-esf-twitter-api-accounts.php:374
+#: twitter/includes/api/class-esf-twitter-api-accounts.php:368
 msgid "Public account support is unavailable in this build."
 msgstr ""
 
@@ -2838,12 +3589,17 @@ msgstr ""
 msgid "Public timeline support is unavailable in this build."
 msgstr ""
 
-#: admin/class-esf-admin.php:1137
-msgid "rate the plugin"
-msgstr ""
-
 #: includes/class-esf-gdpr-integrations.php:200
 msgid "Real Cookie Banner by devowl.io"
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-cache.php:236
+msgid "Recent"
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:379
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:486
+msgid "Reconnect your Facebook account to use hashtag feeds."
 msgstr ""
 
 #: instagram/admin/views/html-shoppable-tab.php:76
@@ -2858,6 +3614,10 @@ msgstr ""
 
 #: instagram/includes/esf-instagram-feed-widget.php:209
 msgid "Replace Image"
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:90
+msgid "Replies per page."
 msgstr ""
 
 #: instagram/admin/views/html-autenticate-tab.php:308
@@ -2875,7 +3635,7 @@ msgstr ""
 msgid "Reset All"
 msgstr ""
 
-#: admin/class-esf-admin.php:414
+#: admin/class-esf-admin.php:435
 msgid "Reset all custom text to defaults?"
 msgstr ""
 
@@ -2888,12 +3648,12 @@ msgstr ""
 msgid "Responsive"
 msgstr ""
 
-#: twitter/includes/class-esf-twitter-auth-callback-listener.php:239
-msgid "Return to Twitter dashboard"
+#: instagram/includes/class-esf-instagram-auth-callback-listener.php:417
+msgid "Return to Instagram dashboard"
 msgstr ""
 
-#: admin/class-esf-admin.php:835
-msgid "review and rate "
+#: twitter/includes/class-esf-twitter-auth-callback-listener.php:247
+msgid "Return to Twitter dashboard"
 msgstr ""
 
 #: facebook/admin/includes/efbl-customizer.php:671
@@ -2901,6 +3661,10 @@ msgstr ""
 #: instagram/admin/includes/class-esf-insta-customizer.php:612
 #: instagram/admin/includes/class-esf-insta-customizer.php:667
 msgid "Round Display Picture"
+msgstr ""
+
+#: instagram/class-esf-instagram-main.php:356
+msgid "Row"
 msgstr ""
 
 #: instagram/admin/views/html-shoppable-tab.php:99
@@ -2924,12 +3688,16 @@ msgstr ""
 msgid "Save Settings"
 msgstr ""
 
+#: instagram/frontend/class-esf-instagram-frontend.php:333
+msgid "Save to this page"
+msgstr ""
+
 #: facebook/admin/class-easy-facebook-likebox-admin.php:152
 #: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:181
 msgid "Saving"
 msgstr ""
 
-#: admin/class-esf-admin.php:411
+#: admin/class-esf-admin.php:432
 msgid "Saving…"
 msgstr ""
 
@@ -2949,12 +3717,24 @@ msgstr ""
 msgid "Secure OAuth 2.0 connection (no API key required)"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:302
+#: admin/api/class-esf-api-welcome.php:306
 msgid "Secure OAuth 2.0 connection (no API key)"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:316
+#: admin/api/class-esf-api-welcome.php:320
 msgid "Secure OAuth connection to your X account"
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:537
+#: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:515
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/ExpandableCaption.php:59
+msgid "See less"
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:534
+#: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:512
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/ExpandableCaption.php:56
+msgid "See more"
 msgstr ""
 
 #: instagram/admin/views/html-skins-tab.php:38
@@ -2963,6 +3743,14 @@ msgstr ""
 
 #: facebook/admin/views/html-skins-tab.php:43
 msgid "See this support document."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:709
+msgid "Select a connected Instagram Business account."
+msgstr ""
+
+#: instagram/frontend/class-esf-instagram-frontend.php:331
+msgid "Select a feed"
 msgstr ""
 
 #: instagram/includes/esf-instagram-feed-widget.php:133
@@ -2983,7 +3771,7 @@ msgstr ""
 msgid "Select language"
 msgstr ""
 
-#: admin/class-esf-admin.php:438
+#: admin/class-esf-admin.php:462
 #: instagram/includes/esf-instagram-feed-widget.php:480
 msgid "Select or Upload Image"
 msgstr ""
@@ -3248,23 +4036,32 @@ msgid "Select the text size of total followers in the header."
 msgstr ""
 
 #: twitter/includes/api/class-esf-twitter-api-feeds.php:256
-#: twitter/includes/api/class-esf-twitter-api-feeds.php:330
+#: twitter/includes/api/class-esf-twitter-api-feeds.php:351
+#: twitter/includes/api/class-esf-twitter-api-feeds.php:385
 #: youtube/includes/api/class-esf-youtube-api-feeds.php:358
-#: youtube/includes/api/class-esf-youtube-api-feeds.php:425
+#: youtube/includes/api/class-esf-youtube-api-feeds.php:429
+#: instagram/includes/api/class-esf-instagram-api-hashtag.php:718
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:167
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:272
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:305
 msgid "Selected account not found."
 msgstr ""
 
-#: easy-facebook-likebox.php:418 admin/class-esf-admin.php:486
-#: admin/class-esf-admin.php:487
+#: admin/api/class-esf-api-missing-feed.php:136
+msgid "Selected feed was not found."
+msgstr ""
+
+#: easy-facebook-likebox.php:432 admin/class-esf-admin.php:510
+#: admin/class-esf-admin.php:511
 msgid "Settings"
 msgstr ""
 
-#: admin/class-esf-admin.php:586
+#: admin/class-esf-admin.php:611
 msgid "Settings already saved."
 msgstr ""
 
-#: admin/class-esf-admin.php:563 admin/class-esf-admin.php:592
-#: admin/class-esf-admin.php:634
+#: admin/class-esf-admin.php:588 admin/class-esf-admin.php:617
+#: admin/class-esf-admin.php:659
 msgid "Settings saved successfully!"
 msgstr ""
 
@@ -3278,6 +4075,12 @@ msgstr ""
 #: instagram/admin/includes/class-esf-insta-customizer.php:565
 #: instagram/admin/includes/class-esf-insta-customizer.php:1288
 msgid "Shadow color"
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:540
+#: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:518
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/PostShareMenu.php:77
+msgid "Share"
 msgstr ""
 
 #: includes/class-esf-translation-strings.php:393
@@ -3296,6 +4099,26 @@ msgstr ""
 msgid "Share menu link label for x.com."
 msgstr ""
 
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/PostShareMenu.php:109
+msgid "Share on Facebook"
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/PostShareMenu.php:123
+msgid "Share on LinkedIn"
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/PostShareMenu.php:130
+msgid "Share on WhatsApp"
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/PostShareMenu.php:116
+msgid "Share on X"
+msgstr ""
+
+#: includes/class-esf-shoppable.php:430 includes/class-esf-shoppable.php:880
+msgid "Shop Now"
+msgstr ""
+
 #: instagram/admin/views/html-admin-page-mif.php:116
 msgid "Shoppable"
 msgstr ""
@@ -3304,17 +4127,43 @@ msgstr ""
 msgid "Shoppable Feed"
 msgstr ""
 
-#: admin/api/class-esf-api-welcome.php:290
+#: admin/api/class-esf-api-welcome.php:294
 msgid "Shoppable feeds (Pro)"
+msgstr ""
+
+#: admin/api/class-esf-api-shoppable.php:322
+#: admin/api/class-esf-api-shoppable.php:327
+#: admin/api/class-esf-api-shoppable.php:366
+#: admin/api/class-esf-api-shoppable.php:371
+#: admin/api/class-esf-api-shoppable.php:435
+#: admin/api/class-esf-api-shoppable.php:440
+#: admin/api/class-esf-api-shoppable.php:479
+#: admin/api/class-esf-api-shoppable.php:484
+#: admin/api/class-esf-api-shoppable.php:519
+#: admin/api/class-esf-api-shoppable.php:524
+#: instagram/includes/api/class-esf-instagram-api-shoppable.php:94
+msgid "Shoppable feeds are a premium feature."
 msgstr ""
 
 #: instagram/admin/views/html-shoppable-tab.php:85
 msgid "Shoppable Preset"
 msgstr ""
 
+#: admin/api/class-esf-api-shoppable.php:502
+msgid "Shoppable settings reset."
+msgstr ""
+
 #: facebook/admin/views/html-likebox-tab.php:55
 #: facebook/admin/views/html-how-to-use-tab.php:88
 msgid "Shortcode Generator"
+msgstr ""
+
+#: instagram/frontend/class-esf-instagram-frontend.php:334
+msgid "Shortcode updated. Reloading…"
+msgstr ""
+
+#: admin/api/class-esf-api-missing-feed.php:166
+msgid "Shortcode was not found in this page content."
 msgstr ""
 
 #: facebook/admin/includes/efbl-customizer.php:243
@@ -3622,6 +4471,27 @@ msgstr ""
 msgid "Show Stories"
 msgstr ""
 
+#. 1: posts returned, 2: page size, 3: hashtag without #
+#: instagram/includes/class-esf-instagram-renderer.php:946
+#, php-format
+msgid ""
+"Showing %1$d of %2$d posts for #%3$s. Instagram limits how many hashtag "
+"posts it returns."
+msgstr ""
+
+#. 1: posts returned, 2: page size, 3: hashtag without #
+#: instagram/includes/class-esf-instagram-renderer.php:937
+#, php-format
+msgid ""
+"Showing %1$d of %2$d recent posts for #%3$s. Instagram mostly returns "
+"hashtag posts from the last 24 hours."
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1309
+#, php-format
+msgid "Showing %1$s of %2$s"
+msgstr ""
+
 #: includes/class-esf-translation-strings.php:318
 msgid "Shown when a Twitter/X feed has no tweets to render."
 msgstr ""
@@ -3848,40 +4718,51 @@ msgstr ""
 msgid "Small header"
 msgstr ""
 
-#: admin/class-esf-admin.php:410
+#: admin/class-esf-admin.php:431
 #: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:180
 msgid "Something went wrong!"
 msgstr ""
 
 #: facebook/admin/class-easy-facebook-likebox-admin.php:389
 #: facebook/admin/class-easy-facebook-likebox-admin.php:604
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:881
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:928
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:962
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:993
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:873
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:920
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:954
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:985
 msgid "Something went wrong! Please try again"
 msgstr ""
 
-#: admin/class-esf-admin.php:758 admin/class-esf-admin.php:798
+#: admin/class-esf-admin.php:787 admin/class-esf-admin.php:827
 #: facebook/admin/class-easy-facebook-likebox-admin.php:361
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:320
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:351
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:738
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:312
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:343
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:730
 msgid "Something Went Wrong! Please try again."
 msgstr ""
 
-#: admin/class-esf-admin.php:595
+#: includes/class-esf-shoppable.php:1061 includes/class-esf-moderation.php:445
+#: admin/class-esf-admin.php:620
 #: facebook/admin/class-easy-facebook-likebox-admin.php:151
+#: instagram/includes/helpers/instagram-helper-functions.php:1597
+#: instagram/includes/helpers/instagram-helper-functions.php:1704
 msgid "Something went wrong! Please try again."
 msgstr ""
 
 #: facebook/admin/class-easy-facebook-likebox-admin.php:278
 #: facebook/admin/class-easy-facebook-likebox-admin.php:321
 #: facebook/admin/class-easy-facebook-likebox-admin.php:488
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:464
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:469
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:513
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:456
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:461
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:505
 msgid "Something went wrong! Refresh the page and try again"
+msgstr ""
+
+#. %s: support URL
+#: includes/class-esf-review-request.php:426
+#, php-format
+msgid ""
+"Sorry to hear that. <a href=\"%s\" target=\"_blank\" rel=\"noopener "
+"noreferrer\">Contact our support team</a> and we will help."
 msgstr ""
 
 #: instagram/admin/views/html-admin-page-mif.php:222
@@ -3911,6 +4792,10 @@ msgstr ""
 msgid "Spacing"
 msgstr ""
 
+#: instagram/class-esf-instagram-main.php:324
+msgid "Square tile grid — matches the Instagram profile look."
+msgstr ""
+
 #: instagram/admin/views/html-clear-cache-tab.php:61
 msgid "Stories"
 msgstr ""
@@ -3925,8 +4810,8 @@ msgid "Subscribe button text shown in the YouTube feed header and popup."
 msgstr ""
 
 #: facebook/admin/class-easy-facebook-likebox-admin.php:483
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:457
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:708
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:449
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:700
 msgid "Successfully Authenticated!"
 msgstr ""
 
@@ -3940,6 +4825,22 @@ msgstr ""
 
 #: admin/views/html-settings-tab-gdpr.php:62
 msgid "supported GDPR / Cookie plugin"
+msgstr ""
+
+#: instagram/class-esf-instagram-main.php:693
+msgid "Swipe through Instagram posts in a sleek horizontal carousel."
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1381
+msgid "Switch to the new Instagram"
+msgstr ""
+
+#: includes/class-esf-module-system.php:353
+msgid "Switching back to the legacy system is not available for this site."
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1412
+msgid "Switching your Instagram setup…"
 msgstr ""
 
 #: facebook/admin/views/html-likebox-tab.php:72
@@ -3966,10 +4867,40 @@ msgstr ""
 msgid "Text Size of Bio"
 msgstr ""
 
+#: includes/class-esf-review-request.php:414
+msgid ""
+"Thank you! A quick WordPress.org review helps other site owners discover "
+"Easy Social Feed."
+msgstr ""
+
+#: includes/class-esf-review-request.php:629
+msgid "Thanks for using Easy Social Feed!"
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-feeds.php:472
+msgid "The connected Instagram account could not be found."
+msgstr ""
+
 #: admin/views/html-admin-page-welcome.php:23
 msgid ""
 "The Easy Social Feed setup wizard requires JavaScript. Please enable "
 "JavaScript and reload this page."
+msgstr ""
+
+#. 1: Account label, 2: Admin reconnect URL
+#: instagram/includes/class-esf-instagram-token-notifications.php:90
+#, php-format
+msgid ""
+"The Instagram connection \"%1$s\" could not renew its access token "
+"automatically.\n"
+"\n"
+"Please open the Instagram screen in WordPress and connect again using the "
+"same method you used before (Instagram Login or Facebook Page), or remove "
+"the account if you no longer need it.\n"
+"\n"
+"%2$s\n"
+"\n"
+"This message was sent by Easy Social Feed."
 msgstr ""
 
 #: instagram/admin/views/html-admin-page-mif.php:341
@@ -3982,10 +4913,6 @@ msgstr ""
 msgid ""
 "The Multifeed gives you the ability to display multiple posts or events from "
 "multiple Facebook accounts in one single feed ordered by date."
-msgstr ""
-
-#: admin/class-esf-admin.php:836
-msgid "the plugin to help spread the word and "
 msgstr ""
 
 #: admin/views/html-settings-tab-gdpr.php:111
@@ -4001,8 +4928,18 @@ msgid ""
 "after consent has been given by a supported GDPR / cookie consent plugin."
 msgstr ""
 
+#: instagram/includes/helpers/instagram-helper-functions.php:1377
+msgid ""
+"The screens you are using now belong to the older version. They still work "
+"for now, but they will be removed in a future release and only the new "
+"system will receive updates, fixes, and new features. Switch over to copy "
+"your connected accounts into the new system. You will need to create new "
+"feeds and replace old shortcodes on your site afterward. You can switch back "
+"temporarily from the new Instagram admin if needed."
+msgstr ""
+
 #. 1: username, 2: admin URL
-#: twitter/includes/class-esf-twitter-token-manager.php:194
+#: twitter/includes/class-esf-twitter-token-manager.php:190
 #, php-format
 msgid ""
 "The X access token for @%1$s has expired and could not be refreshed "
@@ -4015,7 +4952,7 @@ msgid ""
 msgstr ""
 
 #. 1: Channel name, 2: Channel ID, 3: Admin URL
-#: youtube/includes/class-esf-youtube-token-manager.php:155
+#: youtube/includes/class-esf-youtube-token-manager.php:151
 #, php-format
 msgid ""
 "The YouTube access token for channel '%1$s' (ID: %2$s) has expired and could "
@@ -4038,6 +4975,12 @@ msgstr ""
 msgid ""
 "These settings apply to all modules (Facebook, Instagram) and control how "
 "your feeds and data behave across the plugin."
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-migrator.php:1244
+msgid ""
+"This account has no usable token to refresh profile data. Reconnect if "
+"needed."
 msgstr ""
 
 #: facebook/admin/views/html-authenticate-tab.php:303
@@ -4127,6 +5070,12 @@ msgid ""
 "values. You can edit it and change the look & feel of your Facebook Feeds."
 msgstr ""
 
+#: instagram/frontend/class-esf-instagram-frontend.php:329
+msgid ""
+"This legacy Instagram shortcode needs updating after migration. Choose a "
+"feed to preview, then save the new shortcode to this page."
+msgstr ""
+
 #: admin/views/html-admin-page-easy-social-feed.php:69
 #: admin/views/html-admin-page-easy-social-feed.php:117
 #: admin/views/html-admin-page-easy-social-feed.php:165
@@ -4200,6 +5149,22 @@ msgstr ""
 msgid "This permission is used to show comments for your posts."
 msgstr ""
 
+#: instagram/frontend/class-esf-instagram-frontend.php:339
+msgid ""
+"This shortcode is not inside editable page content. Copy the new shortcode "
+"and paste it where needed."
+msgstr ""
+
+#: instagram/frontend/class-esf-instagram-frontend.php:328
+msgid ""
+"This shortcode points to a feed that was deleted. Choose another feed to "
+"preview or update this page."
+msgstr ""
+
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/MissingFeedState.php:109
+msgid "This social feed is currently unavailable."
+msgstr ""
+
 #: facebook/admin/views/html-how-to-use-tab.php:447
 msgid "This step is only required for events filter"
 msgstr ""
@@ -4252,13 +5217,27 @@ msgid ""
 "can register your app from Facebook developer account and add ID here."
 msgstr ""
 
+#. %s: error detail
+#. %s: error from JSON body
 #. %s: Error message
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:186
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:198
 #: youtube/includes/api/class-esf-youtube-api-service.php:245
 #, php-format
 msgid "Token refresh failed: %s"
 msgstr ""
 
-#: youtube/includes/api/class-esf-youtube-api-refresh.php:183
+#. %s: transport error message
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:168
+#, php-format
+msgid "Token refresh request failed: %s"
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:243
+msgid "Token refresh server returned no tokens."
+msgstr ""
+
+#: youtube/includes/api/class-esf-youtube-api-refresh.php:173
 msgid "Token refreshed successfully."
 msgstr ""
 
@@ -4298,12 +5277,16 @@ msgstr ""
 msgid "Tooltip text shown on verified badge in Twitter/X feed and popup."
 msgstr ""
 
+#: instagram/includes/class-esf-instagram-cache.php:237
+msgid "Top"
+msgstr ""
+
 #: admin/views/html-settings-tab-translation.php:31
 #: admin/views/html-admin-page-esf-settings.php:41
 msgid "Translation"
 msgstr ""
 
-#: admin/class-esf-admin.php:413
+#: admin/class-esf-admin.php:434
 msgid "Translations filled and saved."
 msgstr ""
 
@@ -4311,12 +5294,12 @@ msgstr ""
 msgid "Trouble connecting? Please "
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-feeds.php:575
+#: twitter/includes/api/class-esf-twitter-api-feeds.php:613
 msgid "Twitter Feed"
 msgstr ""
 
-#: admin/class-esf-admin.php:696 admin/class-esf-admin.php:704
-#: admin/class-esf-admin.php:710
+#: admin/class-esf-admin.php:721 admin/class-esf-admin.php:729
+#: admin/class-esf-admin.php:735
 msgid "Unable to fetch translation suggestions at the moment."
 msgstr ""
 
@@ -4329,11 +5312,11 @@ msgstr ""
 msgid "Unable to understand shortocde parameters?"
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:520
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:512
 msgid "Unexpected response from Facebook."
 msgstr ""
 
-#: youtube/includes/class-esf-youtube-token-manager.php:226
+#: youtube/includes/class-esf-youtube-token-manager.php:222
 msgid "Unknown"
 msgstr ""
 
@@ -4343,6 +5326,11 @@ msgstr ""
 msgid "Unknown API error"
 msgstr ""
 
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:76
+msgid "Unknown auth source for token refresh."
+msgstr ""
+
+#: instagram/includes/class-esf-instagram-token-refresh-client.php:180
 #: youtube/includes/api/class-esf-youtube-api-service.php:239
 msgid "Unknown error during token refresh"
 msgstr ""
@@ -4351,15 +5339,27 @@ msgstr ""
 msgid "Unknown module."
 msgstr ""
 
+#: instagram/includes/helpers/instagram-helper-functions.php:1324
+msgid "Unmute video"
+msgstr ""
+
+#: admin/api/class-esf-api-missing-feed.php:118
+#: admin/api/class-esf-api-moderation.php:198
+#: admin/api/class-esf-api-shoppable.php:292
+msgid "Unsupported module."
+msgstr ""
+
 #: facebook/includes/easy-custom-facebook-feed-widget.php:288
 #: facebook/admin/views/html-how-to-use-tab.php:231
 msgid "Upcoming"
 msgstr ""
 
+#: admin/api/class-esf-api-moderation.php:335
+#: admin/api/class-esf-api-moderation.php:385
 #: facebook/admin/class-easy-facebook-likebox-admin.php:602
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:879
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:926
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:960
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:871
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:918
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:952
 msgid "Updated!"
 msgstr ""
 
@@ -4439,7 +5439,7 @@ msgid ""
 "Use the following shortcode generator to further customize the shortcode."
 msgstr ""
 
-#: admin/class-esf-admin.php:439
+#: admin/class-esf-admin.php:463
 #: instagram/includes/esf-instagram-feed-widget.php:481
 msgid "Use this Image"
 msgstr ""
@@ -4514,7 +5514,7 @@ msgid "Used when truncating the post text."
 msgstr ""
 
 #: twitter/includes/api/class-esf-twitter-api-service.php:311
-#: twitter/includes/api/class-esf-twitter-api-accounts.php:407
+#: twitter/includes/api/class-esf-twitter-api-accounts.php:401
 msgid "Username is required."
 msgstr ""
 
@@ -4538,6 +5538,8 @@ msgstr ""
 
 #: twitter/frontend/class-esf-twitter-frontend.php:191
 #: twitter/admin/classes/class-esf-twitter-admin.php:240
+#: instagram/includes/helpers/instagram-helper-functions.php:1302
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/MediaTile.php:159
 msgid "Video"
 msgstr ""
 
@@ -4545,6 +5547,28 @@ msgstr ""
 #: facebook/admin/views/html-how-to-use-tab.php:161
 #: facebook/admin/views/html-how-to-use-tab.php:203
 msgid "Videos"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1316
+msgid "View %d reply"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1315
+msgid "View all %d replies"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1300
+msgid "View comments on Instagram"
+msgstr ""
+
+#: instagram/includes/helpers/instagram-helper-functions.php:1299
+msgid "View on Instagram"
+msgstr ""
+
+#. %s: Instagram account display name.
+#: instagram/includes/layouts/src/Primitives/StoriesRow.php:75
+#, php-format
+msgid "View story by %s"
 msgstr ""
 
 #: includes/class-esf-translation-strings.php:288
@@ -4800,6 +5824,13 @@ msgid ""
 "and autofill this text into your language."
 msgstr ""
 
+#: instagram/includes/helpers/instagram-helper-functions.php:1374
+msgid ""
+"We have rebuilt Instagram from the ground up so it is faster, easier to set "
+"up, and simpler to manage. Connecting accounts, customizing how feeds look, "
+"and showing them on your site has been redesigned to save you time."
+msgstr ""
+
 #: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:359
 msgid ""
 "We're sorry, ability to display posts from other pages not managed by you is "
@@ -4892,7 +5923,7 @@ msgstr ""
 msgid "weeks"
 msgstr ""
 
-#: admin/class-esf-admin.php:467 admin/class-esf-admin.php:468
+#: admin/class-esf-admin.php:491 admin/class-esf-admin.php:492
 msgid "Welcome"
 msgstr ""
 
@@ -4927,6 +5958,11 @@ msgid ""
 "associated with it have all permissions enabled. If any Business Manager or "
 "specific permissions are deselected, the plugin features will not work "
 "properly."
+msgstr ""
+
+#: instagram/includes/api/class-esf-instagram-api-post-comments.php:93
+#: instagram/includes/api/class-esf-instagram-api-comment-replies.php:99
+msgid "When set, allows unsaved preview page-size overrides for editors."
 msgstr ""
 
 #: admin/views/html-settings-tab-translation.php:91
@@ -4982,13 +6018,17 @@ msgstr ""
 msgid "Wrapper Class"
 msgstr ""
 
+#: includes/class-esf-review-request.php:659
+msgid "X"
+msgstr ""
+
 #: twitter/admin/classes/class-esf-twitter-admin.php:64
 #: twitter/admin/classes/class-esf-twitter-admin.php:65
 msgid "X / Twitter"
 msgstr ""
 
-#: easy-facebook-likebox.php:392 includes/class-esf-translation-strings.php:308
-#: admin/api/class-esf-api-welcome.php:313
+#: easy-facebook-likebox.php:406 includes/class-esf-translation-strings.php:308
+#: admin/api/class-esf-api-welcome.php:317
 #: admin/views/html-admin-page-easy-social-feed.php:207
 msgid "X / Twitter Feed"
 msgstr ""
@@ -4997,7 +6037,7 @@ msgstr ""
 msgid "X access token has expired. Please reconnect your account."
 msgstr ""
 
-#: twitter/includes/class-esf-twitter-auth-callback-listener.php:232
+#: twitter/includes/class-esf-twitter-auth-callback-listener.php:240
 msgid "X Account Connected"
 msgstr ""
 
@@ -5021,6 +6061,10 @@ msgstr ""
 msgid "years"
 msgstr ""
 
+#: includes/class-esf-review-request.php:404
+msgid "Yes, happy to leave a review"
+msgstr ""
+
 #: facebook/includes/easy-custom-facebook-feed-widget.php:222
 #: facebook/includes/easy-custom-facebook-feed-widget.php:344
 #: instagram/includes/esf-instagram-feed-widget.php:127
@@ -5028,9 +6072,20 @@ msgstr ""
 msgid "Yes, take me there"
 msgstr ""
 
-#: admin/class-esf-admin.php:657
+#: includes/class-esf-review-request.php:619
+msgid ""
+"You are all set. If the setup was smooth, a quick review helps us keep "
+"improving Easy Social Feed."
+msgstr ""
+
+#: admin/api/class-esf-api-review-request.php:74
+msgid "You are not allowed to manage review notices."
+msgstr ""
+
+#: admin/class-esf-admin.php:682
 #: twitter/includes/class-esf-twitter-auth-callback-listener.php:58
 #: youtube/includes/class-esf-youtube-auth-callback-listener.php:57
+#: instagram/includes/class-esf-instagram-auth-callback-listener.php:61
 msgid "You are not allowed to perform this action."
 msgstr ""
 
@@ -5101,6 +6156,10 @@ msgid ""
 "Instagram Feeds -> Skins section."
 msgstr ""
 
+#: instagram/includes/class-esf-instagram-auth-callback-listener.php:52
+msgid "You do not have permission to connect Instagram accounts."
+msgstr ""
+
 #: twitter/includes/class-esf-twitter-auth-callback-listener.php:48
 msgid "You do not have permission to connect X accounts."
 msgstr ""
@@ -5109,12 +6168,8 @@ msgstr ""
 msgid "You do not have permission to connect YouTube accounts."
 msgstr ""
 
-#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:493
+#: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:485
 msgid "You do not have permission to perform this action."
-msgstr ""
-
-#: youtube/includes/api/class-esf-youtube-api-refresh.php:131
-msgid "You do not have permission to refresh this account."
 msgstr ""
 
 #: youtube/includes/api/class-esf-youtube-api-refresh.php:84
@@ -5136,16 +6191,16 @@ msgstr ""
 msgid "You're on the free plan"
 msgstr ""
 
+#. %s: social network name
+#: includes/class-esf-review-request.php:600
+#, php-format
+msgid "Your %s feed is ready!"
+msgstr ""
+
 #: facebook/admin/views/html-likebox-tab.php:290
 msgid ""
 "Your Facebook fanpage URL. You can find your page URL from browser address "
 "bar when page is opened. Like https://facebook.com/easysocialfeed"
-msgstr ""
-
-#: admin/class-esf-admin.php:1141
-msgid ""
-"Your feedback truly helps us grow and continue improving Easy Social Feed. "
-"Thank you for your support!"
 msgstr ""
 
 #: admin/views/html-admin-page-easy-social-feed.php:217
@@ -5168,6 +6223,7 @@ msgstr ""
 msgid "Your text"
 msgstr ""
 
+#: includes/class-esf-review-request.php:660
 #: youtube/admin/classes/class-esf-youtube-admin.php:82
 #: youtube/admin/classes/class-esf-youtube-admin.php:83
 msgid "YouTube"
@@ -5183,8 +6239,8 @@ msgstr ""
 msgid "YouTube API error: %s"
 msgstr ""
 
-#: easy-facebook-likebox.php:384 includes/class-esf-translation-strings.php:273
-#: admin/api/class-esf-api-welcome.php:299
+#: easy-facebook-likebox.php:398 includes/class-esf-translation-strings.php:273
+#: admin/api/class-esf-api-welcome.php:303
 #: admin/views/html-admin-page-easy-social-feed.php:159
 msgid "YouTube Feed"
 msgstr ""

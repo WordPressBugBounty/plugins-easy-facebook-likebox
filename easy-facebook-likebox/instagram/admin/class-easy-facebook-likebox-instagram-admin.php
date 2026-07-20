@@ -75,19 +75,14 @@ if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
          * Adds Instagram sub-menu in dashboard
          */
         function esf_insta_menu() {
-            if ( efl_fs()->is_free_plan() ) {
-                $menu_position = 2;
-            } else {
-                $menu_position = null;
-            }
             add_submenu_page(
-                'feed-them-all',
+                ESF_Admin_Menu_Order::PARENT_SLUG,
                 __( 'Instagram', 'easy-facebook-likebox' ),
                 __( 'Instagram', 'easy-facebook-likebox' ),
                 'manage_options',
                 'mif',
                 array($this, 'esf_insta_page'),
-                $menu_position
+                ESF_Admin_Menu_Order::INSTAGRAM
             );
         }
 

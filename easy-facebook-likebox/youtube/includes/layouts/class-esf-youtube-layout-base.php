@@ -376,7 +376,15 @@ abstract class ESF_YouTube_Layout_Base {
 				} else {
 					$with_urls = $safe;
 				}
-				$description_html = nl2br( esf_youtube_hashtags_to_links( $with_urls ) );
+				$description_html = nl2br(
+					esf_hashtags_to_links(
+						$with_urls,
+						'youtube',
+						array(
+							'class' => 'esf-yt-hash',
+						)
+					)
+				);
 			}
 
 			$popup_payload = array(
@@ -421,24 +429,12 @@ abstract class ESF_YouTube_Layout_Base {
 			}
 		}
 
-		$link_attrs  = '';
-		$link_target = '_blank';
-		$link_rel    = 'noopener noreferrer';
-		if ( $popup_enabled && $video_id ) {
-			// Use "#" and rely on JS event.preventDefault(); do NOT set data-fancybox
-			// so Fancybox does not auto-bind or alter the URL/hash.
-			$link_attrs  = ' href="#"';
-			$link_target = '';
-			$link_rel    = '';
-		} elseif ( $video_url ) {
-			// Popup disabled: link directly to YouTube watch URL (previous behavior).
-			$link_attrs = ' href="' . esc_url( $video_url ) . '"';
-		}
+		$link_attrs = ' href="' . esc_url( $video_url ) . '"';
 
 		ob_start();
 		?>
 		<article class="<?php echo esc_attr( implode( ' ', $article_classes ) ); ?>"<?php echo $data_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-			<a class="esf-yt-feed__card-link"<?php echo $link_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo $link_target ? ' target="' . esc_attr( $link_target ) . '"' : ''; ?><?php echo $link_rel ? ' rel="' . esc_attr( $link_rel ) . '"' : ''; ?>>
+			<a class="esf-yt-feed__card-link"<?php echo $link_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> target="_blank" rel="noopener noreferrer">
 				<?php if ( $show_thumb && $thumb ) : ?>
 					<div class="esf-yt-feed__card-thumb">
 						<img src="<?php echo esc_url( $thumb ); ?>" alt="<?php echo esc_attr( $title ); ?>" loading="lazy" />

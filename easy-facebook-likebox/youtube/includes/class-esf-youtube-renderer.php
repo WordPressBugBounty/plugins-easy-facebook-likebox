@@ -100,7 +100,45 @@ class ESF_YouTube_Renderer {
 			$custom_css_html = '<style id="esf-youtube-feed-' . $feed_id_attr . '-custom-css">' . $custom_css . '</style>';
 		}
 
-		return '<div id="esf-youtube-feed-' . $feed_id_attr . '" class="esf-yt-feed esf-yt-feed--' . $layout_type_attr . '">' . $layout_html . '</div>' . $custom_css_html;
+		$wrapper_classes = array( 'esf-yt-feed', 'esf-yt-feed--' . $layout_type );
+		$wrapper_classes = apply_filters( 'esf_youtube_render_wrapper_classes', $wrapper_classes, $feed_id_attr, $feed_obj, $layout_type );
+		$wrapper_classes = array_filter(
+			array_map(
+				'sanitize_html_class',
+				is_array( $wrapper_classes ) ? $wrapper_classes : array()
+			)
+		);
+		if ( empty( $wrapper_classes ) ) {
+			$wrapper_classes = array( 'esf-yt-feed', 'esf-yt-feed--' . $layout_type_attr );
+		}
+
+		$wrapper_attrs     = apply_filters(
+			'esf_youtube_render_wrapper_attributes',
+			array(),
+			$feed_id_attr,
+			$feed_obj,
+			$layout_type
+		);
+		$wrapper_attr_html = '';
+		if ( is_array( $wrapper_attrs ) ) {
+			foreach ( $wrapper_attrs as $attr_name => $attr_value ) {
+				$attr_name = sanitize_key( (string) $attr_name );
+				if ( '' === $attr_name || null === $attr_value || false === $attr_value ) {
+					continue;
+				}
+				$wrapper_attr_html .= ' ' . $attr_name . '="' . esc_attr( (string) $attr_value ) . '"';
+			}
+		}
+
+		do_action( 'esf_youtube_before_feed_render', $feed_id_attr, $feed_obj, $layout_type, $videos, $account );
+
+		$html = '<div id="esf-youtube-feed-' . $feed_id_attr . '" class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '"' . $wrapper_attr_html . '>' . $layout_html . '</div>' . $custom_css_html;
+
+		$html = apply_filters( 'esf_youtube_render_html', $html, $feed_id_attr, $feed_obj, $layout_type, $videos );
+
+		do_action( 'esf_youtube_after_feed_render', $feed_id_attr, $feed_obj, $layout_type, $videos, $account, $html );
+
+		return $html;
 	}
 
 	/**
@@ -243,7 +281,7 @@ class ESF_YouTube_Renderer {
 		}
 
 		if ( is_array( $videos ) && ! empty( $videos ) ) {
-			$videos = $this->ensure_local_thumbnails_for_videos( $videos );
+			$videos = $this->ensure_local_thumbnails_for_videos( $videos, $account_id );
 
 			$ttl = (int) esf_get_youtube_settings( 'cache_duration' );
 			if ( $ttl <= 0 ) {
@@ -265,10 +303,14 @@ class ESF_YouTube_Renderer {
 	 *
 	 * @since 6.7.5
 	 *
-	 * @param array $videos Normalized video items.
+	 * @param array $videos     Normalized video items.
+	 * @param int   $account_id Internal account id for uploads/esf-youtube/{id}/.
 	 * @return array Videos with thumbnail_url pointing to a local URL when available.
 	 */
-	protected function ensure_local_thumbnails_for_videos( $videos ) {
+	protected function ensure_local_thumbnails_for_videos( $videos, $account_id = 0 ) {
+		$account_id = function_exists( 'esf_normalize_local_media_account_id' )
+			? esf_normalize_local_media_account_id( $account_id )
+			: max( 0, (int) $account_id );
 		if ( ! is_array( $videos ) || empty( $videos ) ) {
 			return $videos;
 		}
@@ -289,7 +331,7 @@ class ESF_YouTube_Renderer {
 				continue;
 			}
 
-			$local_url = esf_serve_media_locally( $video_id, $thumb, 'youtube' );
+			$local_url = esf_serve_media_locally( $video_id, $thumb, 'youtube', $account_id );
 			if ( is_string( $local_url ) && '' !== $local_url ) {
 				$videos[ $index ]['thumbnail_url'] = $local_url;
 			}

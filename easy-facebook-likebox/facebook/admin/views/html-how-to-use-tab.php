@@ -179,7 +179,7 @@ if ( isset( $fta_settings['plugins']['facebook']['approved_pages'] ) && !empty( 
 if ( !class_exists( 'Esf_Multifeed_Facebook_Frontend' ) ) {
     ?>
 												<a href="<?php 
-    echo esc_url( efl_fs()->get_upgrade_url() );
+    echo esc_url( esf_get_upgrade_url( 'facebook' ) );
     ?>"><?php 
     esc_html_e( 'Multifeed: Display posts from multiple pages in single feed (pro-feature)', 'easy-facebook-likebox' );
     ?></a>
@@ -504,7 +504,7 @@ esc_html_e( 'This step is only required for events filter', 'easy-facebook-likeb
 esc_html_e( 'Filter posts', 'easy-facebook-likebox' );
 ?>
 									<a href="<?php 
-echo esc_url( efl_fs()->get_upgrade_url() );
+echo esc_url( esf_get_upgrade_url( 'facebook' ) );
 ?>">(<?php 
 esc_html_e( 'pro', 'easy-facebook-likebox' );
 ?>)</a>
@@ -523,7 +523,7 @@ esc_html_e( 'You can filter page feed by mentioned, events, albums, videos and i
 esc_html_e( 'Events Filter', 'easy-facebook-likebox' );
 ?> <a
 											href="<?php 
-echo esc_url( efl_fs()->get_upgrade_url() );
+echo esc_url( esf_get_upgrade_url( 'facebook' ) );
 ?>">(<?php 
 esc_html_e( 'pro', 'easy-facebook-likebox' );
 ?>)</a></span>
@@ -606,7 +606,7 @@ esc_html_e( 'Define cache duration to refresh feeds automatically. Like after sp
 esc_html_e( 'Load More', 'easy-facebook-likebox' );
 ?> <a
 											href="<?php 
-echo esc_url( efl_fs()->get_upgrade_url() );
+echo esc_url( esf_get_upgrade_url( 'facebook' ) );
 ?>">(<?php 
 esc_html_e( 'pro', 'easy-facebook-likebox' );
 ?>)</a></span>
@@ -624,7 +624,7 @@ esc_html_e( 'Load More button at the bottom of each feed to infinitely load more
 esc_html_e( 'Show live stream only', 'easy-facebook-likebox' );
 ?> <a
 											href="<?php 
-echo esc_url( efl_fs()->get_upgrade_url() );
+echo esc_url( esf_get_upgrade_url( 'facebook' ) );
 ?>">(<?php 
 esc_html_e( 'pro', 'easy-facebook-likebox' );
 ?>)</a></span>

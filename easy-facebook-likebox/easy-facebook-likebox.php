@@ -4,7 +4,7 @@
  * Plugin Name: Easy Social Feed
  * Plugin URI:        https://wordpress.org/plugins/easy-facebook-likebox
  * Description:       Formerly "Easy Facebook Like Box and Custom Facebook Feed" plugin allows you to easily display custom facebook feed, custom Instagram photos and videos feed, page plugin (like box) on your website using either widget or shortcode to increase facbook fan page likes. You can use the shortcode generator. Additionally, it also now allows you to display the customized facebook feed on your website using the same color scheme of your website. Its completely customizable with lots of optional settings. Its also responsive facebook like box at the same time.
- * Version:           6.7.6
+ * Version:           6.7.7
  * Author:            Easy Social Feed
  * Author URI:        https://easysocialfeed.com/
  * Text Domain:       easy-facebook-likebox
@@ -115,7 +115,7 @@ if ( function_exists( 'efl_fs' ) ) {
                     'has_affiliation'  => 'all',
                     'menu'             => array(
                         'support'    => false,
-                        'slug'       => 'feed-them-all',
+                        'slug'       => 'easy-social-feed',
                         'first-path' => 'admin.php?page=esf_welcome',
                     ),
                     'is_live'          => true,
@@ -134,6 +134,9 @@ if ( function_exists( 'efl_fs' ) ) {
     //======================================================================
     // Code for the Main structure
     //======================================================================
+    // Shared autoloaders must load after Freemius init (inside this boot path only).
+    require_once __DIR__ . '/admin/shared/dashboard-core/layouts/autoload.php';
+    require_once __DIR__ . '/admin/shared/seo/autoload.php';
     $options = get_option( 'fta_settings', array() );
     $fb_status = ( isset( $options['plugins']['facebook']['status'] ) ? $options['plugins']['facebook']['status'] : 'activated' );
     if ( isset( $options['plugins']['facebook'] ) ) {
@@ -184,6 +187,10 @@ if ( function_exists( 'efl_fs' ) ) {
     if ( !array_key_exists( 'status', $youtube ) || '' === $youtube_status ) {
         $youtube_status = 'activated';
     }
+    // Shared cron / Graph helpers must load before module bootstraps that schedule token refresh jobs.
+    require_once __DIR__ . '/includes/class-esf-token-cron-helpers.php';
+    require_once __DIR__ . '/includes/class-esf-oauth-token-helpers.php';
+    require_once __DIR__ . '/includes/class-esf-meta-graph-error.php';
     if ( 'activated' === $youtube_status ) {
         require_once plugin_dir_path( __FILE__ ) . 'youtube/autoload.php';
     }
@@ -202,7 +209,7 @@ if ( function_exists( 'efl_fs' ) ) {
     }
     if ( !class_exists( 'Feed_Them_All' ) ) {
         class Feed_Them_All {
-            public $version = '6.7.6';
+            public $version = '6.7.7';
 
             public $fta_slug = 'easy-facebook-likebox';
 
@@ -272,6 +279,28 @@ if ( function_exists( 'efl_fs' ) ) {
             public function includes() {
                 include FTA_PLUGIN_DIR . '/includes/class-module-search.php';
                 include FTA_PLUGIN_DIR . '/includes/core-functions.php';
+                if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
+                    $moderation_file = FTA_PLUGIN_DIR . '/includes/class-esf-moderation.php';
+                    if ( file_exists( $moderation_file ) ) {
+                        require_once $moderation_file;
+                    }
+                    $shoppable_file = FTA_PLUGIN_DIR . '/includes/class-esf-shoppable.php';
+                    if ( file_exists( $shoppable_file ) ) {
+                        require_once $shoppable_file;
+                    }
+                }
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-feed-name.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-module-system.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-module-catalogue.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-admin-paths.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-settings.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-admin-menu-order.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-review-request.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-token-cron-helpers.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-oauth-token-helpers.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-layout-dimensions.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-meta-graph-error.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-token-reconnect-mailer.php';
                 include FTA_PLUGIN_DIR . '/includes/class-esf-translation-strings.php';
                 include FTA_PLUGIN_DIR . '/includes/class-esf-gdpr-integrations.php';
                 include FTA_PLUGIN_DIR . 'admin/class-esf-admin.php';
@@ -376,8 +405,8 @@ if ( function_exists( 'efl_fs' ) ) {
              * It will get the saved settings.
              */
             public function fta_get_settings( $key = null ) {
-                $fta_settings = get_option( 'fta_settings', false );
-                if ( $key && isset( $fta_settings[$key] ) ) {
+                $fta_settings = ( class_exists( 'ESF_Settings' ) ? ESF_Settings::get_legacy_compatible_array() : get_option( 'fta_settings', false ) );
+                if ( $key && is_array( $fta_settings ) && isset( $fta_settings[$key] ) ) {
                     $fta_settings = $fta_settings[$key];
                 }
                 return $fta_settings;
@@ -387,7 +416,7 @@ if ( function_exists( 'efl_fs' ) ) {
              * fta_settings_link Will add the My Instagram settings page link in the plugin area.
              */
             public function fta_settings_link( $links ) {
-                $fta_link = array('<a href="' . admin_url( 'admin.php?page=feed-them-all' ) . '">' . __( 'Settings', 'easy-facebook-likebox' ) . '</a>');
+                $fta_link = array('<a href="' . esc_url( ESF_Admin_Paths::hub_admin_url() ) . '">' . __( 'Settings', 'easy-facebook-likebox' ) . '</a>');
                 return array_merge( $fta_link, $links );
             }
 

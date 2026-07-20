@@ -89,37 +89,8 @@ class ESF_YouTube_Account_Repository {
 			"SELECT id FROM `{$table_escaped}` WHERE channel_id = '{$channel_id_esc}' LIMIT 1"
 		);
 
-		// Save channel thumbnail locally for fast, first-party serving (reuses core esf_serve_media_locally).
-		// When connecting (or reconnecting), always refresh the local thumbnail so it matches YouTube.
-		$thumbnail_url = isset( $channel_data['thumbnail'] ) ? $channel_data['thumbnail'] : '';
-		if ( ! empty( $channel_data['id'] ) && ! empty( $thumbnail_url ) ) {
-			// Delete any existing local copy so a fresh version is downloaded.
-			if ( function_exists( 'esf_delete_media' ) ) {
-				esf_delete_media( $channel_data['id'], 'youtube' );
-			}
-
-			if ( function_exists( 'esf_serve_media_locally' ) ) {
-				$local_url = esf_serve_media_locally( $channel_data['id'], $thumbnail_url, 'youtube' );
-				if ( is_string( $local_url ) && '' !== $local_url ) {
-					$thumbnail_url = $local_url;
-				}
-			}
-		}
-
-		// Save channel banner locally when available (Pro feature; uses distinct id so it does not overwrite thumbnail).
-		$banner_url = isset( $channel_data['banner'] ) ? $channel_data['banner'] : '';
-		if ( ! empty( $channel_data['id'] ) && ! empty( $banner_url ) && is_string( $banner_url ) ) {
-			$banner_media_id = $channel_data['id'] . '_banner';
-			if ( function_exists( 'esf_delete_media' ) ) {
-				esf_delete_media( $banner_media_id, 'youtube' );
-			}
-			if ( function_exists( 'esf_serve_media_locally' ) ) {
-				$local_banner = esf_serve_media_locally( $banner_media_id, $banner_url, 'youtube' );
-				if ( is_string( $local_banner ) && '' !== $local_banner ) {
-					$banner_url = $local_banner;
-				}
-			}
-		}
+		$thumbnail_url = isset( $channel_data['thumbnail'] ) ? (string) $channel_data['thumbnail'] : '';
+		$banner_url    = isset( $channel_data['banner'] ) ? (string) $channel_data['banner'] : '';
 
 		// Prepare channel data fields.
 		// Store frequently-accessed fields as columns for fast queries.
@@ -172,24 +143,32 @@ class ESF_YouTube_Account_Repository {
 				array( '%d' )
 			);
 
-			return ( false === $updated ) ? false : $existing_id;
+			$account_id = ( false === $updated ) ? false : $existing_id;
+		} else {
+			// New account.
+			$fields['created_at'] = $now;
+			$format[]             = '%s';
+
+			$inserted = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+				$table,
+				$fields,
+				$format
+			);
+
+			$account_id = ( false === $inserted ) ? false : (int) $wpdb->insert_id;
 		}
 
-		// New account.
-		$fields['created_at'] = $now;
-		$format[]             = '%s';
-
-		$inserted = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-			$table,
-			$fields,
-			$format
-		);
-
-		if ( false === $inserted ) {
-			return false;
+		if ( $account_id && ! empty( $channel_data['id'] ) ) {
+			$localized = self::persist_local_channel_images(
+				(int) $account_id,
+				(string) $channel_data['id'],
+				$thumbnail_url,
+				$banner_url
+			);
+			self::update_stored_channel_images( (int) $account_id, $localized['thumbnail'], $localized['banner'] );
 		}
 
-		return (int) $wpdb->insert_id;
+		return $account_id;
 	}
 
 	/**
@@ -301,34 +280,17 @@ class ESF_YouTube_Account_Repository {
 			return false;
 		}
 
-		$thumbnail_url = isset( $channel_data['thumbnail'] ) ? $channel_data['thumbnail'] : '';
-		if ( ! empty( $channel_data['id'] ) && ! empty( $thumbnail_url ) ) {
-			// Delete any existing local copy so a fresh version is downloaded on stats refresh.
-			if ( function_exists( 'esf_delete_media' ) ) {
-				esf_delete_media( $channel_data['id'], 'youtube' );
-			}
-
-			if ( function_exists( 'esf_serve_media_locally' ) ) {
-				$local_url = esf_serve_media_locally( $channel_data['id'], $thumbnail_url, 'youtube' );
-				if ( is_string( $local_url ) && '' !== $local_url ) {
-					$thumbnail_url = $local_url;
-				}
-			}
-		}
-
-		// Refresh channel banner locally when available (Pro feature).
-		$banner_url = isset( $channel_data['banner'] ) ? $channel_data['banner'] : '';
-		if ( ! empty( $channel_data['id'] ) && ! empty( $banner_url ) && is_string( $banner_url ) ) {
-			$banner_media_id = $channel_data['id'] . '_banner';
-			if ( function_exists( 'esf_delete_media' ) ) {
-				esf_delete_media( $banner_media_id, 'youtube' );
-			}
-			if ( function_exists( 'esf_serve_media_locally' ) ) {
-				$local_banner = esf_serve_media_locally( $banner_media_id, $banner_url, 'youtube' );
-				if ( is_string( $local_banner ) && '' !== $local_banner ) {
-					$banner_url = $local_banner;
-				}
-			}
+		$thumbnail_url = isset( $channel_data['thumbnail'] ) ? (string) $channel_data['thumbnail'] : '';
+		$banner_url    = isset( $channel_data['banner'] ) ? (string) $channel_data['banner'] : '';
+		if ( ! empty( $channel_data['id'] ) ) {
+			$localized = self::persist_local_channel_images(
+				$account_id,
+				(string) $channel_data['id'],
+				$thumbnail_url,
+				$banner_url
+			);
+			$thumbnail_url = $localized['thumbnail'];
+			$banner_url    = $localized['banner'];
 		}
 
 		$now = current_time( 'mysql', true );
@@ -468,10 +430,14 @@ class ESF_YouTube_Account_Repository {
 			return;
 		}
 
-		// Remove locally served channel thumbnail and banner (uploads/esf-youtube/).
+		if ( function_exists( 'esf_delete_media_account_folder' ) ) {
+			esf_delete_media_account_folder( 'youtube', $account_id );
+		}
+
+		// Legacy flat files saved before account subfolders existed.
 		if ( ! empty( $account->channel_id ) && function_exists( 'esf_delete_media' ) ) {
-			esf_delete_media( $account->channel_id, 'youtube' );
-			esf_delete_media( $account->channel_id . '_banner', 'youtube' );
+			esf_delete_media( $account->channel_id, 'youtube', 0 );
+			esf_delete_media( $account->channel_id . '_banner', 'youtube', 0 );
 		}
 
 		/**
@@ -515,5 +481,84 @@ class ESF_YouTube_Account_Repository {
 		);
 
 		return ( false !== $deleted && $deleted > 0 );
+	}
+
+	/**
+	 * Localize channel thumbnail and banner into uploads/esf-youtube/{account_id}/.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int    $account_id    Internal account id.
+	 * @param string $channel_id    YouTube channel id.
+	 * @param string $thumbnail_url Remote thumbnail URL.
+	 * @param string $banner_url    Remote banner URL.
+	 * @return array{thumbnail:string,banner:string}
+	 */
+	private static function persist_local_channel_images( int $account_id, string $channel_id, string $thumbnail_url, string $banner_url ): array {
+		if ( $account_id <= 0 || '' === $channel_id || ! function_exists( 'esf_serve_media_locally' ) ) {
+			return array(
+				'thumbnail' => $thumbnail_url,
+				'banner'    => $banner_url,
+			);
+		}
+
+		if ( function_exists( 'esf_delete_media' ) ) {
+			esf_delete_media( $channel_id, 'youtube', 0 );
+			esf_delete_media( $channel_id . '_banner', 'youtube', 0 );
+		}
+
+		if ( '' !== $thumbnail_url ) {
+			$local_thumb = esf_serve_media_locally( $channel_id, $thumbnail_url, 'youtube', $account_id );
+			if ( is_string( $local_thumb ) && '' !== $local_thumb ) {
+				$thumbnail_url = $local_thumb;
+			}
+		}
+
+		if ( '' !== $banner_url ) {
+			$banner_media_id = $channel_id . '_banner';
+			$local_banner    = esf_serve_media_locally( $banner_media_id, $banner_url, 'youtube', $account_id );
+			if ( is_string( $local_banner ) && '' !== $local_banner ) {
+				$banner_url = $local_banner;
+			}
+		}
+
+		return array(
+			'thumbnail' => $thumbnail_url,
+			'banner'    => $banner_url,
+		);
+	}
+
+	/**
+	 * Update stored channel image URLs after localizing assets.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int         $account_id    Internal account id.
+	 * @param string      $thumbnail_url Thumbnail URL to store.
+	 * @param string|null $banner_url    Banner URL to store (null leaves unchanged).
+	 * @return void
+	 */
+	private static function update_stored_channel_images( int $account_id, string $thumbnail_url, $banner_url = null ): void {
+		global $wpdb;
+
+		$fields = array(
+			'channel_thumbnail' => $thumbnail_url,
+			'updated_at'        => current_time( 'mysql', true ),
+		);
+		$format = array( '%s', '%s' );
+
+		if ( null !== $banner_url ) {
+			$fields['channel_banner'] = $banner_url ? $banner_url : null;
+			$format[]                 = '%s';
+		}
+
+		$table = ESF_YouTube_Account_Repository::get_instance()->get_table_name();
+		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$table,
+			$fields,
+			array( 'id' => $account_id ),
+			$format,
+			array( '%d' )
+		);
 	}
 }

@@ -63,9 +63,21 @@ class ESF_YouTube_Auth_Callback_Listener {
 		// Read access token data from the query string if provided. Tokens are opaque
 		// values that we store as-is and never output directly.
 		// Note: WordPress automatically URL-decodes $_GET values.
-		$access_token  = isset( $_GET['ysf_access_token'] ) ? sanitize_text_field( wp_unslash( $_GET['ysf_access_token'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$refresh_token = isset( $_GET['ysf_refresh_token'] ) ? sanitize_text_field( wp_unslash( $_GET['ysf_refresh_token'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$expires_in    = isset( $_GET['expires_in'] ) ? (int) $_GET['expires_in'] : 3600; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$access_token = '';
+		if ( isset( $_GET['ysf_access_token'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$access_token = sanitize_text_field( wp_unslash( $_GET['ysf_access_token'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		} elseif ( isset( $_GET['access_token'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$access_token = sanitize_text_field( wp_unslash( $_GET['access_token'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+
+		$refresh_token = '';
+		if ( isset( $_GET['ysf_refresh_token'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$refresh_token = sanitize_text_field( wp_unslash( $_GET['ysf_refresh_token'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		} elseif ( isset( $_GET['refresh_token'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$refresh_token = sanitize_text_field( wp_unslash( $_GET['refresh_token'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+
+		$expires_in = isset( $_GET['expires_in'] ) ? (int) $_GET['expires_in'] : 3600; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		$status = 'error';
 		if ( ! empty( $access_token ) ) {
@@ -85,6 +97,9 @@ class ESF_YouTube_Auth_Callback_Listener {
 
 				if ( false !== $account_id ) {
 					$status = 'connected';
+					if ( function_exists( 'esf_review_request_record_milestone' ) ) {
+						esf_review_request_record_milestone( 'account_connected', 'youtube' );
+					}
 					esf_youtube_log_error(
 						'Saved YouTube account from callback.',
 						array(

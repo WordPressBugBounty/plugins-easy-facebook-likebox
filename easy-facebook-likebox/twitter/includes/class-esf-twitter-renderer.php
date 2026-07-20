@@ -204,7 +204,7 @@ class ESF_Twitter_Renderer {
 		$next_token = isset( $page['next_token'] ) ? sanitize_text_field( (string) $page['next_token'] ) : '';
 
 		if ( is_array( $tweets ) && ! empty( $tweets ) ) {
-			$tweets = $this->ensure_local_media_for_tweets( $tweets );
+			$tweets = $this->ensure_local_media_for_tweets( $tweets, $account_id );
 
 			$ttl = (int) esf_get_twitter_settings( 'cache_duration' );
 			if ( $ttl <= 0 ) {
@@ -234,10 +234,14 @@ class ESF_Twitter_Renderer {
 	 * esf_serve_media_locally().
 	 *
 	 * @since 6.7.6
-	 * @param array $tweets Normalized tweet items.
+	 * @param array $tweets     Normalized tweet items.
+	 * @param int   $account_id Internal account id for uploads/esf-twitter/{id}/.
 	 * @return array Tweets with local media URLs when available.
 	 */
-	protected function ensure_local_media_for_tweets( $tweets ) {
+	protected function ensure_local_media_for_tweets( $tweets, $account_id = 0 ) {
+		$account_id = function_exists( 'esf_normalize_local_media_account_id' )
+			? esf_normalize_local_media_account_id( $account_id )
+			: max( 0, (int) $account_id );
 		if ( ! is_array( $tweets ) || empty( $tweets ) ) {
 			return $tweets;
 		}
@@ -264,7 +268,7 @@ class ESF_Twitter_Renderer {
 					if ( '' === $author_id ) {
 						$author_id = 'tweet_' . $tweet_id . '_author';
 					}
-					$local_author_avatar = esf_serve_media_locally( 'tw_author_' . $author_id, $author_avatar, 'twitter' );
+					$local_author_avatar = esf_serve_media_locally( 'tw_author_' . $author_id, $author_avatar, 'twitter', $account_id );
 					if ( is_string( $local_author_avatar ) && '' !== $local_author_avatar ) {
 						$tweets[ $index ]['author']['profile_image_url'] = $local_author_avatar;
 					}
@@ -289,7 +293,7 @@ class ESF_Twitter_Renderer {
 				}
 
 				$media_key       = 'tw_media_' . $tweet_id . '_' . (int) $media_index;
-				$local_media_url = esf_serve_media_locally( $media_key, $media_url, 'twitter' );
+				$local_media_url = esf_serve_media_locally( $media_key, $media_url, 'twitter', $account_id );
 				if ( is_string( $local_media_url ) && '' !== $local_media_url ) {
 					$tweets[ $index ]['media'][ $media_index ][ $url_field ] = $local_media_url;
 				}
@@ -299,7 +303,7 @@ class ESF_Twitter_Renderer {
 					$video_url = isset( $media_item['video_url'] ) ? (string) $media_item['video_url'] : '';
 					if ( '' !== $video_url ) {
 						$video_key       = 'tw_video_' . $tweet_id . '_' . (int) $media_index;
-						$local_video_url = esf_serve_media_locally( $video_key, $video_url, 'twitter' );
+						$local_video_url = esf_serve_media_locally( $video_key, $video_url, 'twitter', $account_id );
 						if ( is_string( $local_video_url ) && '' !== $local_video_url ) {
 							$tweets[ $index ]['media'][ $media_index ]['video_url'] = $local_video_url;
 						}

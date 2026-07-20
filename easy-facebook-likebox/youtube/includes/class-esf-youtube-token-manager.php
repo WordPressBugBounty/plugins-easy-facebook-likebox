@@ -39,14 +39,10 @@ class ESF_YouTube_Token_Manager {
 	 * @since 6.7.5
 	 */
 	public function init() {
-		// Register cron job.
-		add_action( self::CRON_HOOK, array( $this, 'auto_refresh_expiring_tokens' ) );
-
-		// Schedule cron if not already scheduled.
-		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
-			// Run every 30 minutes.
-			wp_schedule_event( time(), 'thirty_minutes', self::CRON_HOOK );
-		}
+		esf_cron_attach_thirty_minutes_recurring_job(
+			self::CRON_HOOK,
+			array( $this, 'auto_refresh_expiring_tokens' )
+		);
 	}
 
 	/**
@@ -271,9 +267,6 @@ class ESF_YouTube_Token_Manager {
 	 * @since 6.7.5
 	 */
 	public function unschedule_cron() {
-		$timestamp = wp_next_scheduled( self::CRON_HOOK );
-		if ( $timestamp ) {
-			wp_unschedule_event( $timestamp, self::CRON_HOOK );
-		}
+		esf_cron_unschedule_recurring_job( self::CRON_HOOK );
 	}
 }

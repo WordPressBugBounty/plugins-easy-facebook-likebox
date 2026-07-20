@@ -251,6 +251,65 @@ jQuery( document ).ready(
 			}
 		);
 
+		var postReviewRequestAction = function( action, onSuccess ) {
+			if ( ! fta.rest_url || ! fta.rest_nonce ) {
+				return;
+			}
+
+			jQuery.ajax( {
+				url: fta.rest_url + 'review-request/action',
+				type: 'POST',
+				contentType: 'application/json',
+				dataType: 'json',
+				data: JSON.stringify( { action: action } ),
+				beforeSend: function( xhr ) {
+					xhr.setRequestHeader( 'X-WP-Nonce', fta.rest_nonce );
+				},
+				success: function( response ) {
+					if ( response && response.success && typeof onSuccess === 'function' ) {
+						onSuccess( response );
+					}
+				},
+			} );
+		};
+
+		jQuery( document ).on( 'click', '.esf-review-request-action', function( event ) {
+			var $button = jQuery( this );
+			var action = $button.data( 'esf-review-action' );
+			var $notice = $button.closest( '.esf-review-request-notice' );
+
+			if ( 'happy' === action ) {
+				event.preventDefault();
+				$notice.find( '.esf-review-request-notice__actions' ).attr( 'hidden', true );
+				$notice.find( '.esf-review-request-notice__question' ).attr( 'hidden', true );
+				$notice.find( '.esf-review-request-notice__followup' ).removeAttr( 'hidden' );
+				return;
+			}
+
+			if ( 'not_happy' === action ) {
+				event.preventDefault();
+				$notice.find( '.esf-review-request-notice__actions' ).attr( 'hidden', true );
+				$notice.find( '.esf-review-request-notice__question' ).attr( 'hidden', true );
+				$notice.find( '.esf-review-request-notice__support' ).removeAttr( 'hidden' );
+				postReviewRequestAction( 'not_happy' );
+				return;
+			}
+
+			if ( 'left_review' === action ) {
+				postReviewRequestAction( 'left_review', function() {
+					$notice.slideUp( 'fast' );
+				} );
+				return;
+			}
+
+			if ( 'snooze' === action || 'already_rated' === action || 'dismiss' === action ) {
+				event.preventDefault();
+				postReviewRequestAction( action, function() {
+					$notice.slideUp( 'fast' );
+				} );
+			}
+		} );
+
 		jQuery( '.esf_hide_updated_notice' ).click(
 			function() {
 
