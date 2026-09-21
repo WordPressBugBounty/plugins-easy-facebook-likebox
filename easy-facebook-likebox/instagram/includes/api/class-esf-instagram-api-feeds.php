@@ -85,6 +85,16 @@ class ESF_Instagram_API_Feeds {
 
 		register_rest_route(
 			'esf/v1',
+			'/instagram/feeds/(?P<id>[\d]+)/pin-cache',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( __CLASS__, 'pin_feed_cache' ),
+				'permission_callback' => array( __CLASS__, 'write_permissions_check' ),
+			)
+		);
+
+		register_rest_route(
+			'esf/v1',
 			'/instagram/feeds/(?P<id>[\d]+)/sync-stories',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
@@ -231,21 +241,21 @@ class ESF_Instagram_API_Feeds {
 			return new WP_Error( 'not_found', __( 'Feed not found.', 'easy-facebook-likebox' ), array( 'status' => 404 ) );
 		}
 
-		$data                = array();
-		$current_settings    = self::decode_feed_settings( $feed );
-		$next_settings       = $current_settings;
-		$name_mode           = ESF_Feed_Name::get_name_mode( $current_settings );
-		$current_name        = isset( $feed->name ) ? sanitize_text_field( (string) $feed->name ) : '';
-		$current_account     = isset( $feed->account_id ) ? (int) $feed->account_id : 0;
-		$current_feed_type   = isset( $feed->feed_type ) ? (string) $feed->feed_type : 'user_timeline';
-		$current_source_id   = isset( $feed->source_id ) ? (string) $feed->source_id : '';
-		$next_account        = $current_account;
-		$next_feed_type      = $current_feed_type;
-		$next_source_id      = $current_source_id;
-		$account_changed     = false;
-		$feed_type_changed   = false;
-		$source_id_changed   = false;
-		$name_updated        = false;
+		$data              = array();
+		$current_settings  = self::decode_feed_settings( $feed );
+		$next_settings     = $current_settings;
+		$name_mode         = ESF_Feed_Name::get_name_mode( $current_settings );
+		$current_name      = isset( $feed->name ) ? sanitize_text_field( (string) $feed->name ) : '';
+		$current_account   = isset( $feed->account_id ) ? (int) $feed->account_id : 0;
+		$current_feed_type = isset( $feed->feed_type ) ? (string) $feed->feed_type : 'user_timeline';
+		$current_source_id = isset( $feed->source_id ) ? (string) $feed->source_id : '';
+		$next_account      = $current_account;
+		$next_feed_type    = $current_feed_type;
+		$next_source_id    = $current_source_id;
+		$account_changed   = false;
+		$feed_type_changed = false;
+		$source_id_changed = false;
+		$name_updated      = false;
 
 		foreach ( array( 'name', 'account_id', 'feed_type', 'source_id', 'status', 'settings' ) as $key ) {
 			if ( null === $request->get_param( $key ) ) {
@@ -424,6 +434,50 @@ class ESF_Instagram_API_Feeds {
 				'success' => true,
 				'id'      => $feed_id,
 				'deleted' => false !== $deleted ? (int) $deleted : 0,
+			)
+		);
+	}
+
+	/**
+	 * Pin a disconnected feed's cached posts permanently (no TTL expiry).
+	 *
+	 * @since 6.7.9
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function pin_feed_cache( $request ) {
+		$id   = (int) $request['id'];
+		$feed = ESF_Instagram_Feed_Repository::get_instance()->get_by_id( $id );
+		if ( ! $feed ) {
+			return new WP_Error( 'not_found', __( 'Feed not found.', 'easy-facebook-likebox' ), array( 'status' => 404 ) );
+		}
+
+		if ( empty( $feed->account_id ) ) {
+			return new WP_Error(
+				'no_account',
+				__( 'This feed has no linked account to pin cache for.', 'easy-facebook-likebox' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$pinned = class_exists( 'ESF_Feed_Disconnected_Cache' )
+			? ESF_Feed_Disconnected_Cache::pin_feed_cache_for_module( 'instagram', $id )
+			: ( class_exists( 'ESF_Instagram_Cache' ) && false !== ESF_Instagram_Cache::pin_feed_cache( $id ) );
+
+		if ( ! $pinned ) {
+			return new WP_Error(
+				'pin_failed',
+				__( 'Could not pin feed cache.', 'easy-facebook-likebox' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		$updated = ESF_Instagram_Feed_Repository::get_instance()->get_by_id( $id );
+
+		return rest_ensure_response(
+			array(
+				'pinned' => true,
+				'feed'   => $updated ? self::format_feed( $updated ) : null,
 			)
 		);
 	}

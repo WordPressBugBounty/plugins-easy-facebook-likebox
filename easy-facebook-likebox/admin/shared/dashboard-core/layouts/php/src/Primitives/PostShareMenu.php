@@ -29,6 +29,7 @@ final class PostShareMenu {
 	 *
 	 * Options:
 	 * - label (string): summary label (default "Share").
+	 * - icon_only (bool): icon button without visible label (aria-label preserved).
 	 * - networks (array<int,array{slug:string,label:string,url:string}>): share targets.
 	 * - new_tab (bool, default true).
 	 *
@@ -72,23 +73,44 @@ final class PostShareMenu {
 			return '';
 		}
 
-		$label   = isset( $options['label'] ) && '' !== (string) $options['label']
+		$label     = isset( $options['label'] ) && '' !== (string) $options['label']
 			? (string) $options['label']
 			: __( 'Share', 'easy-facebook-likebox' );
-		$icon    = self::share_icon();
+		$icon_only = ! empty( $options['icon_only'] );
+		$icon      = self::share_icon();
+
+		$summary_class = 'esf-' . $module . '-feed__share-summary';
+		if ( $icon_only ) {
+			$summary_class .= ' esf-' . $module . '-feed__share-summary--icon-only';
+		}
+
+		$summary_attrs = $icon_only
+			? sprintf( ' aria-label="%s" title="%s"', esc_attr( $label ), esc_attr( $label ) )
+			: '';
+
+		$label_markup = $icon_only
+			? ''
+			: sprintf(
+				'<span class="esf-%1$s-feed__share-label">%2$s</span>',
+				esc_attr( $module ),
+				esc_html( $label )
+			);
 
 		return sprintf(
-			'<details class="esf-%1$s-feed__share-menu">' .
-			'<summary class="esf-%1$s-feed__share-summary">' .
+			'<details class="esf-%1$s-feed__share-menu%5$s">' .
+			'<summary class="%6$s"%7$s>' .
 			'<span class="esf-%1$s-feed__share-icon" aria-hidden="true">%2$s</span>' .
-			'<span class="esf-%1$s-feed__share-label">%3$s</span>' .
+			'%3$s' .
 			'</summary>' .
 			'<div class="esf-%1$s-feed__share-popover">%4$s</div>' .
 			'</details>',
 			esc_attr( $module ),
 			$icon, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG.
-			esc_html( $label ),
-			$links // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built with escaping above.
+			$label_markup, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built with escaping above.
+			$links, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built with escaping above.
+			$icon_only ? ' esf-' . esc_attr( $module ) . '-feed__share-menu--icon-only' : '',
+			esc_attr( $summary_class ),
+			$summary_attrs // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built with escaping above.
 		);
 	}
 

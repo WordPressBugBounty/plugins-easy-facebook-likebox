@@ -73,6 +73,17 @@ if ( ! class_exists( 'ESF_API_Settings' ) ) {
 								'type'     => 'string',
 								'required' => true,
 							),
+							'download_media_locally'         => array(
+								'type'                 => 'object',
+								'required'             => false,
+								'additionalProperties' => array(
+									'type' => 'boolean',
+								),
+							),
+							'feed_entrance_animation'        => array(
+								'type'     => 'boolean',
+								'required' => false,
+							),
 						),
 					),
 				)
@@ -87,10 +98,14 @@ if ( ! class_exists( 'ESF_API_Settings' ) ) {
 						'callback'            => array( __CLASS__, 'put_gdpr' ),
 						'permission_callback' => array( __CLASS__, 'write_permissions_check' ),
 						'args'                => array(
-							'gdpr' => array(
+							'gdpr'                  => array(
 								'type'     => 'string',
 								'required' => true,
 								'enum'     => array( 'auto', 'yes', 'no' ),
+							),
+							'gdpr_zero_third_party' => array(
+								'type'     => 'boolean',
+								'required' => false,
 							),
 						),
 					),
@@ -226,12 +241,52 @@ if ( ! class_exists( 'ESF_API_Settings' ) ) {
 
 			$preserve   = (bool) $request->get_param( 'preserve_settings_on_uninstall' );
 			$api_locale = (string) $request->get_param( 'api_locale' );
+			$downloads  = $request->get_param( 'download_media_locally' );
+			if ( $downloads instanceof stdClass ) {
+				$downloads = (array) $downloads;
+			}
+			if ( ! is_array( $downloads ) ) {
+				$json = $request->get_json_params();
+				if ( is_array( $json ) && isset( $json['download_media_locally'] ) ) {
+					$downloads = $json['download_media_locally'];
+					if ( $downloads instanceof stdClass ) {
+						$downloads = (array) $downloads;
+					}
+				}
+			}
+			if ( ! is_array( $downloads ) ) {
+				$downloads = null;
+			}
 
-			ESF_Settings::save_general( $preserve, $api_locale );
+			$entrance = $request->get_param( 'feed_entrance_animation' );
+			if ( null === $entrance ) {
+				$json = $request->get_json_params();
+				if ( is_array( $json ) && array_key_exists( 'feed_entrance_animation', $json ) ) {
+					$entrance = $json['feed_entrance_animation'];
+				}
+			}
+			if ( null !== $entrance ) {
+				$entrance = (bool) $entrance;
+			}
+
+			$result = ESF_Settings::save_general( $preserve, $api_locale, $downloads, $entrance );
+
+			$settings = ESF_Settings::get();
+			$map      = isset( $settings['general']['download_media_locally'] )
+				? $settings['general']['download_media_locally']
+				: null;
+
+			$purged = isset( $result['purged_modules'] ) && is_array( $result['purged_modules'] )
+				? array_values( array_map( 'sanitize_key', $result['purged_modules'] ) )
+				: array();
 
 			return rest_ensure_response(
 				array(
-					'message' => __( 'Settings saved successfully!', 'easy-facebook-likebox' ),
+					'message'                => __( 'Settings saved successfully!', 'easy-facebook-likebox' ),
+					'download_media_locally' => function_exists( 'esf_normalize_download_media_locally_map' )
+						? esf_normalize_download_media_locally_map( $map )
+						: array(),
+					'purged_modules'         => $purged,
 				)
 			);
 		}
@@ -253,7 +308,19 @@ if ( ! class_exists( 'ESF_API_Settings' ) ) {
 			}
 
 			$gdpr = (string) $request->get_param( 'gdpr' );
-			if ( ! ESF_Settings::save_gdpr( $gdpr ) ) {
+			$zero = $request->get_param( 'gdpr_zero_third_party' );
+			if ( null === $zero ) {
+				$json = $request->get_json_params();
+				if ( is_array( $json ) && array_key_exists( 'gdpr_zero_third_party', $json ) ) {
+					$zero = $json['gdpr_zero_third_party'];
+				}
+			}
+			$zero_flag = null;
+			if ( null !== $zero ) {
+				$zero_flag = (bool) $zero;
+			}
+
+			if ( ! ESF_Settings::save_gdpr( $gdpr, $zero_flag ) ) {
 				return new WP_Error(
 					'esf_invalid_gdpr',
 					__( 'Something went wrong! Please try again.', 'easy-facebook-likebox' ),
@@ -263,7 +330,11 @@ if ( ! class_exists( 'ESF_API_Settings' ) ) {
 
 			return rest_ensure_response(
 				array(
-					'message' => __( 'Settings saved successfully!', 'easy-facebook-likebox' ),
+					'message'               => __( 'Settings saved successfully!', 'easy-facebook-likebox' ),
+					'gdpr'                  => $gdpr,
+					'gdpr_zero_third_party' => null !== $zero_flag
+						? $zero_flag
+						: ( class_exists( 'ESF_Settings' ) ? ! empty( ESF_Settings::get()['gdpr_zero_third_party'] ) : false ),
 				)
 			);
 		}

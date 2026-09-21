@@ -1,8 +1,6 @@
 <?php
 /**
- * REST API Controller for Token Refresh.
- *
- * Handles refresh token endpoint for renewing expired access tokens.
+ * YouTube account token refresh REST endpoint.
  *
  * @package Easy_Social_Feed
  * @subpackage YouTube/API
@@ -163,19 +161,42 @@ class ESF_YouTube_API_Refresh extends WP_REST_Controller {
 			);
 		}
 
-		// Refresh channel stats (subscriber_count, description, etc.) so header shows up-to-date data.
+		// Refresh channel stats + local images after a successful token refresh.
 		$api_service  = ESF_YouTube_API_Service::get_instance();
 		$channel_data = $api_service->validate_token_and_fetch_channel( $token_data['access_token'] );
 		if ( ! is_wp_error( $channel_data ) ) {
-			$repository->update_channel_stats( $account_id, $channel_data );
+			$repository->update_channel_stats( $account_id, $channel_data, true );
+			// Clear shared video cache so feeds reload with fresh data.
+			if ( class_exists( 'ESF_YouTube_Cache' ) ) {
+				ESF_YouTube_Cache::flush_account_cache( $account_id );
+			}
 		}
 
-		// Return success response.
+		$fresh           = $repository->get_by_id( $account_id );
+		$account_payload = null;
+		if ( $fresh ) {
+			$account_payload = array(
+				'id'                => (int) $fresh->id,
+				'channel_name'      => isset( $fresh->channel_name ) ? (string) $fresh->channel_name : '',
+				'channel_id'        => isset( $fresh->channel_id ) ? (string) $fresh->channel_id : '',
+				'handle'            => isset( $fresh->handle ) ? (string) $fresh->handle : '',
+				'channel_thumbnail' => isset( $fresh->channel_thumbnail ) ? (string) $fresh->channel_thumbnail : '',
+				'subscriber_count'  => isset( $fresh->subscriber_count ) ? (int) $fresh->subscriber_count : 0,
+				'video_count'       => isset( $fresh->video_count ) ? (int) $fresh->video_count : 0,
+				'status'            => isset( $fresh->status ) ? (string) $fresh->status : 'active',
+				'token_expires_at'  => isset( $fresh->token_expires_at ) ? (string) $fresh->token_expires_at : gmdate( 'Y-m-d H:i:s', time() + (int) $token_data['expires_in'] ),
+			);
+			if ( class_exists( 'ESF_YouTube_Local_Media' ) ) {
+				$account_payload = ESF_YouTube_Local_Media::localize_account_row_images( $account_payload );
+			}
+		}
+
 		return rest_ensure_response(
 			array(
 				'success'    => true,
-				'message'    => __( 'Token refreshed successfully.', 'easy-facebook-likebox' ),
-				'expires_at' => gmdate( 'Y-m-d H:i:s', time() + $token_data['expires_in'] ),
+				'message'    => __( 'Account refreshed successfully.', 'easy-facebook-likebox' ),
+				'expires_at' => gmdate( 'Y-m-d H:i:s', time() + (int) $token_data['expires_in'] ),
+				'account'    => $account_payload,
 			)
 		);
 	}

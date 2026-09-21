@@ -70,7 +70,7 @@ class ESF_YouTube_Token_Manager {
 
 		$expiring_accounts = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and values are derived from trusted sources and escaped.
-			"SELECT id, refresh_token, channel_name FROM `{$table_escaped}` WHERE status = '{$status_esc}' AND token_expires_at <= '{$buffer_esc}' AND refresh_token IS NOT NULL AND refresh_token != '' LIMIT 50"
+			"SELECT id, refresh_token, channel_name FROM `{$table_escaped}` WHERE status = '{$status_esc}' AND auth_source = 'oauth' AND token_expires_at <= '{$buffer_esc}' AND refresh_token IS NOT NULL AND refresh_token != '' LIMIT 50"
 		);
 
 		if ( empty( $expiring_accounts ) ) {
@@ -93,7 +93,9 @@ class ESF_YouTube_Token_Manager {
 				++$failed_count;
 
 				// Notify admin (optional).
-				$this->maybe_send_expiry_notification( $account->id );
+				if ( class_exists( 'ESF_YouTube_Token_Notifications' ) ) {
+					ESF_YouTube_Token_Notifications::maybe_notify_reconnect_required( (int) $account->id );
+				}
 
 				continue;
 			}
@@ -112,52 +114,6 @@ class ESF_YouTube_Token_Manager {
 				++$failed_count;
 			}
 		}
-	}
-
-	/**
-	 * Send notification to admin when token expires.
-	 *
-	 * @since 6.7.5
-	 *
-	 * @param int $account_id Account ID.
-	 */
-	private function maybe_send_expiry_notification( $account_id ) {
-		// Check if notifications are enabled.
-		$settings = get_option( 'esf_youtube_settings', array() );
-		if ( empty( $settings['notify_token_expiry'] ) ) {
-			return;
-		}
-
-		// Get account details.
-		$repository = ESF_YouTube_Account_Repository::get_instance();
-		$account    = $repository->get_by_id( $account_id );
-
-		if ( ! $account ) {
-			return;
-		}
-
-		// Get admin email.
-		$admin_email = get_option( 'admin_email' );
-
-		// Send email notification.
-		$subject = sprintf(
-			/* translators: %s: Site name */
-			__( '[%s] YouTube Account Token Expired', 'easy-facebook-likebox' ),
-			get_bloginfo( 'name' )
-		);
-
-		$message = sprintf(
-			/* translators: 1: Channel name, 2: Channel ID, 3: Admin URL */
-			__(
-				"The YouTube access token for channel '%1\$s' (ID: %2\$s) has expired and could not be automatically refreshed.\n\nPlease reconnect the account at:\n%3\$s\n\nThis is an automated message from Easy Social Feed plugin.",
-				'easy-facebook-likebox'
-			),
-			$account->channel_name,
-			$account->channel_id,
-			admin_url( 'admin.php?page=esf-youtube' )
-		);
-
-		wp_mail( $admin_email, $subject, $message );
 	}
 
 	/**

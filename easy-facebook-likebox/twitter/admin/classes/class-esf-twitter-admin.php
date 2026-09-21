@@ -4,7 +4,7 @@
  * Twitter Admin Class
  *
  * Registers the Twitter admin menu and enqueues assets for the
- * React SPA dashboard. Mirrors the structure of ESF_YouTube_Admin.
+ * React SPA dashboard.
  *
  * @package Easy_Social_Feed
  * @subpackage Twitter/Admin
@@ -112,7 +112,9 @@ class ESF_Twitter_Admin {
         );
         $this->localize_dashboard_script();
         if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
-            $this->enqueue_dashboard_premium_script__premium_only();
+            if ( function_exists( 'esf_twitter_has_twitter_plan' ) && esf_twitter_has_twitter_plan() ) {
+                $this->enqueue_dashboard_premium_script__premium_only();
+            }
         }
     }
 
@@ -164,17 +166,26 @@ class ESF_Twitter_Admin {
             'discount' => '17%',
             'coupon'   => 'ESPF17',
         ) );
+        $layouts = array();
+        if ( class_exists( '\\EasySocialFeed\\Layouts\\LayoutRegistry' ) ) {
+            $layouts = \EasySocialFeed\Layouts\LayoutRegistry::for( 'twitter' )->to_array();
+        }
         $data = array(
             'hasTwitterPlan'                => $has_twitter_plan,
             'hasTwitterLoadMorePlan'        => $has_load_more_plan,
+            'hasMultifeed'                  => function_exists( 'esf_twitter_can_use_multifeed__premium_only' ) && function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() && esf_twitter_can_use_multifeed__premium_only(),
             'canAddAnotherConnectedAccount' => $has_twitter_plan || $repo->get_total_connected_account_count() < 1,
             'upgradeUrl'                    => esc_url( esf_get_upgrade_url( 'twitter' ) ),
+            'currentPlan'                   => ( function_exists( 'esf_get_active_plan_slug' ) ? esf_get_active_plan_slug() : '' ),
+            'needsComboUpgrade'             => function_exists( 'esf_needs_combo_upgrade_for_module' ) && esf_needs_combo_upgrade_for_module( 'twitter' ),
             'proDiscount'                   => ( isset( $pro_promo['discount'] ) ? (string) $pro_promo['discount'] : '17%' ),
             'proCoupon'                     => ( isset( $pro_promo['coupon'] ) ? (string) $pro_promo['coupon'] : 'ESPF17' ),
             'defaultSettings'               => ESF_Twitter_Feed_Repository::get_default_settings(),
+            'layouts'                       => $layouts,
+            'manualTokenHelpUrl'            => ( class_exists( 'ESF_Manual_Access_Token' ) ? esc_url( ESF_Manual_Access_Token::default_help_url( 'twitter' ) ) : 'https://console.x.com/' ),
             'twitterSettings'               => array(
-                'cache_duration'      => $cache_duration,
-                'notify_token_expiry' => !empty( $settings['notify_token_expiry'] ),
+                'cache_duration'         => $cache_duration,
+                'notify_token_reconnect' => !empty( $settings['notify_token_reconnect'] ),
             ),
         );
         /**

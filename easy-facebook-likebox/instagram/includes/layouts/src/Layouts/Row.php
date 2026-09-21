@@ -120,8 +120,8 @@ final class Row extends AbstractTileLayout {
 		);
 
 		if ( $this->is_row_wave_style_enabled() ) {
-			$wave_offset = (int) $this->setting( 'layout.row.wave_offset', 16 );
-			$wave_offset = max( 8, min( 48, $wave_offset ) );
+			$wave_offset                  = (int) $this->setting( 'layout.row.wave_offset', 16 );
+			$wave_offset                  = max( 8, min( 48, $wave_offset ) );
 			$vars['--esf-ig-wave-offset'] = $wave_offset . 'px';
 		}
 

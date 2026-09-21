@@ -66,164 +66,173 @@ class ESF_Instagram_Feed_Repository {
 
 		return array(
 			'layout' => array(
-				'type' => 'grid',
+				'type'       => 'grid',
 				// Grid layout settings. Defaults match the legacy `mif_skin_*` defaults so feeds
 				// upgraded from the customizer keep visual parity: 3-column desktop / 2-column tablet /
 				// 1-column mobile, 8px gap (modern compact; legacy default was 30px, max 100).
-				'grid' => array_merge(
+				'grid'       => array_merge(
 					array(
-					'columns'            => 3,
-					'columns_tablet'     => 2,
-					'columns_mobile'     => 1,
-					'gap'                => 8,
-					'tile_border_radius' => 8,
-					'tile_shadow'        => true,
-					'tile_shadow_color'  => 'rgba(0,0,0,0.12)',
+						'columns'            => 3,
+						'columns_tablet'     => 2,
+						'columns_mobile'     => 1,
+						'gap'                => 8,
+						'tile_border_radius' => 8,
+						'tile_shadow'        => true,
+						'tile_shadow_color'  => 'rgba(0,0,0,0.12)',
 					),
 					$layout_dimensions
 				),
 				// Row: single horizontal band of square tiles; flush (0 gap) by default.
-				'row'  => array_merge(
+				'row'        => array_merge(
 					array(
-					'columns'            => 6,
-					'columns_tablet'     => 3,
-					'columns_mobile'     => 2,
-					'gap'                => 0,
-					'row_style'          => 'standard',
-					'wave_offset'        => 16,
-					'tile_border_radius' => 0,
-					'tile_shadow'        => false,
-					'tile_shadow_color'  => 'rgba(0,0,0,0.12)',
+						'columns'            => 6,
+						'columns_tablet'     => 3,
+						'columns_mobile'     => 2,
+						'gap'                => 0,
+						'row_style'          => 'standard',
+						'wave_offset'        => 16,
+						'tile_border_radius' => 0,
+						'tile_shadow'        => false,
+						'tile_shadow_color'  => 'rgba(0,0,0,0.12)',
 					),
 					$layout_dimensions
 				),
 				// Half Width (Pro): split card — media left, caption/meta right.
 				'half_width' => array_merge(
 					array(
-					'gap'                => 16,
-					'card_border_radius' => 12,
-					'card_shadow'        => true,
-					'card_shadow_color'  => 'rgba(0,0,0,0.08)',
-					'bg_color'           => '',
-					'footer_bg_color'    => '',
-					'text_color'         => '',
-					'accent_color'       => '',
-					'caption_words'      => 25,
-					'show_post_header'   => true,
-					'show_post_time'     => true,
-					'show_share'         => true,
-					'hover_show_likes'   => false,
-					'hover_show_comments'=> false,
+						'media_aspect_ratio'  => '1:1',
+						'gap'                 => 16,
+						'card_border_radius'  => 12,
+						'card_shadow'         => true,
+						'card_shadow_color'   => 'rgba(0,0,0,0.08)',
+						'bg_color'            => '',
+						'footer_bg_color'     => '',
+						'text_color'          => '',
+						'accent_color'        => '',
+						'caption_words'       => 25,
+						'show_post_header'    => true,
+						'show_post_time'      => true,
+						'show_share'          => true,
+						'hover_show_likes'    => false,
+						'hover_show_comments' => false,
 					),
 					$layout_dimensions
 				),
 				// Full Width (Pro): stacked card — media on top, caption/meta below.
 				'full_width' => array_merge(
 					array(
-					'gap'                => 16,
-					'card_border_radius' => 12,
-					'card_shadow'        => true,
-					'card_shadow_color'  => 'rgba(0,0,0,0.08)',
-					'bg_color'           => '',
-					'footer_bg_color'    => '',
-					'text_color'         => '',
-					'accent_color'       => '',
-					'caption_words'      => 25,
-					'media_position'     => 'header_first',
-					'media_aspect_ratio' => '16:9',
-					'show_post_header'   => true,
-					'show_post_time'     => true,
-					'show_share'         => true,
+						'gap'                => 16,
+						'card_border_radius' => 12,
+						'card_shadow'        => true,
+						'card_shadow_color'  => 'rgba(0,0,0,0.08)',
+						'bg_color'           => '',
+						'footer_bg_color'    => '',
+						'text_color'         => '',
+						'accent_color'       => '',
+						'caption_words'      => 25,
+						'media_position'     => 'header_first',
+						'media_aspect_ratio' => '16:9',
+						'show_post_header'   => true,
+						'show_post_time'     => true,
+						'show_share'         => true,
 					),
 					$layout_dimensions
 				),
 				// Masonry (Pro): mixed-height tile wall.
-				'masonry' => array_merge(
+				'masonry'    => array_merge(
 					array(
-					'columns'            => 4,
-					'columns_tablet'     => 3,
-					'columns_mobile'     => 2,
-					'gap'                => 8,
-					'tile_border_radius' => 8,
-					'tile_shadow'        => true,
-					'tile_shadow_color'  => 'rgba(0,0,0,0.12)',
-					'display_mode'       => 'media_only',
-					'show_caption'       => true,
-					'show_meta'          => true,
-					'show_time'          => true,
-					'caption_words'      => 18,
-					'details_bg_color'   => '#ffffff',
-					'details_text_color' => '#262626',
-					'details_accent_color' => '#e1306c',
-					'details_meta_color' => '#8e8e8e',
+						'columns'              => 4,
+						'columns_tablet'       => 3,
+						'columns_mobile'       => 2,
+						'gap'                  => 8,
+						'tile_border_radius'   => 8,
+						'tile_shadow'          => true,
+						'tile_shadow_color'    => 'rgba(0,0,0,0.12)',
+						'display_mode'         => 'media_only',
+						'show_caption'         => true,
+						'show_meta'            => true,
+						'show_time'            => true,
+						'caption_words'        => 18,
+						'details_bg_color'     => '#ffffff',
+						'details_text_color'   => '#262626',
+						'details_accent_color' => '#e1306c',
+						'details_meta_color'   => '#8e8e8e',
 					),
 					$layout_dimensions
 				),
-				'carousel' => array_merge(
+				'carousel'   => array_merge(
 					array(
-					'columns'            => 4,
-					'columns_tablet'     => 3,
-					'columns_mobile'     => 1,
-					'gap'                => 8,
-					'tile_border_radius' => 8,
-					'display_mode'       => 'media_only',
-					'media_aspect_ratio' => '1:1',
-					'show_caption'       => true,
-					'show_meta'          => true,
-					'show_time'          => true,
-					'caption_words'      => 18,
-					'details_bg_color'   => '#ffffff',
-					'details_text_color' => '#262626',
-					'details_accent_color' => '#e1306c',
-					'details_meta_color' => '#8e8e8e',
-					'autoplay'           => true,
-					'loop'               => true,
-					'autoplay_speed'     => 3000,
-					'show_arrows'        => true,
-					'show_dots'          => true,
-					'nav_color'          => '#d6d6d6',
-					'nav_active_color'   => '#869791',
+						'columns'              => 4,
+						'columns_tablet'       => 3,
+						'columns_mobile'       => 1,
+						'gap'                  => 8,
+						'tile_border_radius'   => 8,
+						'display_mode'         => 'media_only',
+						'media_aspect_ratio'   => '1:1',
+						'show_caption'         => true,
+						'show_meta'            => true,
+						'show_time'            => true,
+						'caption_words'        => 18,
+						'details_bg_color'     => '#ffffff',
+						'details_text_color'   => '#262626',
+						'details_accent_color' => '#e1306c',
+						'details_meta_color'   => '#8e8e8e',
+						'autoplay'             => true,
+						'loop'                 => true,
+						'autoplay_speed'       => 3000,
+						'show_arrows'          => true,
+						'show_dots'            => true,
+						'nav_color'            => '#d6d6d6',
+						'nav_active_color'     => '#869791',
 					),
 					$layout_dimensions
 				),
 			),
 			'feed'   => array(
-				'per_page'             => 9,
+				'per_page'                       => 9,
 				/**
 				 * Extra source accounts for Multifeed (addon / bundled). Primary
 				 * `account_id` column remains the header / default account.
 				 *
 				 * @var int[]
 				 */
-				'account_ids'          => array(),
-				'hashtag_media_type'   => 'top_media',
-				'load_more'            => true,
-				'load_more_bg_color'   => '',
-				'load_more_text_color' => '',
-				'load_more_hover_bg_color' => '',
-				'load_more_hover_text_color' => '',
-				'show_popup'           => true,
-				'popup_show_header'    => true,
-				'popup_show_caption'   => true,
-				'popup_show_meta'      => true,
-				'popup_show_view_insta' => true,
-				'popup_show_comments_list' => true,
-				'popup_comments_per_page'  => 20,
-				'popup_show_gallery_nav'    => true,
-				'popup_show_gallery_thumbs' => true,
-				'popup_gallery_nav_bg_color' => '',
-				'popup_gallery_nav_icon_color' => '',
-				'links_new_tab'        => true,
-				'show_media_type_icon' => true,
-				'show_media_collage'   => true,
-				'hover_overlay'        => true,
-				'show_hover_plus'      => true,
-				'hover_show_likes'     => true,
-				'hover_show_comments'  => true,
-				'hover_plus_color'     => '',
-				'hover_plus_size'      => 42,
-				'hover_stats_color'    => '',
-				'hover_stats_size'     => 14,
+				'account_ids'                    => array(),
+				'multifeed_sort'                 => 'newest',
+				'hashtag_media_type'             => 'top_media',
+				'load_more'                      => true,
+				'load_more_mode'                 => 'button',
+				'load_more_bg_color'             => '',
+				'load_more_text_color'           => '',
+				'load_more_hover_bg_color'       => '',
+				'load_more_hover_text_color'     => '',
+				'show_follow_button'             => true,
+				'follow_button_label'            => '',
+				'follow_button_bg_color'         => '',
+				'follow_button_text_color'       => '',
+				'follow_button_hover_bg_color'   => '',
+				'follow_button_hover_text_color' => '',
+				'show_popup'                     => true,
+				'popup_show_header'              => true,
+				'popup_show_caption'             => true,
+				'popup_show_meta'                => true,
+				'popup_show_view_insta'          => true,
+				'popup_show_comments_list'       => true,
+				'popup_comments_per_page'        => 20,
+				'popup_show_gallery_nav'         => true,
+				'popup_show_gallery_thumbs'      => true,
+				'popup_gallery_nav_bg_color'     => '',
+				'popup_gallery_nav_icon_color'   => '',
+				'links_new_tab'                  => true,
+				'show_media_type_icon'           => true,
+				'show_media_collage'             => false,
+				'hover_overlay'                  => true,
+				'show_hover_plus'                => true,
+				'hover_show_likes'               => true,
+				'hover_show_comments'            => true,
+				'hover_plus_color'               => '',
+				'hover_plus_size'                => 42,
+				'hover_stats_color'              => '',
+				'hover_stats_size'               => 14,
 			),
 			'header' => array(
 				'show'               => true,
@@ -366,7 +375,7 @@ class ESF_Instagram_Feed_Repository {
 		if ( function_exists( 'esf_instagram_normalize_feed_settings' ) ) {
 			$settings = esf_instagram_normalize_feed_settings( $settings );
 		}
-		$json     = wp_json_encode( $settings );
+		$json = wp_json_encode( $settings );
 		if ( false === $json ) {
 			return false;
 		}
@@ -407,8 +416,10 @@ class ESF_Instagram_Feed_Repository {
 			return false;
 		}
 
-		$fields = array();
-		$format = array();
+		$fields             = array();
+		$format             = array();
+		$account_id_updated = false;
+		$new_account_id     = 0;
 
 		if ( array_key_exists( 'name', $data ) ) {
 			$name = trim( (string) $data['name'] );
@@ -422,6 +433,8 @@ class ESF_Instagram_Feed_Repository {
 			if ( $account_id > 0 ) {
 				$fields['account_id'] = $account_id;
 				$format[]             = '%d';
+				$account_id_updated   = true;
+				$new_account_id       = $account_id;
 			}
 		}
 		if ( array_key_exists( 'feed_type', $data ) ) {
@@ -463,6 +476,18 @@ class ESF_Instagram_Feed_Repository {
 
 		$table   = $this->get_table_name();
 		$updated = $wpdb->update( $table, $fields, array( 'id' => $feed_id ), $format, array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		if ( false !== $updated && $account_id_updated && class_exists( 'ESF_Feed_Disconnected_Cache' ) && class_exists( 'ESF_Instagram_Account_Repository' ) ) {
+			$account = ESF_Instagram_Account_Repository::get_instance()->get_by_id( $new_account_id );
+			if ( $account ) {
+				ESF_Feed_Disconnected_Cache::handle_feed_source_reconnected(
+					'instagram',
+					$feed_id,
+					$new_account_id
+				);
+			}
+		}
+
 		return false !== $updated;
 	}
 
@@ -569,7 +594,7 @@ class ESF_Instagram_Feed_Repository {
 			return 0;
 		}
 
-		$media_type = function_exists( 'esf_instagram_normalize_hashtag_media_type' )
+		$media_type      = function_exists( 'esf_instagram_normalize_hashtag_media_type' )
 			? esf_instagram_normalize_hashtag_media_type( $media_type )
 			: 'top_media';
 		$exclude_feed_id = (int) $exclude_feed_id;
@@ -578,7 +603,7 @@ class ESF_Instagram_Feed_Repository {
 		$sql           = "SELECT id, settings FROM `{$table_escaped}` WHERE feed_type = %s AND source_id = %s";
 		$prepare_args  = array( 'hashtag', $tag );
 		if ( $exclude_feed_id > 0 ) {
-			$sql            .= ' AND id != %d';
+			$sql           .= ' AND id != %d';
 			$prepare_args[] = $exclude_feed_id;
 		}
 

@@ -10,6 +10,9 @@
  * @since 6.7.6
  */
 
+use EasySocialFeed\Layouts\ValueObjects\LayoutDefinition;
+use EasySocialFeed\Layouts\ValueObjects\LayoutAssets;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -36,7 +39,7 @@ class ESF_Twitter_Layout_Timeline extends ESF_Twitter_Layout_Base {
 	 * @since 6.7.6
 	 * @return string HTML output.
 	 */
-	public function render() {
+	public function render(): string {
 		$header_html = $this->render_header();
 		$header_html = apply_filters( 'esf_twitter_layout_timeline_header_html', $header_html, $this->feed, $this->account, $this->tweets, $this );
 
@@ -59,13 +62,13 @@ class ESF_Twitter_Layout_Timeline extends ESF_Twitter_Layout_Base {
 			: array();
 		$per_page = isset( $feed['per_page'] ) ? max( 1, min( 100, (int) $feed['per_page'] ) ) : 10;
 
-		$display_state = $this->get_display_state();
-		$tweets        = isset( $display_state['tweets'] ) && is_array( $display_state['tweets'] )
+		$display_state  = $this->get_display_state();
+		$tweets         = isset( $display_state['tweets'] ) && is_array( $display_state['tweets'] )
 			? $display_state['tweets']
 			: array_slice( $this->tweets, 0, $per_page );
-		$tweets        = apply_filters( 'esf_twitter_layout_timeline_tweets', $tweets, $this->feed, $this->account, $this );
+		$tweets         = apply_filters( 'esf_twitter_layout_timeline_tweets', $tweets, $this->feed, $this->account, $this );
 		$load_more_html = isset( $display_state['load_more_html'] ) ? (string) $display_state['load_more_html'] : '';
-		$cards_html = '';
+		$cards_html     = '';
 		foreach ( $tweets as $tweet ) {
 			$cards_html .= $this->render_tweet_card( $tweet );
 		}
@@ -92,9 +95,9 @@ class ESF_Twitter_Layout_Timeline extends ESF_Twitter_Layout_Base {
 	 * @return array{class:string,style_attr:string}
 	 */
 	private function get_timeline_shell_attributes() {
-		$settings  = isset( $this->feed->settings ) && is_array( $this->feed->settings ) ? $this->feed->settings : array();
-		$layout    = isset( $settings['layout'] ) && is_array( $settings['layout'] ) ? $settings['layout'] : array();
-		$timeline  = isset( $layout['timeline'] ) && is_array( $layout['timeline'] ) ? $layout['timeline'] : array();
+		$settings = isset( $this->feed->settings ) && is_array( $this->feed->settings ) ? $this->feed->settings : array();
+		$layout   = isset( $settings['layout'] ) && is_array( $settings['layout'] ) ? $settings['layout'] : array();
+		$timeline = isset( $layout['timeline'] ) && is_array( $layout['timeline'] ) ? $layout['timeline'] : array();
 		if ( function_exists( 'esf_layout_normalize_dimension_scope' ) ) {
 			$timeline = esf_layout_normalize_dimension_scope( $timeline );
 		}
@@ -116,12 +119,30 @@ class ESF_Twitter_Layout_Timeline extends ESF_Twitter_Layout_Base {
 		if ( $has_plan && function_exists( 'esf_layout_sanitize_aspect_ratio' ) ) {
 			$ratio = esf_layout_sanitize_aspect_ratio(
 				isset( $timeline['media_aspect_ratio'] ) ? (string) $timeline['media_aspect_ratio'] : '16:9',
-				array( '16:9', '1:1', '3:4' ),
+				array( '16:9', '1:1', '3:4', 'auto' ),
 				'16:9'
 			);
 		}
 		if ( function_exists( 'esf_layout_aspect_ratio_to_css' ) ) {
 			$parts[] = '--esf-tw-media-ratio:' . esf_layout_aspect_ratio_to_css( $ratio, '16 / 9' );
+		}
+		if ( 'auto' === $ratio ) {
+			$class .= ' esf-tw-feed__timeline--media-auto';
+		}
+
+		if ( $has_plan ) {
+			$theme_map = array(
+				'bg_color'     => '--esf-tw-card-bg',
+				'text_color'   => '--esf-tw-card-text',
+				'meta_color'   => '--esf-tw-card-meta',
+				'accent_color' => '--esf-tw-card-accent',
+			);
+			foreach ( $theme_map as $key => $css_var ) {
+				$hex = isset( $timeline[ $key ] ) ? $this->sanitize_theme_hex( $timeline[ $key ] ) : '';
+				if ( '' !== $hex ) {
+					$parts[] = $css_var . ':' . $hex;
+				}
+			}
 		}
 
 		$style_attr = '';
@@ -143,5 +164,32 @@ class ESF_Twitter_Layout_Timeline extends ESF_Twitter_Layout_Base {
 	 */
 	public function get_css_handle() {
 		return self::CSS_HANDLE;
+	}
+
+	/**
+	 * Get layout definition.
+	 *
+	 * @since 6.9.0
+	 * @return LayoutDefinition
+	 */
+	public function get_definition(): LayoutDefinition {
+		if ( null === $this->definition ) {
+			$this->definition = new LayoutDefinition(
+				array(
+					'slug'        => 'timeline',
+					'label'       => __( 'Timeline', 'easy-facebook-likebox' ),
+					'description' => __( 'Vertical list of tweets with images on the left', 'easy-facebook-likebox' ),
+					'icon'        => 'list',
+					'class_name'  => self::class,
+					'is_pro'      => false,
+					'supports'    => array( 'header', 'metrics', 'load_more' ),
+					'assets'      => array(
+						'css' => ESF_TWITTER_URL . 'frontend/assets/css/layouts/timeline.css',
+						'js'  => null,
+					),
+				)
+			);
+		}
+		return $this->definition;
 	}
 }

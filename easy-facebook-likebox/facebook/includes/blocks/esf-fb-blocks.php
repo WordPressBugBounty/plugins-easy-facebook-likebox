@@ -6,7 +6,7 @@ if ( !defined( 'ABSPATH' ) ) {
 /**
  * Register Facebook blocks
  *
- * @since 6.5.0
+ * @since 6.7.9
  */
 if ( !class_exists( 'ESF_FB_Blocks' ) ) {
     class ESF_FB_Blocks {
@@ -19,7 +19,7 @@ if ( !class_exists( 'ESF_FB_Blocks' ) ) {
          * Get the list of blocks
          *
          * @return array
-         * @since 6.5.0
+         * @since 6.7.9
          */
         public function blocks_list() {
             $list = array('halfwidth', 'fullwidth', 'thumbnail');
@@ -29,7 +29,7 @@ if ( !class_exists( 'ESF_FB_Blocks' ) ) {
         /**
          * Include all required files
          *
-         * @since 6.5.0
+         * @since 6.7.9
          */
         public function includes() {
             // get the list of blocks
@@ -43,29 +43,44 @@ if ( !class_exists( 'ESF_FB_Blocks' ) ) {
         }
 
         /**
-         * Enqueue script for block
+         * Enqueue block editor scripts and preview styles.
+         *
+         * Modern mode never loads `Easy_Facebook_Likebox`; instantiating it
+         * here fatals on every Gutenberg screen. Preview CSS then comes from
+         * the modern feed assets. Inspector pages prefer `esf_facebook_pages`
+         * in the legacy `approved_pages` shape (`id` → `{ name }`).
+         *
+         * @since 6.7.9
+         * @return void
          */
         public function enqueue_block_editor_assets() {
-            // get the list of blocks
             $blocks = $this->blocks_list();
-            // Register all blocks
             if ( $blocks ) {
-                $efbl = new Easy_Facebook_Likebox();
-                $efbl->enqueue_styles();
-                $efbl->enqueue_scripts();
+                if ( class_exists( 'Easy_Facebook_Likebox' ) ) {
+                    $efbl = new Easy_Facebook_Likebox();
+                    $efbl->enqueue_styles();
+                    $efbl->enqueue_scripts();
+                } elseif ( function_exists( 'esf_facebook_enqueue_block_editor_preview_assets' ) ) {
+                    esf_facebook_enqueue_block_editor_preview_assets();
+                }
                 $settings = get_option( 'fta_settings', false );
                 $pages = false;
                 $groups = false;
+                if ( function_exists( 'esf_facebook_get_block_editor_pages' ) ) {
+                    $pages = esf_facebook_get_block_editor_pages();
+                }
                 if ( isset( $settings['plugins']['facebook'] ) ) {
                     $settings = $settings['plugins']['facebook'];
-                    if ( isset( $settings['approved_pages'] ) && !empty( $settings['approved_pages'] ) ) {
+                    if ( false === $pages && isset( $settings['approved_pages'] ) && !empty( $settings['approved_pages'] ) ) {
                         $pages = $settings['approved_pages'];
                     }
                     if ( isset( $settings['approved_groups'] ) && !empty( $settings['approved_groups'] ) ) {
                         $groups = $settings['approved_groups'];
                         $result = array();
-                        foreach ( $groups as $key => $value ) {
-                            $result[$value->id] = $value;
+                        foreach ( $groups as $value ) {
+                            if ( is_object( $value ) && isset( $value->id ) ) {
+                                $result[$value->id] = $value;
+                            }
                         }
                         $groups = $result;
                     }
@@ -277,29 +292,60 @@ if ( !class_exists( 'ESF_FB_Blocks' ) ) {
          * @param $attributes
          *
          * @return false|string
-         * @since 5.0.0
+         * @since 6.7.9
          */
         public function load_block_html( $attributes ) {
-            if ( $attributes['fanpage_id'] && isset( $attributes['skin'] ) ) {
-                $attributes['skin_id'] = $this->get_skin_id( $attributes['skin'] );
-                $efbl = new Easy_Facebook_Likebox();
-                return $efbl->render_fbfeed_box( $attributes );
-            } else {
-                ob_start();
-                require EFBL_PLUGIN_DIR . 'includes/blocks/templates/html-no-account-selected.php';
-                $content = ob_get_contents();
-                ob_end_clean();
-                return $content;
+            $attributes = ( is_array( $attributes ) ? $attributes : array() );
+            /*
+             * After migration (modern mode): resolve fanpage_id through the legacy
+             * feed map without changing block attributes stored in post content.
+             */
+            if ( function_exists( 'esf_facebook_use_new_system' ) && esf_facebook_use_new_system() && !empty( $attributes['fanpage_id'] ) ) {
+                $feed_id = ( function_exists( 'esf_facebook_resolve_legacy_shortcode_feed_id' ) ? (int) esf_facebook_resolve_legacy_shortcode_feed_id( $attributes ) : 0 );
+                if ( $feed_id > 0 ) {
+                    $settings_override = array();
+                    if ( isset( $attributes['show_like_box'] ) ) {
+                        $settings_override['feed'] = array(
+                            'show_like_box' => !empty( $attributes['show_like_box'] ),
+                        );
+                    }
+                    if ( class_exists( 'ESF_Facebook_Frontend', false ) ) {
+                        return ESF_Facebook_Frontend::get_instance()->render_shortcode( array(
+                            'id'                        => $feed_id,
+                            '_esf_fb_settings_override' => $settings_override,
+                        ) );
+                    }
+                    if ( class_exists( 'ESF_Facebook_Renderer', false ) ) {
+                        if ( function_exists( 'esf_facebook_flag_feed_script' ) ) {
+                            esf_facebook_flag_feed_script();
+                        }
+                        return ( new ESF_Facebook_Renderer() )->render( $feed_id, $settings_override, true );
+                    }
+                    return do_shortcode( '[esf_facebook_feed id="' . $feed_id . '"]' );
+                }
             }
+            if ( !empty( $attributes['fanpage_id'] ) && isset( $attributes['skin'] ) ) {
+                $attributes['skin_id'] = $this->get_skin_id( $attributes['skin'] );
+                if ( class_exists( 'Easy_Facebook_Likebox' ) ) {
+                    $efbl = new Easy_Facebook_Likebox();
+                    return $efbl->render_fbfeed_box( $attributes );
+                }
+            }
+            ob_start();
+            require EFBL_PLUGIN_DIR . 'includes/blocks/templates/html-no-account-selected.php';
+            $content = ob_get_contents();
+            ob_end_clean();
+            return $content;
         }
 
         /**
          * Get skin id
          *
-         * @since 6.5.0
+         * @since 6.7.9
          * @return int|mixed|string
          */
         public function get_skin_id( $skin = 'half' ) {
+            $skin_id = 0;
             $settings = get_option( 'fta_settings', false );
             if ( isset( $settings['plugins']['facebook']['default_skin_id'] ) && !empty( $settings['plugins']['facebook']['default_skin_id'] ) ) {
                 $skin_id = $settings['plugins']['facebook']['default_skin_id'];

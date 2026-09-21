@@ -9,6 +9,26 @@
 (function($) {
 	'use strict';
 
+	var FEED_CONTAINER_SELECTOR = [
+		'.efbl_feed_wraper',
+		'.esf_insta_feed_wraper',
+		'.esf-instagram-feed',
+		'.esf-twitter-feed',
+		'.esf-tw-feed',
+		'.esf-youtube-feed',
+		'.esf-yt-feed',
+		'.esf-tiktok-feed'
+	].join(', ');
+
+	var LOAD_MORE_SELECTOR = [
+		'.efbl_load_more_holder',
+		'[class*="__load-more"]',
+		'.esf-instagram-feed__load-more',
+		'.esf-twitter-feed__load-more',
+		'.esf-youtube-feed__load-more',
+		'.esf-tiktok-feed__load-more'
+	].join(', ');
+
 	/**
 	 * Check if user has given consent through various GDPR plugins
 	 *
@@ -165,7 +185,8 @@
 		var flagsAttr = container.attr('data-esf-flags') || '';
 		var flags = flagsAttr ? flagsAttr.split(',') : [];
 
-		if (flags.indexOf('gdpr_yes') > -1) {
+		// Zero-third-party and always-enabled GDPR never unlock remotes.
+		if (flags.indexOf('gdpr_yes') > -1 || flags.indexOf('gdpr_zero_third_party') > -1) {
 			return 'yes';
 		}
 
@@ -174,6 +195,16 @@
 		}
 
 		return 'none';
+	}
+
+	/**
+	 * Hide load-more UI for GDPR-restricted containers.
+	 *
+	 * @param {jQuery} container Feed container
+	 * @return {void}
+	 */
+	function hideLoadMore(container) {
+		container.find(LOAD_MORE_SELECTOR).hide();
 	}
 
 	/**
@@ -204,7 +235,7 @@
 	function enableFullFeatures(container) {
 		var mode = getGdprMode(container);
 
-		// In "yes" mode we never load real images from Facebook/CDN,
+		// In "yes" / zero-TP mode we never load real images from CDN,
 		// and we also keep Load More disabled to avoid additional API calls.
 		if (mode === 'yes') {
 			return;
@@ -234,14 +265,14 @@
 		});
 
 		// Show load more button if present.
-		container.find('.efbl_load_more_holder').show();
+		container.find(LOAD_MORE_SELECTOR).show();
 	}
 
 	/**
 	 * Initial consent check on page load.
 	 */
 	function initConsentCheck() {
-		var $containers = $('.efbl_feed_wraper, .esf_insta_feed_wraper');
+		var $containers = $(FEED_CONTAINER_SELECTOR);
 
 		// Initial check for all feed containers.
 		$containers.each(function() {
@@ -250,12 +281,12 @@
 			var mode  = getGdprMode($container);
 
 			if (flags.indexOf('gdpr') > -1) {
-				// If mode is "yes" then GDPR is always enforced and
+				// If mode is "yes" (or zero-TP) then GDPR is always enforced and
 				// consent does not change behaviour. Hide Load More
 				// permanently and skip consent checks.
 				if (mode === 'yes') {
 					// Always enforced: hide Load More permanently and never load external media.
-					$container.find('.efbl_load_more_holder').hide();
+					hideLoadMore($container);
 					return;
 				}
 
@@ -271,7 +302,7 @@
 				}
 
 				// No consent yet: hide Load More by default until consent is confirmed.
-				$container.find('.efbl_load_more_holder').hide();
+				hideLoadMore($container);
 
 				// Delay to allow consent plugins to initialize, then re-check.
 				setTimeout(function() {
@@ -301,7 +332,7 @@
 					return;
 				}
 
-				// Skip "yes" mode: it is always GDPR-limited, consent
+				// Skip "yes" / zero-TP mode: always GDPR-limited, consent
 				// does not unlock external media.
 				if (mode === 'yes') {
 					return;
@@ -331,7 +362,7 @@
 	 */
 	function afterConsentToggled(isConsent) {
 		if (isConsent) {
-			$('.efbl_feed_wraper, .esf_insta_feed_wraper').each(function() {
+			$(FEED_CONTAINER_SELECTOR).each(function() {
 				var $container = $(this);
 				var flags      = $container.attr('data-esf-flags') || '';
 				var mode       = getGdprMode($container);
@@ -340,7 +371,7 @@
 					return;
 				}
 
-				// Skip "yes" mode: it always stays GDPR-limited.
+				// Skip "yes" / zero-TP mode: it always stays GDPR-limited.
 				if (mode === 'yes') {
 					return;
 				}
@@ -504,4 +535,3 @@
 	};
 
 })(jQuery);
-

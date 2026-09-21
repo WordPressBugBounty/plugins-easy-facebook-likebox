@@ -65,11 +65,23 @@ if ( esf_instagram_use_new_system() ) {
     require_once ESF_INSTA_PLUGIN_DIR . 'class-esf-instagram-main.php';
     ESF_Instagram_Main::get_instance();
     /*
-     * Modern Multifeed is provided by the Multifeed addon only
-     * (`esf-multifeed` / Esf_Multifeed_Instagram_Modern). Do not load the
-     * bundled Multifeed fallback here — otherwise deactivating the addon
-     * still leaves multi-select / merge enabled on Pro parent plans.
+     * Modern Multifeed: included in Instagram Pro (`instagram_premium` | `combo_premium`)
+     * **and** remains compatible with the standalone Multifeed addon for existing addon users.
+     * Load the bundled implementation when Pro plan is active and the addon is not present.
      */
+    if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
+        if ( function_exists( 'esf_instagram_has_instagram_plan' ) && esf_instagram_has_instagram_plan() ) {
+            // Only load bundled class if addon hasn't already loaded it.
+            if ( !class_exists( 'Esf_Multifeed_Instagram_Modern', false ) ) {
+                $multifeed_file = ESF_INSTA_PLUGIN_DIR . 'multifeed/frontend/class-esf-multifeed-instagram-modern.php';
+                if ( file_exists( $multifeed_file ) ) {
+                    require_once $multifeed_file;
+                    // Instantiate to register hooks.
+                    new Esf_Multifeed_Instagram_Modern();
+                }
+            }
+        }
+    }
 } else {
     add_action( 'admin_init', 'esf_instagram_handle_legacy_migration_action' );
     add_action( 'admin_notices', 'esf_instagram_render_legacy_migration_notice' );

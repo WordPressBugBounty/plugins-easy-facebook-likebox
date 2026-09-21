@@ -17,11 +17,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Registers filters on Instagram (shared Renderer), Twitter, and YouTube outputs.
+ * Registers filters on every modern shared-renderer module (all layouts).
  *
  * @since 6.9.0
  */
 final class FeedSeoIntegration {
+
+	/**
+	 * Modules that render via the shared `EasySocialFeed\Layouts\Renderer`.
+	 *
+	 * Every modern module goes through this path (all layouts).
+	 *
+	 * @since 6.9.0
+	 * @var array<int,string>
+	 */
+	private const SHARED_LAYOUT_MODULES = array( 'instagram', 'tiktok', 'twitter', 'youtube', 'facebook' );
 
 	/**
 	 * Bootstrap SEO hooks once per request.
@@ -35,21 +45,19 @@ final class FeedSeoIntegration {
 		}
 		$booted = true;
 
-		// Instagram (shared layouts renderer).
+		// Shared renderer (Instagram, TikTok, Twitter, YouTube, Facebook — all layouts).
 		\add_filter( 'esf_layouts_render_wrapper_attributes', array( __CLASS__, 'filter_layouts_wrapper_attributes' ), 10, 4 );
-		\add_filter( 'esf_instagram_layout_render_html', array( __CLASS__, 'filter_instagram_render_html' ), 20, 5 );
+		\add_filter( 'esf_layouts_render_html', array( __CLASS__, 'filter_layouts_render_html' ), 20, 6 );
 
-		// Twitter/X.
+		// Legacy custom-renderer hooks (kept for third-party callers / HOOKS.md).
 		\add_filter( 'esf_twitter_render_wrapper_attributes', array( __CLASS__, 'filter_twitter_wrapper_attributes' ), 10, 4 );
 		\add_filter( 'esf_twitter_render_html', array( __CLASS__, 'filter_twitter_render_html' ), 20, 6 );
-
-		// YouTube.
 		\add_filter( 'esf_youtube_render_wrapper_attributes', array( __CLASS__, 'filter_youtube_wrapper_attributes' ), 10, 4 );
 		\add_filter( 'esf_youtube_render_html', array( __CLASS__, 'filter_youtube_render_html' ), 20, 5 );
 	}
 
 	/**
-	 * Add feed landmark attributes for Instagram module renders.
+	 * Add feed landmark attributes for shared-layout module renders.
 	 *
 	 * @since 6.9.0
 	 *
@@ -60,11 +68,58 @@ final class FeedSeoIntegration {
 	 * @return array<string,string>
 	 */
 	public static function filter_layouts_wrapper_attributes( array $attrs, string $module, $feed, $definition ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
-		if ( 'instagram' !== \sanitize_key( $module ) ) {
+		if ( ! in_array( \sanitize_key( $module ), self::SHARED_LAYOUT_MODULES, true ) ) {
 			return $attrs;
 		}
 
 		return self::merge_feed_landmark_attributes( $attrs, self::feed_name_from_object( $feed ) );
+	}
+
+	/**
+	 * Append JSON-LD and noscript fallbacks for any shared-renderer module.
+	 *
+	 * Fires for every layout (grid, carousel, full width, …) because the shared
+	 * Renderer wraps the layout HTML once.
+	 *
+	 * @since 6.15.0
+	 *
+	 * @param string              $html       Rendered feed HTML.
+	 * @param string              $module     Module slug.
+	 * @param object              $feed       Feed object.
+	 * @param mixed               $definition Layout definition.
+	 * @param PostItem[]          $posts      Posts in this render.
+	 * @param AccountSummary|null $account    Account summary.
+	 * @return string
+	 */
+	public static function filter_layouts_render_html( string $html, string $module, $feed, $definition, array $posts, $account ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+		$module = \sanitize_key( $module );
+		if ( ! in_array( $module, self::SHARED_LAYOUT_MODULES, true ) ) {
+			return $html;
+		}
+
+		$feed_name = self::feed_name_from_object( $feed );
+		$account   = $account instanceof AccountSummary ? $account : null;
+
+		switch ( $module ) {
+			case 'youtube':
+				$schema = SchemaBuilder::for_youtube_posts( $posts, $account, $feed_name );
+				break;
+			case 'tiktok':
+				$schema = SchemaBuilder::for_tiktok_posts( $posts, $account, $feed_name );
+				break;
+			case 'twitter':
+				$schema = SchemaBuilder::for_twitter_posts( $posts, $account, $feed_name );
+				break;
+			case 'facebook':
+				$schema = SchemaBuilder::for_facebook_posts( $posts, $account, $feed_name );
+				break;
+			case 'instagram':
+			default:
+				$schema = SchemaBuilder::for_instagram_posts( $posts, $account, $feed_name );
+				break;
+		}
+
+		return self::append_seo_extras( $html, $schema, self::noscript_links_from_posts( $posts ) );
 	}
 
 	/**

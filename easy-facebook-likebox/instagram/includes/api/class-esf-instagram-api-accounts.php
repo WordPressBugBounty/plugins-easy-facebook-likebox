@@ -90,24 +90,26 @@ class ESF_Instagram_API_Accounts {
 		}
 
 		return array(
-			'id'                  => (int) $account->id,
-			'account_type'        => (string) $account->account_type,
-			'auth_source'         => esf_instagram_auth_source_for_account_row( $account ),
-			'instagram_user_id'   => (string) $account->instagram_user_id,
-			'username'            => (string) $account->username,
-			'display_name'        => (string) $account->display_name,
-			'profile_image_url'   => $profile_image_url,
-			'biography'           => (string) $account->biography,
-			'website'             => (string) $account->website,
-			'followers_count'     => (int) $account->followers_count,
-			'media_count'         => (int) $account->media_count,
-			'facebook_page_id'    => isset( $account->facebook_page_id ) ? (string) $account->facebook_page_id : '',
-			'facebook_page_name'  => isset( $account->facebook_page_name ) ? (string) $account->facebook_page_name : '',
-			'status'              => (string) $account->status,
-			'token_expires_at'    => isset( $account->token_expires_at ) ? (string) $account->token_expires_at : '',
-			'needs_reconnect'     => esf_instagram_account_needs_reconnect( $account ),
-			'stats_refreshed_at'  => isset( $account->stats_refreshed_at ) ? (string) $account->stats_refreshed_at : '',
-			'created_at'          => (string) $account->created_at,
+			'id'                 => (int) $account->id,
+			'account_type'       => (string) $account->account_type,
+			'auth_source'        => function_exists( 'esf_instagram_stored_auth_source_for_account_row' )
+				? esf_instagram_stored_auth_source_for_account_row( $account )
+				: esf_instagram_auth_source_for_account_row( $account ),
+			'instagram_user_id'  => (string) $account->instagram_user_id,
+			'username'           => (string) $account->username,
+			'display_name'       => (string) $account->display_name,
+			'profile_image_url'  => $profile_image_url,
+			'biography'          => (string) $account->biography,
+			'website'            => (string) $account->website,
+			'followers_count'    => (int) $account->followers_count,
+			'media_count'        => (int) $account->media_count,
+			'facebook_page_id'   => isset( $account->facebook_page_id ) ? (string) $account->facebook_page_id : '',
+			'facebook_page_name' => isset( $account->facebook_page_name ) ? (string) $account->facebook_page_name : '',
+			'status'             => (string) $account->status,
+			'token_expires_at'   => isset( $account->token_expires_at ) ? (string) $account->token_expires_at : '',
+			'needs_reconnect'    => esf_instagram_account_needs_reconnect( $account ),
+			'stats_refreshed_at' => isset( $account->stats_refreshed_at ) ? (string) $account->stats_refreshed_at : '',
+			'created_at'         => (string) $account->created_at,
 		);
 	}
 

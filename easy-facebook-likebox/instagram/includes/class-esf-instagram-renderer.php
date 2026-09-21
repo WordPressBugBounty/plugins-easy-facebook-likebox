@@ -70,7 +70,14 @@ class ESF_Instagram_Renderer {
 			( new SharedRenderer() )->enqueue_assets( $rendered['definition'] );
 		}
 
-		return $rendered['html'];
+		$html = $rendered['html'];
+		// Shared renderer may attach an optional admin notice key.
+		$admin_notice = isset( $rendered['admin_notice_html'] ) ? (string) $rendered['admin_notice_html'] : '';
+		if ( '' !== $admin_notice ) {
+			$html = $admin_notice . $html;
+		}
+
+		return $html;
 	}
 
 	/**
@@ -129,6 +136,90 @@ class ESF_Instagram_Renderer {
 	}
 
 	/**
+	 * Resolve AccountSummary for a live or disconnected account.
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param int         $account_id  Internal account id.
+	 * @param object|null $account_row Live account row when connected.
+	 * @return AccountSummary|null
+	 */
+	public static function resolve_instagram_account( $account_id, $account_row = null ): ?AccountSummary {
+		$account_id = (int) $account_id;
+		if ( $account_id <= 0 ) {
+			return null;
+		}
+
+		if ( is_object( $account_row ) ) {
+			$account = AccountMapper::from_row( $account_row );
+			if ( null !== $account && class_exists( 'ESF_Instagram_Local_Media' ) ) {
+				$account = ESF_Instagram_Local_Media::with_localized_avatar( $account, $account_row );
+			}
+			return $account;
+		}
+
+		$snapshot = class_exists( 'ESF_Instagram_Cache' )
+			? ESF_Instagram_Cache::get_account_profile_snapshot( $account_id )
+			: null;
+		if ( ! is_array( $snapshot ) || empty( $snapshot ) ) {
+			return null;
+		}
+
+		$account = AccountMapper::from_row( $snapshot );
+		if ( null !== $account && class_exists( 'ESF_Instagram_Local_Media' ) ) {
+			$account = ESF_Instagram_Local_Media::with_localized_avatar( $account, (object) $snapshot );
+		}
+
+		return $account;
+	}
+
+	/**
+	 * Re-fetch media for a feed by ID (cron / cache warm).
+	 *
+	 * Forces a Graph fetch when the media cache row is missing or expired.
+	 *
+	 * @since 6.9.5
+	 *
+	 * @param int $feed_id Feed ID.
+	 * @return array<\EasySocialFeed\Layouts\ValueObjects\Post> Normalized posts (empty on failure).
+	 */
+	public function get_media_for_feed_by_id( $feed_id ) {
+		$feed_id = (int) $feed_id;
+		if ( $feed_id <= 0 || ! class_exists( 'ESF_Instagram_Feed_Repository' ) ) {
+			return array();
+		}
+
+		$feed_row = ESF_Instagram_Feed_Repository::get_instance()->get_by_id( $feed_id );
+		if ( ! $feed_row ) {
+			return array();
+		}
+
+		$saved = isset( $feed_row->settings ) ? json_decode( (string) $feed_row->settings, true ) : array();
+		if ( ! is_array( $saved ) ) {
+			$saved = array();
+		}
+		$settings = array_replace_recursive( ESF_Instagram_Feed_Repository::get_default_settings(), $saved );
+
+		$feed_obj = (object) array(
+			'id'         => (int) $feed_row->id,
+			'name'       => isset( $feed_row->name ) ? (string) $feed_row->name : '',
+			'account_id' => isset( $feed_row->account_id ) ? (int) $feed_row->account_id : 0,
+			'feed_type'  => isset( $feed_row->feed_type ) ? (string) $feed_row->feed_type : 'user_timeline',
+			'source_id'  => isset( $feed_row->source_id ) ? (string) $feed_row->source_id : '',
+			'settings'   => $settings,
+		);
+
+		$account = null;
+		if ( class_exists( 'ESF_Instagram_Account_Repository' ) && $feed_obj->account_id > 0 ) {
+			$account_row = ESF_Instagram_Account_Repository::get_instance()->get_by_id( (int) $feed_obj->account_id );
+			$account     = $account_row ? AccountMapper::from_row( $account_row ) : null;
+		}
+
+		$result = $this->fetch_posts( $feed_obj, $account, 'frontend' );
+		return isset( $result['posts'] ) && is_array( $result['posts'] ) ? $result['posts'] : array();
+	}
+
+	/**
 	 * Resolve cache keys for a feed's media payload.
 	 *
 	 * Hashtag feeds use tag-scoped keys so multiple feeds/skins share one row.
@@ -140,7 +231,7 @@ class ESF_Instagram_Renderer {
 	 */
 	public static function resolve_media_cache_keys( $feed_obj ): array {
 		if ( function_exists( 'esf_instagram_feed_is_hashtag' ) && esf_instagram_feed_is_hashtag( $feed_obj ) ) {
-			$tag = function_exists( 'esf_instagram_normalize_hashtag' )
+			$tag        = function_exists( 'esf_instagram_normalize_hashtag' )
 				? esf_instagram_normalize_hashtag( isset( $feed_obj->source_id ) ? (string) $feed_obj->source_id : '' )
 				: '';
 			$media_type = function_exists( 'esf_instagram_feed_hashtag_media_type' )
@@ -174,12 +265,12 @@ class ESF_Instagram_Renderer {
 	 * @param int   $account_id_override Account override.
 	 * @param array $render_options      Optional: media_context ("preview"|"frontend"), feed_type, source_id.
 	 *
-	 * @return array{html:string,renderer_output:array<string,mixed>,definition:?\EasySocialFeed\Layouts\ValueObjects\LayoutDefinition,has_local_cache:bool,debug:array<string,mixed>,media_error?:array{code:string,message:string}|null,notice?:string|null}
+	 * @return array{html:string,renderer_output:array<string,mixed>,definition:?\EasySocialFeed\Layouts\ValueObjects\LayoutDefinition,has_local_cache:bool,debug:array<string,mixed>,media_error?:array{code:string,message:string}|null,notice?:string|null,admin_notice_html?:string}
 	 */
 	private function render_internal( int $feed_id, array $settings_override, int $account_id_override, array $render_options = array() ): array {
 		$empty = array(
-			'html'            => '',
-			'renderer_output' => array(
+			'html'              => '',
+			'renderer_output'   => array(
 				'html'        => '',
 				'assets'      => array(
 					'base_css'   => null,
@@ -189,10 +280,11 @@ class ESF_Instagram_Renderer {
 				'inline_css'  => '',
 				'layout_slug' => '',
 			),
-			'definition'      => null,
-			'has_local_cache' => false,
-			'debug'           => array(),
-			'notice'          => null,
+			'definition'        => null,
+			'has_local_cache'   => false,
+			'debug'             => array(),
+			'notice'            => null,
+			'admin_notice_html' => '',
 		);
 
 		if ( $feed_id <= 0 ) {
@@ -248,18 +340,18 @@ class ESF_Instagram_Renderer {
 				: sanitize_text_field( (string) $render_options['source_id'] );
 		}
 
-		$account_repo = ESF_Instagram_Account_Repository::get_instance();
-		$account_row  = $account_repo->get_by_id( $feed_obj->account_id );
-		$account      = $account_row ? AccountMapper::from_row( $account_row ) : null;
-		if ( $account && class_exists( 'ESF_Instagram_Local_Media' ) ) {
-			$account = ESF_Instagram_Local_Media::with_localized_avatar( $account, $account_row );
-		}
+		$account_repo        = ESF_Instagram_Account_Repository::get_instance();
+		$account_row         = $account_repo->get_by_id( $feed_obj->account_id );
+		$account             = self::resolve_instagram_account( (int) $feed_obj->account_id, $account_row );
+		$source_disconnected = class_exists( 'ESF_Feed_Disconnected_Cache' )
+			? ESF_Feed_Disconnected_Cache::instagram_source_is_disconnected( $feed_row, $account_row )
+			: ( $feed_obj->account_id > 0 && null === $account_row );
 
 		$media_context = isset( $render_options['media_context'] ) && 'preview' === $render_options['media_context']
 			? 'preview'
 			: 'frontend';
 
-		// Multifeed: hide the single-account header + stories (same UX as legacy).
+		// Multifeed: hide single-account header, stories, and Follow CTA (legacy parity).
 		$is_multifeed = function_exists( 'esf_instagram_feed_is_multifeed' ) && esf_instagram_feed_is_multifeed( $feed_obj );
 		if ( $is_multifeed ) {
 			if ( ! isset( $feed_obj->settings ) || ! is_array( $feed_obj->settings ) ) {
@@ -268,10 +360,15 @@ class ESF_Instagram_Renderer {
 			if ( ! isset( $feed_obj->settings['header'] ) || ! is_array( $feed_obj->settings['header'] ) ) {
 				$feed_obj->settings['header'] = array();
 			}
-			$feed_obj->settings['header']['show']          = false;
-			$feed_obj->settings['header']['show_stories'] = false;
-			$feed_obj->settings['header']['stories_row']  = false;
-			$feed_obj->settings['header']['stories_ring'] = false;
+			if ( ! isset( $feed_obj->settings['feed'] ) || ! is_array( $feed_obj->settings['feed'] ) ) {
+				$feed_obj->settings['feed'] = array();
+			}
+			$feed_obj->settings['header']['show']               = false;
+			$feed_obj->settings['header']['show_stories']       = false;
+			$feed_obj->settings['header']['stories_row']        = false;
+			$feed_obj->settings['header']['stories_ring']       = false;
+			$feed_obj->settings['header']['show_follow_button'] = false;
+			$feed_obj->settings['feed']['show_follow_button']   = false;
 		}
 
 		$fetch_result = $this->fetch_posts( $feed_obj, $account, $media_context );
@@ -283,15 +380,19 @@ class ESF_Instagram_Renderer {
 
 		$layout_overrides = $settings_override;
 		if ( $is_multifeed ) {
-			// Preview may force header/stories on for client toggles — keep Multifeed hidden.
+			// Preview may force header/stories/follow on for client toggles — keep Multifeed hidden.
 			$layout_overrides = array_replace_recursive(
 				is_array( $layout_overrides ) ? $layout_overrides : array(),
 				array(
 					'header' => array(
-						'show'         => false,
-						'show_stories' => false,
-						'stories_row'  => false,
-						'stories_ring' => false,
+						'show'               => false,
+						'show_stories'       => false,
+						'stories_row'        => false,
+						'stories_ring'       => false,
+						'show_follow_button' => false,
+					),
+					'feed'   => array(
+						'show_follow_button' => false,
 					),
 				)
 			);
@@ -334,10 +435,10 @@ class ESF_Instagram_Renderer {
 			&& function_exists( 'esf_instagram_feed_is_hashtag' )
 			&& esf_instagram_feed_is_hashtag( $feed_obj )
 		) {
-			$settings = isset( $feed_obj->settings ) && is_array( $feed_obj->settings ) ? $feed_obj->settings : array();
-			$feed_cfg = isset( $settings['feed'] ) && is_array( $settings['feed'] ) ? $settings['feed'] : array();
-			$per_page = isset( $feed_cfg['per_page'] ) ? max( 1, min( 50, (int) $feed_cfg['per_page'] ) ) : 9;
-			$tag      = function_exists( 'esf_instagram_normalize_hashtag' )
+			$settings   = isset( $feed_obj->settings ) && is_array( $feed_obj->settings ) ? $feed_obj->settings : array();
+			$feed_cfg   = isset( $settings['feed'] ) && is_array( $settings['feed'] ) ? $settings['feed'] : array();
+			$per_page   = isset( $feed_cfg['per_page'] ) ? max( 1, min( 50, (int) $feed_cfg['per_page'] ) ) : 9;
+			$tag        = function_exists( 'esf_instagram_normalize_hashtag' )
 				? esf_instagram_normalize_hashtag( isset( $feed_obj->source_id ) ? (string) $feed_obj->source_id : '' )
 				: '';
 			$media_type = function_exists( 'esf_instagram_feed_hashtag_media_type' )
@@ -356,16 +457,47 @@ class ESF_Instagram_Renderer {
 			}
 		}
 
+		if (
+			null === $notice
+			&& $source_disconnected
+			&& $fetch_result['has_local_cache']
+			&& class_exists( 'ESF_Feed_Disconnected_Cache' )
+		) {
+			$cache_pinned = ESF_Feed_Disconnected_Cache::is_feed_cache_effectively_pinned(
+				self::MODULE,
+				(int) $feed_row->id,
+				! empty( $settings['feed']['cache_pinned'] )
+			);
+			$notice       = ESF_Feed_Disconnected_Cache::get_notice_message( $cache_pinned );
+		}
+
+		$admin_notice_html = '';
+		if ( $source_disconnected && ! empty( $fetch_result['has_local_cache'] ) && class_exists( 'ESF_Feed_Disconnected_Cache' ) ) {
+			$cache_pinned      = ESF_Feed_Disconnected_Cache::is_feed_cache_effectively_pinned(
+				self::MODULE,
+				(int) $feed_row->id,
+				! empty( $settings['feed']['cache_pinned'] )
+			);
+			$admin_notice_html = ESF_Feed_Disconnected_Cache::get_admin_notice_html(
+				self::MODULE,
+				(int) $feed_row->id,
+				array(
+					'cache_pinned' => $cache_pinned,
+				)
+			);
+		}
+
 		return array(
-			'html'            => $renderer_output['html'],
-			'renderer_output' => $renderer_output,
-			'definition'      => $definition,
-			'has_local_cache' => $fetch_result['has_local_cache'],
-			'debug'           => isset( $fetch_result['debug'] ) && is_array( $fetch_result['debug'] ) ? $fetch_result['debug'] : array(),
-			'media_error'     => $this->serialize_media_error(
+			'html'              => $renderer_output['html'],
+			'renderer_output'   => $renderer_output,
+			'definition'        => $definition,
+			'has_local_cache'   => $fetch_result['has_local_cache'],
+			'debug'             => isset( $fetch_result['debug'] ) && is_array( $fetch_result['debug'] ) ? $fetch_result['debug'] : array(),
+			'media_error'       => $this->serialize_media_error(
 				isset( $fetch_result['media_error'] ) ? $fetch_result['media_error'] : null
 			),
-			'notice'          => $notice,
+			'notice'            => $notice,
+			'admin_notice_html' => $admin_notice_html,
 		);
 	}
 
@@ -513,6 +645,9 @@ class ESF_Instagram_Renderer {
 		if ( ! $short_circuited ) {
 			$fetched        = $this->fetch_raw_nodes( $feed_obj, $account, $media_context );
 			$candidates_raw = $fetched['nodes'];
+			// Preserve cache flag from the timeline/hashtag fetch — required for
+			// frontend admin disconnect banners (Keep cache permanently).
+			$has_cache = ! empty( $fetched['has_local_cache'] );
 			if ( ! empty( $fetched['debug'] ) && is_array( $fetched['debug'] ) ) {
 				$debug = $fetched['debug'];
 			}
@@ -630,44 +765,57 @@ class ESF_Instagram_Renderer {
 			'has_local_cache' => false,
 		);
 
-		if ( null === $account || ! class_exists( 'ESF_Instagram_API_Media' ) || ! class_exists( 'ESF_Instagram_Cache' ) ) {
+		if ( ! class_exists( 'ESF_Instagram_Cache' ) ) {
 			return $result;
 		}
 
-		$account_id = $account->get_id();
+		$account_id = null !== $account ? $account->get_id() : ( is_object( $feed_obj ) && isset( $feed_obj->account_id ) ? (int) $feed_obj->account_id : 0 );
 		if ( $account_id <= 0 ) {
 			return $result;
 		}
 
-		$settings = isset( $feed_obj->settings ) && is_array( $feed_obj->settings ) ? $feed_obj->settings : array();
+		$settings      = isset( $feed_obj->settings ) && is_array( $feed_obj->settings ) ? $feed_obj->settings : array();
 		$feed_cfg      = isset( $settings['feed'] ) && is_array( $settings['feed'] ) ? $settings['feed'] : array();
 		$per_page      = isset( $feed_cfg['per_page'] ) ? max( 1, min( 50, (int) $feed_cfg['per_page'] ) ) : 9;
 		$media_context = in_array( $media_context, array( 'preview', 'frontend' ), true ) ? $media_context : 'frontend';
-		$fetch_limit   = min( self::MAX_LOCAL_CACHE_POSTS, ESF_Instagram_API_Media::MAX_LIMIT );
 
 		$cache_key = self::media_cache_key( $account_id );
 		$meta_key  = $cache_key . '_meta';
+		$cached    = ESF_Instagram_Cache::get( $cache_key );
+		if ( ! is_array( $cached ) && method_exists( 'ESF_Instagram_Cache', 'get_stale' ) ) {
+			$cached = ESF_Instagram_Cache::get_stale( $cache_key );
+		}
 
-		$cached = ESF_Instagram_Cache::get( $cache_key );
+		$account_row = null;
+		if ( class_exists( 'ESF_Instagram_Account_Repository' ) ) {
+			$account_row = ESF_Instagram_Account_Repository::get_instance()->get_by_id( $account_id );
+		}
+		$source_disconnected = null === $account_row;
+
 		if ( is_array( $cached ) && isset( $cached['data'] ) && is_array( $cached['data'] ) ) {
 			$nodes = $cached['data'];
 			if ( class_exists( 'ESF_Instagram_Local_Media' ) ) {
 				$nodes = ESF_Instagram_Local_Media::prepare_nodes_for_display( $nodes, $account_id, $media_context, $per_page );
 			}
-			return array(
+			$payload = array(
 				'nodes'           => $nodes,
 				'has_local_cache' => true,
 			);
+			if ( $source_disconnected && class_exists( 'ESF_Feed_Disconnected_Cache' ) ) {
+				$payload['notice'] = ESF_Feed_Disconnected_Cache::get_notice_message();
+			}
+			return $payload;
 		}
 
-		if ( ! class_exists( 'ESF_Instagram_Account_Repository' ) ) {
+		if ( $source_disconnected ) {
 			return $result;
 		}
 
-		$account_row = ESF_Instagram_Account_Repository::get_instance()->get_by_id( $account_id );
-		if ( ! $account_row ) {
+		if ( ! class_exists( 'ESF_Instagram_API_Media' ) ) {
 			return $result;
 		}
+
+		$fetch_limit = min( self::MAX_LOCAL_CACHE_POSTS, ESF_Instagram_API_Media::MAX_LIMIT );
 
 		$response = ESF_Instagram_API_Media::get_instance()->fetch_user_media( $account_row, $fetch_limit );
 
@@ -795,12 +943,20 @@ class ESF_Instagram_Renderer {
 		$media_context = in_array( $media_context, array( 'preview', 'frontend' ), true ) ? $media_context : 'frontend';
 		$fetch_limit   = ESF_Instagram_API_Hashtag::resolve_initial_fetch_limit( $per_page );
 
-		$cached = ESF_Instagram_Cache::get( $cache_key );
+		$cached     = ESF_Instagram_Cache::get( $cache_key );
+		$from_stale = false;
+		if ( ! is_array( $cached ) && method_exists( 'ESF_Instagram_Cache', 'get_stale' ) ) {
+			$cached     = ESF_Instagram_Cache::get_stale( $cache_key );
+			$from_stale = is_array( $cached );
+		}
 		if ( is_array( $cached ) && isset( $cached['data'] ) && is_array( $cached['data'] ) ) {
 			$buffer        = array_values( $cached['data'] );
 			$cached_cursor = isset( $cached['pagination']['cursor'] ) ? (string) $cached['pagination']['cursor'] : '';
 			$nodes         = $this->prepare_hashtag_nodes_for_display( $buffer, $account, $media_context, $per_page, $tag, $media_type );
-			$log_step( 'cache_hit', array( 'node_count' => count( $nodes ) ) );
+			$log_step(
+				$from_stale ? 'cache_stale_hit' : 'cache_hit',
+				array( 'node_count' => count( $nodes ) )
+			);
 			return array(
 				'nodes'           => $nodes,
 				'has_local_cache' => true,
@@ -854,7 +1010,7 @@ class ESF_Instagram_Renderer {
 			return $result;
 		}
 
-		$meta_cache  = ESF_Instagram_Cache::get( $meta_key );
+		$meta_cache   = ESF_Instagram_Cache::get( $meta_key );
 		$known_tag_id = is_array( $meta_cache ) && ! empty( $meta_cache['hashtag_id'] )
 			? sanitize_text_field( (string) $meta_cache['hashtag_id'] )
 			: '';
@@ -883,7 +1039,13 @@ class ESF_Instagram_Renderer {
 
 		$nodes      = isset( $response['data'] ) && is_array( $response['data'] ) ? array_values( $response['data'] ) : array();
 		$hashtag_id = isset( $response['hashtag_id'] ) ? sanitize_text_field( (string) $response['hashtag_id'] ) : '';
-		$log_step( 'api_success', array( 'node_count' => count( $nodes ), 'fetch_limit' => $fetch_limit ) );
+		$log_step(
+			'api_success',
+			array(
+				'node_count'  => count( $nodes ),
+				'fetch_limit' => $fetch_limit,
+			)
+		);
 		$pagination = isset( $response['pagination'] ) && is_array( $response['pagination'] ) ? $response['pagination'] : array();
 		$cursor     = isset( $pagination['cursor'] ) ? sanitize_text_field( (string) $pagination['cursor'] ) : '';
 		$ttl        = esf_instagram_get_cache_ttl_secs( $feed_obj, $account_id );
@@ -898,7 +1060,13 @@ class ESF_Instagram_Renderer {
 			'api',
 			$account_id
 		);
-		$log_step( 'cache_written', array( 'node_count' => count( $nodes ), 'ttl' => $ttl ) );
+		$log_step(
+			'cache_written',
+			array(
+				'node_count' => count( $nodes ),
+				'ttl'        => $ttl,
+			)
+		);
 
 		ESF_Instagram_Cache::set(
 			$meta_key,

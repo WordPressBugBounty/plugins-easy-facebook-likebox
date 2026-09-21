@@ -1,6 +1,6 @@
 <?php
 /**
- * Registry of frontend translatable strings for Facebook and Instagram modules.
+ * Registry of frontend translatable strings for all social feed modules.
  * Used by the Translation settings tab and by esf_get_translated_string() on the frontend.
  *
  * @package EasySocialFeed
@@ -111,6 +111,11 @@ class ESF_Translation_Strings {
 						'key'     => 'view_map',
 						'default' => 'View Map',
 						'context' => __( 'Used for the link to view event location on map.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'view_event',
+						'default' => 'View event',
+						'context' => __( 'Primary CTA on Facebook Events feed cards when no ticket URL is available.', 'easy-facebook-likebox' ),
 					),
 					array(
 						'key'     => 'click_to_view_all_comments',
@@ -275,7 +280,37 @@ class ESF_Translation_Strings {
 					array(
 						'key'     => 'yt_channel_has_no_videos',
 						'default' => 'This channel has no videos yet.',
-						'context' => __( 'Shown when a YouTube feed has no videos to display.', 'easy-facebook-likebox' ),
+						'context' => __( 'Shown when a channel-uploads YouTube feed has no videos to display.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_no_shorts_found',
+						'default' => 'No Shorts found for this channel.',
+						'context' => __( 'Shown when Video type is Shorts only and the channel Shorts playlist is empty.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_no_long_form_videos_found',
+						'default' => 'No long-form videos found for this channel.',
+						'context' => __( 'Shown when Video type is Exclude Shorts and no long-form videos remain.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_playlist_not_selected',
+						'default' => 'Select a playlist to display its videos.',
+						'context' => __( 'Shown in preview/frontend when Playlist source is chosen but no playlist is selected yet.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_playlist_has_no_videos',
+						'default' => 'This playlist has no videos yet.',
+						'context' => __( 'Shown when a playlist feed is selected but the playlist is empty.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_search_not_entered',
+						'default' => 'Enter a search keyword to find videos.',
+						'context' => __( 'Shown when Search source is chosen but no keyword is entered yet.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_search_no_results',
+						'default' => 'No videos matched this search.',
+						'context' => __( 'Shown when a YouTube search feed returns no matching videos.', 'easy-facebook-likebox' ),
 					),
 					array(
 						'key'     => 'yt_load_more_videos_aria',
@@ -301,6 +336,356 @@ class ESF_Translation_Strings {
 						'key'     => 'yt_popup_views_label',
 						'default' => 'views',
 						'context' => __( 'Label used next to the view count in the YouTube popup stats bar.', 'easy-facebook-likebox' ),
+					),
+				),
+			),
+			'instagram_feed'    => array(
+				'label'   => __( 'Instagram Feed', 'easy-facebook-likebox' ),
+				'strings' => array(
+					array(
+						'key'     => 'ig_posts',
+						'default' => 'Posts',
+						'context' => __( 'Tooltip label for the post count in the Instagram feed header.', 'easy-facebook-likebox' ),
+					),
+				),
+			),
+			'tiktok_feed'       => array(
+				'label'   => __( 'TikTok Feed', 'easy-facebook-likebox' ),
+				'strings' => array(
+					array(
+						'key'     => 'tt_follow_on_tiktok',
+						'default' => 'Follow on TikTok',
+						'context' => __( 'Follow button label in the TikTok feed header.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_following',
+						'default' => 'Following',
+						'context' => __( 'Tooltip label for the following count in the TikTok feed header.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_videos',
+						'default' => 'Videos',
+						'context' => __( 'Tooltip label for the video count in the TikTok feed header.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_no_videos_to_display',
+						'default' => 'No videos to display yet.',
+						'context' => __( 'Shown when a TikTok feed has no videos to render.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_load_more_videos_button',
+						'default' => 'Load more',
+						'context' => __( 'Visible text for the TikTok Load More button.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_load_more_videos_aria',
+						'default' => 'Load more TikTok videos',
+						'context' => __( 'ARIA label for the TikTok Load More button.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_watch_on_tiktok',
+						'default' => 'Watch on TikTok',
+						'context' => __( 'Link text in the TikTok popup that opens the video on tiktok.com.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_view_on_tiktok',
+						'default' => 'View on TikTok',
+						'context' => __( 'Fallback caption on text-only TikTok tiles and popup links.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_views',
+						'default' => 'Views',
+						'context' => __( 'Tooltip label for view count on TikTok feed tiles.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_likes',
+						'default' => 'Likes',
+						'context' => __( 'Tooltip label for like count on TikTok feed tiles and in the popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_comments',
+						'default' => 'Comments',
+						'context' => __( 'Tooltip label for comment count on TikTok feed tiles and in the popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_shares',
+						'default' => 'Shares',
+						'context' => __( 'Tooltip label for share count on TikTok feed tiles and in the popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tt_feed_nav_hint',
+						'default' => 'Scroll, swipe, or press ↑ ↓ for the next video',
+						'context' => __( 'Navigation hint shown in the TikTok popup lightbox.', 'easy-facebook-likebox' ),
+					),
+				),
+			),
+			'facebook_feed'     => array(
+				'label'   => __( 'Facebook Feed', 'easy-facebook-likebox' ),
+				'strings' => array(
+					array(
+						'key'     => 'fb_follow_on_facebook',
+						'default' => 'Follow on Facebook',
+						'context' => __( 'Follow button label in the Facebook feed header.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_likes',
+						'default' => 'Likes',
+						'context' => __( 'Tooltip label for like/reaction count on Facebook feed tiles and in the popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_comments',
+						'default' => 'Comments',
+						'context' => __( 'Tooltip label for comment count on Facebook feed tiles and in the popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_shares',
+						'default' => 'Shares',
+						'context' => __( 'Tooltip label for share count on Facebook feed tiles and in the popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_reactions',
+						'default' => 'Reactions',
+						'context' => __( 'Generic label for Facebook reactions.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_reaction_like',
+						'default' => 'Like',
+						'context' => __( 'Facebook Like reaction label.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_reaction_love',
+						'default' => 'Love',
+						'context' => __( 'Facebook Love reaction label.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_reaction_care',
+						'default' => 'Care',
+						'context' => __( 'Facebook Care reaction label.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_reaction_haha',
+						'default' => 'Haha',
+						'context' => __( 'Facebook Haha reaction label.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_reaction_wow',
+						'default' => 'Wow',
+						'context' => __( 'Facebook Wow reaction label.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_reaction_sad',
+						'default' => 'Sad',
+						'context' => __( 'Facebook Sad reaction label.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_reaction_angry',
+						'default' => 'Angry',
+						'context' => __( 'Facebook Angry reaction label.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_no_posts',
+						'default' => 'No posts to display yet.',
+						'context' => __( 'Shown when a Facebook feed has no posts to render.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_no_events',
+						'default' => 'No events to show right now.',
+						'context' => __( 'Shown on the public Events feed when Events cannot load (e.g. Page token not set up yet).', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_load_more_posts_aria',
+						'default' => 'Load more Facebook posts',
+						'context' => __( 'ARIA label for the Facebook Load More button.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_embed_shared_event',
+						'default' => 'Shared event',
+						'context' => __( 'Label on the placeholder card when a shared Facebook event cannot be fully previewed in the feed.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_embed_shared_post',
+						'default' => 'Shared post',
+						'context' => __( 'Label on the placeholder card when a shared Facebook post cannot be fully previewed in the feed.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_embed_shared_video',
+						'default' => 'Shared video',
+						'context' => __( 'Label on the placeholder card when a shared Facebook video cannot be fully previewed in the feed.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_embed_link_preview',
+						'default' => 'Link preview',
+						'context' => __( 'Label on the placeholder card when a link attachment cannot be fully previewed in the feed.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_embed_unavailable_body',
+						'default' => 'Full details aren\'t available in the feed preview.',
+						'context' => __( 'Body copy on the placeholder card when Facebook withholds shared attachment details from the Graph API.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_embed_view_event',
+						'default' => 'View event on Facebook',
+						'context' => __( 'CTA on the shared-event placeholder card.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_post',
+						'default' => 'Post',
+						'context' => __( 'Uppercase label on Facebook Row / Grid / Masonry / Carousel text-only tiles (status updates with no media).', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_previous_posts',
+						'default' => 'Previous posts',
+						'context' => __( 'Accessible label for the previous-slide control on the Facebook Carousel layout.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_next_posts',
+						'default' => 'Next posts',
+						'context' => __( 'Accessible label for the next-slide control on the Facebook Carousel layout.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_write_comment_on_facebook',
+						'default' => 'Add a comment on Facebook…',
+						'context' => __( 'CTA in the Facebook Pro popup comments panel linking out to Facebook.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_video',
+						'default' => 'Video',
+						'context' => __( 'Accessible label for a video slide in the Facebook popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_gallery',
+						'default' => 'Gallery',
+						'context' => __( 'Accessible label for a multi-image gallery in the Facebook popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_image',
+						'default' => 'Image',
+						'context' => __( 'Accessible label for an image slide in the Facebook popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_previous',
+						'default' => 'Previous',
+						'context' => __( 'Previous media control in the Facebook popup gallery.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_next',
+						'default' => 'Next',
+						'context' => __( 'Next media control in the Facebook popup gallery.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_all_reactions',
+						'default' => 'All',
+						'context' => __( 'Label for the full reactions breakdown in the Facebook popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_close',
+						'default' => 'Close',
+						'context' => __( 'Close control label for the Facebook popup lightbox.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_view_image',
+						'default' => 'View image',
+						'context' => __( 'Opens a comment attachment image in a nested lightbox.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_comments_showing',
+						'default' => 'Showing %1$s of %2$s',
+						'context' => __( 'Comment pagination status in the Facebook popup (%1$s shown, %2$s total).', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_load_more_comments',
+						'default' => 'Load more comments',
+						'context' => __( 'Button to load the next page of Facebook popup comments.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_load_more_replies',
+						'default' => 'Load more replies',
+						'context' => __( 'Button to load more replies under a Facebook popup comment.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_loading_comments',
+						'default' => 'Loading comments…',
+						'context' => __( 'Loading state while Facebook popup comments are fetched.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_no_comments',
+						'default' => 'No comments yet.',
+						'context' => __( 'Empty state when a Facebook post has no comments in the popup.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_comments_error',
+						'default' => 'Could not load comments.',
+						'context' => __( 'Error state when Facebook popup comments fail to load.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_load_more_photos',
+						'default' => 'Load more photos',
+						'context' => __( 'Button to load additional album photos in the Facebook Pro popup gallery.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_loading_photos',
+						'default' => 'Loading photos…',
+						'context' => __( 'Loading state while Facebook popup album photos are fetched.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_photos_error',
+						'default' => "Couldn't load more photos.",
+						'context' => __( 'Error state when Facebook popup album photo load-more fails.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_album_photo_count',
+						'default' => '%d photos',
+						'context' => __( 'Photo count on Facebook album filter cards (%d = number of photos).', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_view_all_replies',
+						'default' => 'View all %d replies',
+						'context' => __( 'Toggle to expand replies under a Facebook popup comment (%d = count).', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_view_reply',
+						'default' => 'View %d reply',
+						'context' => __( 'Singular toggle to expand one reply under a Facebook popup comment.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_hide_replies',
+						'default' => 'Hide replies',
+						'context' => __( 'Toggle to collapse replies under a Facebook popup comment.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_facebook_user',
+						'default' => 'Facebook User',
+						'context' => __( 'Fallback display name when a Facebook comment author is missing.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_powered_by',
+						'default' => 'Powered by Easy Social Feed',
+						'context' => __( 'Branding badge shown in the Free Facebook popup lightbox.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_live_now',
+						'default' => 'is live now',
+						'context' => __( 'Status suffix next to the Page name when a Facebook Page has an active live stream (e.g. “Easy Social Feed is live now”).', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_no_live_stream',
+						'default' => 'This Page is not broadcasting live right now.',
+						'context' => __( 'Empty state when a live-stream-only Facebook feed has no active broadcast.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_category',
+						'default' => 'Category',
+						'context' => __( 'Tooltip label for Page category in the Facebook feed header.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_post_alt',
+						'default' => 'Facebook post',
+						'context' => __( 'Default image alt text when a Facebook post has no caption.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'fb_post_alt_named',
+						'default' => '%1$s Facebook post',
+						'context' => __( 'Image alt text with Page name when a Facebook post has no caption. %1$s is the Page name.', 'easy-facebook-likebox' ),
 					),
 				),
 			),
@@ -538,6 +923,21 @@ class ESF_Translation_Strings {
 	}
 
 	/**
+	 * Legacy Facebook keys that now resolve through shared registry entries.
+	 *
+	 * Keeps saved `fta_settings['translation']` values working after duplicates
+	 * were removed from the Facebook Feed category.
+	 *
+	 * @var array<string,string>
+	 */
+	private static $key_aliases = array(
+		'view_on_facebook' => 'fb_view_on_facebook',
+		'followers'        => 'fb_followers',
+		'load_more'        => 'fb_load_more_posts_button',
+		'fb_no_posts'      => 'fb_no_posts_to_display',
+	);
+
+	/**
 	 * Get the display string for a key: custom translation from settings, or default.
 	 * Uses request-level cache: one get_option() and one defaults build per page load.
 	 *
@@ -549,6 +949,14 @@ class ESF_Translation_Strings {
 		$value  = isset( $custom[ $key ] ) ? $custom[ $key ] : '';
 		if ( '' !== $value && is_string( $value ) ) {
 			return $value;
+		}
+
+		if ( isset( self::$key_aliases[ $key ] ) ) {
+			$legacy = self::$key_aliases[ $key ];
+			$value  = isset( $custom[ $legacy ] ) ? $custom[ $legacy ] : '';
+			if ( '' !== $value && is_string( $value ) ) {
+				return $value;
+			}
 		}
 
 		$defaults = self::get_defaults_by_key();
@@ -566,6 +974,24 @@ if ( ! function_exists( 'esf_get_translated_string' ) ) {
 	 */
 	function esf_get_translated_string( $key ) {
 		return ESF_Translation_Strings::get( $key );
+	}
+}
+
+if ( ! function_exists( 'esf_translate_registry_string' ) ) {
+	/**
+	 * Resolve a translation-registry key and return a localized string.
+	 *
+	 * @param string $key      Registry key (e.g. `tt_watch_on_tiktok`).
+	 * @param string $fallback Default English when the key is unknown.
+	 * @return string
+	 */
+	function esf_translate_registry_string( $key, $fallback = '' ) {
+		$text = function_exists( 'esf_get_translated_string' ) ? esf_get_translated_string( $key ) : '';
+		if ( '' === $text || (string) $text === (string) $key ) {
+			$text = $fallback;
+		}
+
+		return __( $text, 'easy-facebook-likebox' ); // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
 	}
 }
 // phpcs:enable Generic.Files.OneObjectStructurePerFile

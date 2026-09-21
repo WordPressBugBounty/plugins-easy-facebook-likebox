@@ -99,8 +99,10 @@ class ESF_Instagram_Admin {
             wp_localize_script( 'esf-instagram-dashboard', 'esfInstagramData', array(
                 'hasInstagramPlan'    => $has_instagram_plan,
                 'hasMultifeed'        => function_exists( 'esf_instagram_multifeed_active' ) && esf_instagram_multifeed_active(),
-                'multifeedUpgradeUrl' => esc_url( admin_url( 'admin.php?slug=esf-multifeed&page=feed-them-all-addons' ) ),
+                'multifeedUpgradeUrl' => ( class_exists( 'ESF_Multifeed' ) ? esc_url( ESF_Multifeed::get_upgrade_url( 'instagram' ) ) : esc_url( esf_get_upgrade_url( 'instagram_premium' ) ) ),
                 'upgradeUrl'          => esc_url( ( function_exists( 'esf_get_upgrade_url' ) ? esf_get_upgrade_url( 'instagram' ) : 'https://easysocialfeed.com/pricing/?utm_source=easy_social_feed&utm_medium=wordpress_plugin_install&utm_content=instagram' ) ),
+                'currentPlan'         => ( function_exists( 'esf_get_active_plan_slug' ) ? esf_get_active_plan_slug() : '' ),
+                'needsComboUpgrade'   => function_exists( 'esf_needs_combo_upgrade_for_module' ) && esf_needs_combo_upgrade_for_module( 'instagram' ),
                 'proDiscount'         => ( isset( $pro_promo['discount'] ) ? (string) $pro_promo['discount'] : '17%' ),
                 'proCoupon'           => ( isset( $pro_promo['coupon'] ) ? (string) $pro_promo['coupon'] : 'ESPF17' ),
                 'defaultSettings'     => ESF_Instagram_Feed_Repository::get_default_settings(),

@@ -56,14 +56,17 @@ class ESF_Instagram_Facebook_Oauth_Service {
 	 * @param int    $token_expires_in  Seconds until user token expiry from bridge (`esf_fb_expires_in`). If zero, a filterable default (~60 days) applies so `token_expires_at` is stored on import.
 	 * @return true|WP_Error True when staged (including zero candidates — caller may treat as error), WP_Error on transport/Graph failure.
 	 */
-	public static function stage_pick_session( $user_id, $user_access_token, $token_expires_in = 0 ) {
+	public static function stage_pick_session( $user_id, $user_access_token, $token_expires_in = 0, $is_manual = false ) {
 		$user_id = (int) $user_id;
 		if ( $user_id <= 0 ) {
 			return new WP_Error( 'esf_ig_fb_invalid_user', __( 'Invalid user.', 'easy-facebook-likebox' ), array( 'status' => 400 ) );
 		}
 
 		$token_expires_in = (int) $token_expires_in;
-		if ( $token_expires_in <= 0 ) {
+		$is_manual        = (bool) $is_manual;
+		if ( $is_manual ) {
+			$token_expires_in = 0;
+		} elseif ( $token_expires_in <= 0 ) {
 			/**
 			 * Seconds until Facebook user access token expiry when the OAuth bridge omits `esf_fb_expires_in`.
 			 * Default matches Meta’s typical ~60-day long-lived user token lifetime so admin UI and cron
@@ -108,13 +111,43 @@ class ESF_Instagram_Facebook_Oauth_Service {
 			'facebook_user_id'    => $fb_user_id,
 			'facebook_user_token' => sanitize_text_field( (string) $user_access_token ),
 			'user_token_expires'  => $expires_at,
-			'candidates'          => $candidates,
+			'is_manual'           => $is_manual,
+			'candidates'          => function_exists( 'esf_db_safe_text' ) ? esf_db_safe_text( $candidates ) : $candidates,
 			'staged_at'           => time(),
 		);
 
 		set_transient( self::transient_key( $user_id ), $session, $ttl );
 
 		return true;
+	}
+
+	/**
+	 * Validate a pasted Facebook user token and stage a pick session (manual connect).
+	 *
+	 * @since 6.9.0
+	 * @param int    $user_id      WordPress user id.
+	 * @param string $access_token Raw pasted token.
+	 * @return true|WP_Error
+	 */
+	public static function stage_manual_access_token( $user_id, $access_token ) {
+		if ( ! class_exists( 'ESF_Manual_Access_Token' ) ) {
+			return new WP_Error(
+				'esf_ig_manual_unavailable',
+				__( 'Manual token setup is not available.', 'easy-facebook-likebox' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		$access_token = ESF_Manual_Access_Token::sanitize( $access_token );
+		if ( ! ESF_Manual_Access_Token::is_valid_format( $access_token ) ) {
+			return new WP_Error(
+				'esf_ig_invalid_token',
+				__( 'Enter a valid Instagram or Facebook access token.', 'easy-facebook-likebox' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		return self::stage_pick_session( $user_id, $access_token, 0, true );
 	}
 
 	/**
@@ -145,8 +178,16 @@ class ESF_Instagram_Facebook_Oauth_Service {
 			);
 		}
 
+		$auth_source = 'oauth';
+		if ( ! empty( $session['is_manual'] ) ) {
+			$auth_source = class_exists( 'ESF_Manual_Access_Token' )
+				? ESF_Manual_Access_Token::AUTH_MANUAL
+				: 'manual';
+		}
+
 		return array(
-			'candidates' => $public,
+			'auth_source' => $auth_source,
+			'candidates'  => $public,
 		);
 	}
 
@@ -165,7 +206,7 @@ class ESF_Instagram_Facebook_Oauth_Service {
 	 * Import selected Page-backed Instagram accounts and clear the session.
 	 *
 	 * @since 6.8.0
-	 * @param int              $user_id         WordPress user id.
+	 * @param int               $user_id         WordPress user id.
 	 * @param array<int,string> $selected_page_ids Facebook Page ids to import (must match staged candidates).
 	 * @return array{imported:int,account_ids:int[]}|WP_Error
 	 */
@@ -209,7 +250,7 @@ class ESF_Instagram_Facebook_Oauth_Service {
 			);
 		}
 
-		$repo    = ESF_Instagram_Account_Repository::get_instance();
+		$repo     = ESF_Instagram_Account_Repository::get_instance();
 		$migrator = ESF_Instagram_Migrator::get_instance();
 		$stats    = current_time( 'mysql', true );
 
@@ -224,7 +265,7 @@ class ESF_Instagram_Facebook_Oauth_Service {
 				continue;
 			}
 
-			$ig = isset( $row['instagram_account'] ) && is_array( $row['instagram_account'] ) ? $row['instagram_account'] : array();
+			$ig      = isset( $row['instagram_account'] ) && is_array( $row['instagram_account'] ) ? $row['instagram_account'] : array();
 			$ig_json = wp_json_encode( $ig );
 			if ( ! is_string( $ig_json ) ) {
 				$ig_json = null;
@@ -245,25 +286,29 @@ class ESF_Instagram_Facebook_Oauth_Service {
 			);
 
 			$upsert = array(
-				'user_id'              => $user_id,
-				'account_type'         => $account_type,
-				'auth_source'          => 'facebook_page',
-				'instagram_user_id'    => $ig_user_id,
-				'username'             => isset( $row['username'] ) ? sanitize_text_field( (string) $row['username'] ) : '',
-				'display_name'         => isset( $row['display_name'] ) ? sanitize_text_field( (string) $row['display_name'] ) : '',
-				'profile_image_url'    => isset( $row['profile_image_url'] ) ? esc_url_raw( (string) $row['profile_image_url'] ) : '',
-				'facebook_page_id'     => $page_id,
-				'facebook_page_name'   => isset( $row['page_name'] ) ? sanitize_text_field( (string) $row['page_name'] ) : '',
-				'facebook_user_id'     => $fb_uid,
-				'facebook_user_token'  => $user_token,
-				'page_access_token'    => $page_token,
-				'access_token'         => null,
-				'account_data'         => $ig_json,
-				'status'               => 'active',
-				'stats_refreshed_at'   => $stats,
+				'user_id'             => $user_id,
+				'account_type'        => $account_type,
+				'auth_source'         => ! empty( $session['is_manual'] ) && class_exists( 'ESF_Manual_Access_Token' )
+					? ESF_Manual_Access_Token::AUTH_MANUAL
+					: 'facebook_page',
+				'instagram_user_id'   => $ig_user_id,
+				'username'            => isset( $row['username'] ) ? sanitize_text_field( (string) $row['username'] ) : '',
+				'display_name'        => isset( $row['display_name'] ) ? sanitize_text_field( (string) $row['display_name'] ) : '',
+				'profile_image_url'   => isset( $row['profile_image_url'] ) ? esc_url_raw( (string) $row['profile_image_url'] ) : '',
+				'facebook_page_id'    => $page_id,
+				'facebook_page_name'  => isset( $row['page_name'] ) ? sanitize_text_field( (string) $row['page_name'] ) : '',
+				'facebook_user_id'    => $fb_uid,
+				'facebook_user_token' => $user_token,
+				'page_access_token'   => $page_token,
+				'access_token'        => null,
+				'account_data'        => $ig_json,
+				'status'              => 'active',
+				'stats_refreshed_at'  => $stats,
 			);
 
-			if ( ! empty( $session['user_token_expires'] ) ) {
+			if ( ! empty( $session['is_manual'] ) ) {
+				$upsert['token_expires_at'] = null;
+			} elseif ( ! empty( $session['user_token_expires'] ) ) {
 				$upsert['token_expires_at'] = sanitize_text_field( (string) $session['user_token_expires'] );
 			}
 
@@ -275,7 +320,7 @@ class ESF_Instagram_Facebook_Oauth_Service {
 			$upsert['followers_count'] = $followers;
 			$upsert['media_count']     = $media;
 			$upsert['biography']       = $bio;
-			$upsert['website']        = $website;
+			$upsert['website']         = $website;
 
 			$new_id = $repo->upsert( $upsert );
 			if ( false !== $new_id ) {

@@ -31,7 +31,7 @@ class ESF_Twitter_Main {
 
     const CRON_CACHE_REFRESH_HOOK = 'esf_twitter_refresh_feed_cache';
 
-    const DB_SCHEMA_VERSION = '2';
+    const DB_SCHEMA_VERSION = '4';
 
     /**
      * Constructor.
@@ -50,16 +50,18 @@ class ESF_Twitter_Main {
      */
     private function init_hooks() {
         add_action( 'init', array($this, 'load_dependencies') );
-        add_action( 'init', array($this, 'maybe_initialize_components') );
         /*
+         * Layout registration runs at priority 11 to ensure translations are loaded first (priority 10).
          * Token cron wiring runs after Feed_Them_All::includes() on init (priority 10)
-         * so shared helpers are always available (see Instagram Main).
+         * so shared helpers are loaded first.
          */
+        add_action( 'init', array($this, 'maybe_initialize_components'), 11 );
         add_action( 'init', array($this, 'maybe_init_token_manager'), 11 );
         add_action( 'rest_api_init', array($this, 'register_rest_routes') );
         add_filter( 'cron_schedules', array($this, 'add_cron_schedules') );
         add_action( 'admin_init', array($this, 'maybe_handle_oauth_callback') );
         add_action( self::CRON_CACHE_REFRESH_HOOK, array($this, 'run_feed_cache_refresh') );
+        $this->register_warm_cron_hook();
     }
 
     /**
@@ -73,6 +75,9 @@ class ESF_Twitter_Main {
         require_once ESF_TWITTER_DIR . 'includes/helpers/twitter-helper-functions.php';
         require_once ESF_TWITTER_DIR . 'includes/database/class-esf-twitter-db-installer.php';
         require_once ESF_TWITTER_DIR . 'includes/class-esf-twitter-cache.php';
+        require_once ESF_TWITTER_DIR . 'includes/class-esf-twitter-local-media.php';
+        require_once ESF_TWITTER_DIR . 'includes/api/class-esf-twitter-api-warm-media.php';
+        require_once ESF_TWITTER_DIR . 'includes/api/class-esf-twitter-api-video-proxy.php';
         require_once ESF_TWITTER_DIR . 'includes/models/class-esf-twitter-account-repository.php';
         require_once ESF_TWITTER_DIR . 'includes/models/class-esf-twitter-feed-repository.php';
         require_once ESF_TWITTER_DIR . 'includes/api/class-esf-twitter-api-service.php';
@@ -81,12 +86,34 @@ class ESF_Twitter_Main {
         require_once ESF_TWITTER_DIR . 'includes/api/class-esf-twitter-api-feeds.php';
         require_once ESF_TWITTER_DIR . 'includes/api/class-esf-twitter-api-settings.php';
         require_once ESF_TWITTER_DIR . 'includes/api/class-esf-twitter-api-preview.php';
-        $load_more_file = ESF_TWITTER_DIR . 'includes/api/class-esf-twitter-api-load-more.php';
+        $load_more_file = ESF_TWITTER_DIR . 'includes/api/premium/class-esf-twitter-api-load-more.php';
         require_once ESF_TWITTER_DIR . 'includes/class-esf-twitter-token-manager.php';
+        require_once ESF_TWITTER_DIR . 'includes/class-esf-twitter-token-notifications.php';
         require_once ESF_TWITTER_DIR . 'includes/class-esf-twitter-auth-callback-listener.php';
+        require_once ESF_TWITTER_DIR . 'includes/class-esf-twitter-manual-oauth-service.php';
         require_once ESF_TWITTER_DIR . 'includes/layouts/class-esf-twitter-layout-registry.php';
         require_once ESF_TWITTER_DIR . 'includes/layouts/class-esf-twitter-layout-base.php';
         require_once ESF_TWITTER_DIR . 'includes/layouts/class-esf-twitter-layout-timeline.php';
+        require_once ESF_TWITTER_DIR . 'includes/layouts/class-esf-twitter-layout-row.php';
+        // This entire code block will be removed from the free version.
+        if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
+            $carousel_file = ESF_TWITTER_DIR . 'includes/layouts/premium/class-esf-twitter-layout-carousel.php';
+            if ( file_exists( $carousel_file ) ) {
+                require_once $carousel_file;
+            }
+            $half_width_file = ESF_TWITTER_DIR . 'includes/layouts/premium/class-esf-twitter-layout-half-width.php';
+            if ( file_exists( $half_width_file ) ) {
+                require_once $half_width_file;
+            }
+            $masonry_file = ESF_TWITTER_DIR . 'includes/layouts/premium/class-esf-twitter-layout-masonry.php';
+            if ( file_exists( $masonry_file ) ) {
+                require_once $masonry_file;
+            }
+            $grid_file = ESF_TWITTER_DIR . 'includes/layouts/premium/class-esf-twitter-layout-grid.php';
+            if ( file_exists( $grid_file ) ) {
+                require_once $grid_file;
+            }
+        }
         require_once ESF_TWITTER_DIR . 'includes/class-esf-twitter-renderer.php';
         if ( !is_admin() ) {
             require_once ESF_TWITTER_DIR . 'frontend/class-esf-twitter-frontend.php';
@@ -106,13 +133,119 @@ class ESF_Twitter_Main {
         if ( function_exists( 'esf_is_twitter_active' ) && !esf_is_twitter_active() ) {
             return;
         }
-        ESF_Twitter_Layout_Registry::register( 'timeline', 'ESF_Twitter_Layout_Timeline' );
+        // Register layouts in shared registry
+        $version = ( defined( 'FTA_VERSION' ) ? FTA_VERSION : '1.0.0' );
+        $registry = \EasySocialFeed\Layouts\LayoutRegistry::for( 'twitter' );
+        $timeline_definition = new \EasySocialFeed\Layouts\ValueObjects\LayoutDefinition(array(
+            'slug'        => 'timeline',
+            'label'       => __( 'Timeline', 'easy-facebook-likebox' ),
+            'description' => __( 'Vertical list of tweets with images on the left', 'easy-facebook-likebox' ),
+            'icon'        => 'list',
+            'class_name'  => ESF_Twitter_Layout_Timeline::class,
+            'is_pro'      => false,
+            'supports'    => array('header', 'metrics', 'load_more'),
+            'assets'      => array(
+                'layout_css' => array(
+                    'handle' => 'esf-twitter-layout-timeline',
+                    'src'    => ESF_TWITTER_URL . 'frontend/assets/css/layouts/timeline.css',
+                    'deps'   => array(),
+                    'ver'    => $version,
+                ),
+            ),
+        ));
+        $registry->register( $timeline_definition );
+        // Keep private Load More registry in sync with shared LayoutRegistry.
+        if ( class_exists( 'ESF_Twitter_Layout_Registry' ) ) {
+            ESF_Twitter_Layout_Registry::register( 'timeline', ESF_Twitter_Layout_Timeline::class );
+        }
+        $this->register_row_layout();
+        // This entire code block will be removed from the free version.
+        if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
+            if ( method_exists( $this, 'register_carousel_layout__premium_only' ) ) {
+                $this->register_carousel_layout__premium_only();
+            }
+            if ( method_exists( $this, 'register_half_width_layout__premium_only' ) ) {
+                $this->register_half_width_layout__premium_only();
+            }
+            if ( method_exists( $this, 'register_masonry_layout__premium_only' ) ) {
+                $this->register_masonry_layout__premium_only();
+            }
+            if ( method_exists( $this, 'register_grid_layout__premium_only' ) ) {
+                $this->register_grid_layout__premium_only();
+            }
+        }
         $this->maybe_schedule_feed_cache_refresh();
         $this->maybe_migrate_db_schema();
         if ( is_admin() ) {
             ESF_Twitter_Admin::get_instance();
         } else {
             ESF_Twitter_Frontend::get_instance();
+        }
+    }
+
+    /**
+     * Register the Row layout.
+     *
+     * Free layout (Instagram pattern). Wave stagger remains Pro-only via
+     * `esf_twitter_has_twitter_plan()` inside the layout class. Wave JS is
+     * Freemius-stripped from free zips and only enqueued when the file exists.
+     *
+     * @since 6.15.0
+     * @return void
+     */
+    private function register_row_layout() {
+        if ( !class_exists( 'ESF_Twitter_Layout_Row' ) ) {
+            return;
+        }
+        $version = ( defined( 'FTA_VERSION' ) ? FTA_VERSION : '1.0.0' );
+        $row_js = ESF_TWITTER_DIR . 'frontend/assets/js/esf-twitter-row-wave.js';
+        $assets = array(
+            'layout_css' => array(
+                'handle' => ESF_Twitter_Layout_Row::CSS_HANDLE,
+                'src'    => ESF_TWITTER_URL . 'frontend/assets/css/layouts/row.css',
+                'deps'   => array(),
+                'ver'    => $version,
+            ),
+        );
+        if ( file_exists( $row_js ) ) {
+            $assets['layout_js'] = array(
+                'handle'    => ESF_Twitter_Layout_Row::JS_HANDLE,
+                'src'       => ESF_TWITTER_URL . 'frontend/assets/js/esf-twitter-row-wave.js',
+                'deps'      => array(),
+                'ver'       => (string) filemtime( $row_js ),
+                'in_footer' => true,
+            );
+        }
+        $registry = \EasySocialFeed\Layouts\LayoutRegistry::for( 'twitter' );
+        $registry->register( new \EasySocialFeed\Layouts\ValueObjects\LayoutDefinition(array(
+            'slug'             => 'row',
+            'label'            => __( 'Row', 'easy-facebook-likebox' ),
+            'description'      => __( 'A sleek single-row strip — great for headers and sections', 'easy-facebook-likebox' ),
+            'icon'             => 'row',
+            'class_name'       => ESF_Twitter_Layout_Row::class,
+            'is_pro'           => false,
+            'supports'         => array('header', 'metrics', 'load_more'),
+            'assets'           => $assets,
+            'default_settings' => array(
+                'layout' => array(
+                    'type' => 'row',
+                    'row'  => array(
+                        'row_style'          => 'standard',
+                        'wave_offset'        => 16,
+                        'media_aspect_ratio' => '1:1',
+                        'columns'            => 6,
+                        'columns_tablet'     => 3,
+                        'columns_mobile'     => 2,
+                        'gap'                => 0,
+                        'tile_border_radius' => 0,
+                        'tile_shadow'        => false,
+                        'tile_shadow_color'  => 'rgba(0,0,0,0.12)',
+                    ),
+                ),
+            ),
+        )) );
+        if ( class_exists( 'ESF_Twitter_Layout_Registry' ) ) {
+            ESF_Twitter_Layout_Registry::register( 'row', ESF_Twitter_Layout_Row::class );
         }
     }
 
@@ -143,6 +276,12 @@ class ESF_Twitter_Main {
         ESF_Twitter_API_Feeds::register_routes();
         ESF_Twitter_API_Settings::register_routes();
         ESF_Twitter_API_Preview::register_routes();
+        if ( class_exists( 'ESF_Twitter_API_Warm_Media' ) ) {
+            ESF_Twitter_API_Warm_Media::register_routes();
+        }
+        if ( class_exists( 'ESF_Twitter_API_Video_Proxy' ) ) {
+            ESF_Twitter_API_Video_Proxy::register_routes();
+        }
     }
 
     /**
@@ -153,6 +292,23 @@ class ESF_Twitter_Main {
      */
     private function has_twitter_plan() {
         return function_exists( 'esf_twitter_has_twitter_plan' ) && esf_twitter_has_twitter_plan();
+    }
+
+    /**
+     * Register the local-media warm cron hook.
+     *
+     * @since 6.14.1
+     * @return void
+     */
+    private function register_warm_cron_hook() {
+        if ( class_exists( 'ESF_Twitter_Local_Media' ) ) {
+            add_action(
+                ESF_Twitter_Local_Media::WARM_CRON_HOOK,
+                array('ESF_Twitter_Local_Media', 'run_warm_cron'),
+                10,
+                2
+            );
+        }
     }
 
     /**
@@ -252,7 +408,6 @@ class ESF_Twitter_Main {
             'status' => 'active',
         ) );
         if ( !empty( $feeds ) ) {
-            $now_utc = current_time( 'mysql', true );
             $renderer = new ESF_Twitter_Renderer();
             foreach ( $feeds as $feed ) {
                 $feed_id = ( isset( $feed->id ) ? (int) $feed->id : 0 );
@@ -260,10 +415,11 @@ class ESF_Twitter_Main {
                 if ( $feed_id <= 0 || $account_id <= 0 ) {
                     continue;
                 }
-                $cache_key = 'esf_tw_tweets_' . $feed_id . '_' . $account_id;
+                $cache_key = ( function_exists( 'esf_twitter_tweets_cache_key' ) ? esf_twitter_tweets_cache_key( $account_id ) : 'esf_tw_tweets_' . $account_id );
                 $expires_at = ESF_Twitter_Cache::get_expires_at( $cache_key );
-                if ( null !== $expires_at && $expires_at > $now_utc ) {
+                if ( function_exists( 'esf_feed_cache_is_due_for_refresh' ) && !esf_feed_cache_is_due_for_refresh( $expires_at ) ) {
                     continue;
+                    // still outside lead window
                 }
                 $renderer->get_tweets_for_feed_by_id( $feed_id );
             }
@@ -321,6 +477,7 @@ class ESF_Twitter_Main {
         require_once ESF_TWITTER_DIR . 'includes/traits/trait-esf-twitter-singleton.php';
         require_once ESF_TWITTER_DIR . 'includes/database/class-esf-twitter-db-installer.php';
         ESF_Twitter_DB_Installer::create_tables();
+        ESF_Twitter_DB_Installer::maybe_drop_cache_feed_id_column();
         update_option( 'esf_twitter_db_schema_version', self::DB_SCHEMA_VERSION );
     }
 
@@ -336,6 +493,7 @@ class ESF_Twitter_Main {
             return;
         }
         ESF_Twitter_DB_Installer::create_tables();
+        ESF_Twitter_DB_Installer::maybe_drop_cache_feed_id_column();
         update_option( 'esf_twitter_db_schema_version', self::DB_SCHEMA_VERSION );
     }
 

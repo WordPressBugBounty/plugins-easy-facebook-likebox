@@ -60,29 +60,161 @@ class ESF_Twitter_Feed_Repository {
 	public static function get_default_settings() {
 		return array(
 			'feed'   => array(
-				'per_page'             => 10,
-				'tweet_count'          => 20,
-				'exclude_retweets'     => true,
-				'exclude_replies'      => true,
-				'enable_popup'         => true,
-				'popup_show_author'    => true,
-				'popup_show_date'      => true,
-				'popup_show_follow'    => true,
-				'popup_show_text'      => true,
-				'popup_show_metrics'   => true,
-				'popup_show_view_on_x' => true,
-				'load_more'            => true,
-				'load_more_bg_color'   => '',
-				'load_more_text_color' => '',
+				'per_page'                    => 10,
+				'tweet_count'                 => 20,
+				'account_ids'                 => array(),
+				'multifeed_sort'              => 'newest',
+				'exclude_retweets'            => true,
+				'exclude_replies'             => true,
+				'enable_popup'                => true,
+				'popup_show_author'           => true,
+				'popup_show_date'             => true,
+				'popup_show_follow'           => true,
+				'popup_show_text'             => true,
+				'popup_show_metrics'          => true,
+				'popup_show_view_on_x'        => true,
+				'popup_show_comments_list'    => true,
+				'popup_comments_per_page'     => 20,
+				'popup_comment_show_avatar'   => true,
+				'popup_comment_show_username' => true,
+				'popup_comment_show_date'     => true,
+				'popup_comment_show_likes'    => true,
+				'load_more'                   => true,
+				'load_more_mode'              => 'button',
+				'load_more_bg_color'          => '',
+				'load_more_text_color'        => '',
+				'load_more_hover_bg_color'    => '',
+				'load_more_hover_text_color'  => '',
+				'show_media_collage'          => false,
+				'show_media_type_icon'        => true,
+				'hover_overlay'               => true,
+				'show_hover_plus'             => true,
+				'hover_plus_size'             => 34,
+				'hover_plus_color'            => '',
 			),
 			'layout' => array(
-				'type'     => 'timeline',
-				'timeline' => array_merge(
+				'type'       => 'timeline',
+				'timeline'   => array_merge(
 					function_exists( 'esf_layout_dimension_defaults' )
 						? esf_layout_dimension_defaults()
 						: array(),
 					array(
 						'media_aspect_ratio' => '16:9',
+						'bg_color'           => '',
+						'text_color'         => '',
+						'meta_color'         => '',
+						'accent_color'       => '',
+					)
+				),
+				'grid'       => array_merge(
+					function_exists( 'esf_layout_dimension_defaults' )
+						? esf_layout_dimension_defaults()
+						: array(),
+					array(
+						'display_mode'         => 'media_only',
+						'media_aspect_ratio'   => '1:1',
+						'columns'              => 3,
+						'columns_tablet'       => 2,
+						'columns_mobile'       => 1,
+						'gap'                  => 8,
+						'tile_border_radius'   => 8,
+						'tile_shadow'          => true,
+						'tile_shadow_color'    => 'rgba(0,0,0,0.12)',
+						'caption_words'        => 18,
+						'show_caption'         => true,
+						'show_meta'            => true,
+						'show_time'            => true,
+						'details_bg_color'     => '#ffffff',
+						'details_text_color'   => '#0f1419',
+						'details_accent_color' => '#1d9bf0',
+						'details_meta_color'   => '#536471',
+					)
+				),
+				// Row: single horizontal band; flush (0 gap) by default. Wave is Pro-only.
+				'row'        => array_merge(
+					function_exists( 'esf_layout_dimension_defaults' )
+						? esf_layout_dimension_defaults()
+						: array(),
+					array(
+						'row_style'          => 'standard',
+						'wave_offset'        => 16,
+						'media_aspect_ratio' => '1:1',
+						'columns'            => 6,
+						'columns_tablet'     => 3,
+						'columns_mobile'     => 2,
+						'gap'                => 0,
+						'tile_border_radius' => 0,
+						'tile_shadow'        => false,
+						'tile_shadow_color'  => 'rgba(0,0,0,0.12)',
+					)
+				),
+				'carousel'   => array(
+					'display_mode'         => 'detailed',
+					'media_aspect_ratio'   => '1:1',
+					'columns'              => 3,
+					'columns_tablet'       => 2,
+					'columns_mobile'       => 1,
+					'gap'                  => 8,
+					'tile_border_radius'   => 8,
+					'show_arrows'          => true,
+					'show_dots'            => true,
+					'loop'                 => true,
+					'autoplay'             => true,
+					'autoplay_speed'       => 3000,
+					'caption_words'        => 18,
+					'show_caption'         => true,
+					'show_meta'            => true,
+					'show_time'            => true,
+					'details_bg_color'     => '#ffffff',
+					'details_text_color'   => '#0f1419',
+					'details_accent_color' => '#1d9bf0',
+					'details_meta_color'   => '#536471',
+					'nav_color'            => '#d6d6d6',
+					'nav_active_color'     => '#1d9bf0',
+				),
+				'masonry'    => array_merge(
+					function_exists( 'esf_layout_dimension_defaults' )
+						? esf_layout_dimension_defaults()
+						: array(),
+					array(
+						'display_mode'         => 'media_only',
+						'columns'              => 4,
+						'columns_tablet'       => 3,
+						'columns_mobile'       => 2,
+						'gap'                  => 8,
+						'tile_border_radius'   => 8,
+						'tile_shadow'          => true,
+						'tile_shadow_color'    => 'rgba(0,0,0,0.12)',
+						'caption_words'        => 18,
+						'show_caption'         => true,
+						'show_meta'            => true,
+						'show_time'            => true,
+						'details_bg_color'     => '#ffffff',
+						'details_text_color'   => '#0f1419',
+						'details_accent_color' => '#1d9bf0',
+						'details_meta_color'   => '#536471',
+					)
+				),
+				'half_width' => array_merge(
+					function_exists( 'esf_layout_dimension_defaults' )
+						? esf_layout_dimension_defaults()
+						: array(),
+					array(
+						'media_aspect_ratio'  => '1:1',
+						'gap'                 => 16,
+						'card_border_radius'  => 12,
+						'card_shadow'         => true,
+						'card_shadow_color'   => 'rgba(0,0,0,0.08)',
+						'bg_color'            => '',
+						'footer_bg_color'     => '',
+						'text_color'          => '',
+						'accent_color'        => '',
+						'caption_words'       => 25,
+						'show_post_header'    => true,
+						'show_post_time'      => true,
+						'show_share'          => true,
+						'hover_show_likes'    => false,
+						'hover_show_comments' => false,
 					)
 				),
 			),
@@ -96,6 +228,11 @@ class ESF_Twitter_Feed_Repository {
 				'show_tweets'        => true,
 				'show_bio'           => true,
 				'show_follow_button' => true,
+				'bg_color'           => '',
+				'text_color'         => '',
+				'border_color'       => '',
+				'show_border'        => true,
+				'padding'            => 20,
 			),
 			'card'   => array(
 				'show_image'    => true,
@@ -127,7 +264,25 @@ class ESF_Twitter_Feed_Repository {
 			return $defaults;
 		}
 
-		return self::array_merge_recursive_distinct( $defaults, $settings );
+		$merged = self::array_merge_recursive_distinct( $defaults, $settings );
+
+		// Normalize account_ids for multifeed.
+		if ( isset( $merged['feed']['account_ids'] ) && is_array( $merged['feed']['account_ids'] ) ) {
+			$ids = array();
+			foreach ( $merged['feed']['account_ids'] as $id ) {
+				$id = (int) $id;
+				if ( $id > 0 && ! in_array( $id, $ids, true ) ) {
+					$ids[] = $id;
+				}
+			}
+			$merged['feed']['account_ids'] = $ids;
+		}
+
+		if ( function_exists( 'esf_twitter_normalize_multifeed_settings__premium_only' ) && function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
+			$merged = esf_twitter_normalize_multifeed_settings__premium_only( $merged );
+		}
+
+		return $merged;
 	}
 
 	/**
@@ -174,6 +329,32 @@ class ESF_Twitter_Feed_Repository {
 				$feed_id
 			)
 		);
+	}
+
+	/**
+	 * Get feeds owned by an account.
+	 *
+	 * @since 6.14.1
+	 * @param int $account_id Account ID.
+	 * @return array<int, object>
+	 */
+	public function get_by_account_id( $account_id ) {
+		global $wpdb;
+
+		$account_id = (int) $account_id;
+		if ( $account_id <= 0 ) {
+			return array();
+		}
+
+		$table = $this->get_table_name();
+		$rows  = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				'SELECT * FROM `' . esc_sql( $table ) . '` WHERE account_id = %d ORDER BY id ASC',
+				$account_id
+			)
+		);
+
+		return is_array( $rows ) ? $rows : array();
 	}
 
 	/**
@@ -315,8 +496,10 @@ class ESF_Twitter_Feed_Repository {
 			return false;
 		}
 
-		$fields = array();
-		$format = array();
+		$fields             = array();
+		$format             = array();
+		$account_id_updated = false;
+		$new_account_id     = 0;
 
 		if ( array_key_exists( 'name', $data ) ) {
 			$name = trim( (string) $data['name'] );
@@ -331,6 +514,8 @@ class ESF_Twitter_Feed_Repository {
 			if ( $account_id > 0 ) {
 				$fields['account_id'] = $account_id;
 				$format[]             = '%d';
+				$account_id_updated   = true;
+				$new_account_id       = $account_id;
 			}
 		}
 
@@ -372,6 +557,17 @@ class ESF_Twitter_Feed_Repository {
 
 		$table   = $this->get_table_name();
 		$updated = $wpdb->update( $table, $fields, array( 'id' => $feed_id ), $format, array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		if ( false !== $updated && $account_id_updated && class_exists( 'ESF_Feed_Disconnected_Cache' ) && class_exists( 'ESF_Twitter_Account_Repository' ) ) {
+			$account = ESF_Twitter_Account_Repository::get_instance()->get_by_id( $new_account_id );
+			if ( $account ) {
+				ESF_Feed_Disconnected_Cache::handle_feed_source_reconnected(
+					'twitter',
+					$feed_id,
+					$new_account_id
+				);
+			}
+		}
 
 		return ( false !== $updated );
 	}

@@ -4,12 +4,12 @@
  * Plugin Name: Easy Social Feed
  * Plugin URI:        https://wordpress.org/plugins/easy-facebook-likebox
  * Description:       Formerly "Easy Facebook Like Box and Custom Facebook Feed" plugin allows you to easily display custom facebook feed, custom Instagram photos and videos feed, page plugin (like box) on your website using either widget or shortcode to increase facbook fan page likes. You can use the shortcode generator. Additionally, it also now allows you to display the customized facebook feed on your website using the same color scheme of your website. Its completely customizable with lots of optional settings. Its also responsive facebook like box at the same time.
- * Version:           6.7.8
+ * Version:           6.7.10
  * Author:            Easy Social Feed
  * Author URI:        https://easysocialfeed.com/
  * Text Domain:       easy-facebook-likebox
  */
-// If this file is called directly, abort.
+// Freemius // If this file is called directly, abort.
 if ( !defined( 'WPINC' ) ) {
     die;
 }
@@ -40,7 +40,15 @@ function efl_fs_uninstall_cleanup() {
         'mif_skin_id',
         'mif_account_id',
         'esf_twitter_settings',
-        'esf_twitter_db_schema_version'
+        'esf_twitter_db_schema_version',
+        'esf_tiktok_settings',
+        'esf_tiktok_db_schema_version',
+        'esf_facebook_settings',
+        'esf_facebook_db_schema_version',
+        'esf_facebook_use_new_system',
+        'esf_facebook_migration_default_feed_id',
+        'esf_facebook_legacy_feed_map',
+        'esf_facebook_migrate_lock'
     );
     foreach ( $options as $option ) {
         delete_option( $option );
@@ -68,7 +76,8 @@ function efl_fs_uninstall_cleanup() {
             'esf-instagram',
             'esf-facebook',
             'esf-youtube',
-            'esf-twitter'
+            'esf-twitter',
+            'esf-tiktok'
         );
         require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
         require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
@@ -85,6 +94,20 @@ function efl_fs_uninstall_cleanup() {
         require_once $twitter_db_installer;
         if ( class_exists( 'ESF_Twitter_DB_Installer' ) ) {
             ESF_Twitter_DB_Installer::drop_tables();
+        }
+    }
+    $tiktok_db_installer = plugin_dir_path( __FILE__ ) . 'tiktok/includes/database/class-esf-tiktok-db-installer.php';
+    if ( file_exists( $tiktok_db_installer ) ) {
+        require_once $tiktok_db_installer;
+        if ( class_exists( 'ESF_TikTok_DB_Installer' ) ) {
+            ESF_TikTok_DB_Installer::drop_tables();
+        }
+    }
+    $facebook_db_installer = plugin_dir_path( __FILE__ ) . 'facebook/includes/database/class-esf-facebook-db-installer.php';
+    if ( file_exists( $facebook_db_installer ) ) {
+        require_once $facebook_db_installer;
+        if ( class_exists( 'ESF_Facebook_DB_Installer' ) ) {
+            ESF_Facebook_DB_Installer::drop_tables();
         }
     }
 }
@@ -106,7 +129,7 @@ if ( function_exists( 'efl_fs' ) ) {
                     'type'             => 'plugin',
                     'public_key'       => 'pk_d982f4dff842224ca5e54c84f6822',
                     'is_premium'       => false,
-                    'has_addons'       => true,
+                    'has_addons'       => false,
                     'has_paid_plans'   => true,
                     'trial'            => array(
                         'days'               => 7,
@@ -137,6 +160,8 @@ if ( function_exists( 'efl_fs' ) ) {
     // Shared autoloaders must load after Freemius init (inside this boot path only).
     require_once __DIR__ . '/admin/shared/dashboard-core/layouts/autoload.php';
     require_once __DIR__ . '/admin/shared/seo/autoload.php';
+    // Simple loading overlay helper for modern modules (Twitter, YouTube, etc.) - frontend only.
+    require_once __DIR__ . '/admin/shared/frontend/php/simple-loader-helper.php';
     $options = get_option( 'fta_settings', array() );
     $fb_status = ( isset( $options['plugins']['facebook']['status'] ) ? $options['plugins']['facebook']['status'] : 'activated' );
     if ( isset( $options['plugins']['facebook'] ) ) {
@@ -147,12 +172,40 @@ if ( function_exists( 'efl_fs' ) ) {
     if ( !array_key_exists( 'status', $fb ) ) {
         $fb_status = 'activated';
     }
-    if ( $fb_status == 'activated' ) {
-        require_once plugin_dir_path( __FILE__ ) . 'facebook/frontend/includes/core-functions.php';
-        require_once plugin_dir_path( __FILE__ ) . 'facebook/frontend/easy-facebook-likebox.php';
-        require_once plugin_dir_path( __FILE__ ) . 'facebook/includes/easy-custom-facebook-feed-widget.php';
-        require_once plugin_dir_path( __FILE__ ) . 'facebook/includes/easy-facebook-page-plugin-widget.php';
+    if ( 'activated' === $fb_status ) {
+        /*
+         * Mode helper must be available at widgets_init (init priority 1).
+         * Full Facebook autoload still runs later via Feed_Them_All::includes()
+         * (init priority 10) — without this early require, modern mode would
+         * always register the legacy widgets.
+         */
+        if ( !function_exists( 'esf_facebook_use_new_system' ) ) {
+            require_once plugin_dir_path( __FILE__ ) . 'facebook/includes/helpers/facebook-helper-functions.php';
+        }
+        /**
+         * Facebook feed + likebox widgets.
+         * Legacy: Easy_Custom_Facebook_Feed_Widget / Easy_Facebook_Page_Plugin_Widget.
+         * Modern: same id_bases (`easy_facebook_feed`, `easy_facebook_page_plugin`)
+         * so existing sidebar placements keep working after migration.
+         */
         function register_fblx_widget() {
+            if ( function_exists( 'esf_facebook_use_new_system' ) && esf_facebook_use_new_system() ) {
+                if ( !class_exists( 'ESF_Feed_Widget', false ) ) {
+                    require_once plugin_dir_path( __FILE__ ) . 'includes/class-esf-feed-widget.php';
+                }
+                if ( !class_exists( 'ESF_Facebook_Modern_Feed_Widget', false ) ) {
+                    require_once plugin_dir_path( __FILE__ ) . 'facebook/includes/class-esf-facebook-modern-feed-widget.php';
+                }
+                if ( class_exists( 'ESF_Facebook_Modern_Feed_Widget', false ) ) {
+                    register_widget( 'ESF_Facebook_Modern_Feed_Widget' );
+                }
+                if ( class_exists( 'ESF_Facebook_Modern_Likebox_Widget', false ) ) {
+                    register_widget( 'ESF_Facebook_Modern_Likebox_Widget' );
+                }
+                return;
+            }
+            require_once plugin_dir_path( __FILE__ ) . 'facebook/includes/easy-custom-facebook-feed-widget.php';
+            require_once plugin_dir_path( __FILE__ ) . 'facebook/includes/easy-facebook-page-plugin-widget.php';
             register_widget( 'Easy_Custom_Facebook_Feed_Widget' );
             register_widget( 'Easy_Facebook_Page_Plugin_Widget' );
         }
@@ -170,14 +223,32 @@ if ( function_exists( 'efl_fs' ) ) {
     }
     if ( $insta_status == 'activated' ) {
         require_once plugin_dir_path( __FILE__ ) . 'instagram/includes/esf-instagram-feed-widget.php';
+        /*
+         * Mode helper must be available at widgets_init (init priority 1).
+         * Full Instagram autoload still runs later via Feed_Them_All::includes()
+         * (init priority 10) — without this early require, modern mode always
+         * registered the legacy widget and fataled on private Frontend::__construct().
+         */
+        if ( !function_exists( 'esf_instagram_use_new_system' ) ) {
+            require_once plugin_dir_path( __FILE__ ) . 'instagram/includes/helpers/instagram-helper-functions.php';
+        }
         /**
-         * Legacy Instagram widget (skins / ESF_Instagram_Frontend).
-         * Only register when the legacy Instagram module is active — modern
-         * mode does not load esf_insta_* helpers, and Customizer would fatal
-         * while rendering the widget form.
+         * Instagram feed widget.
+         * Legacy: skins / ESF_Instagram_Frontend shortcode attrs.
+         * Modern: same id_base (`esf_instagram_feed`) + feed_id so existing
+         * sidebar placements keep working after migration.
          */
         function register_insta_widget() {
             if ( function_exists( 'esf_instagram_use_new_system' ) && esf_instagram_use_new_system() ) {
+                if ( !class_exists( 'ESF_Feed_Widget', false ) ) {
+                    require_once plugin_dir_path( __FILE__ ) . 'includes/class-esf-feed-widget.php';
+                }
+                if ( !class_exists( 'ESF_Instagram_Modern_Feed_Widget', false ) ) {
+                    require_once plugin_dir_path( __FILE__ ) . 'instagram/includes/class-esf-instagram-modern-feed-widget.php';
+                }
+                if ( class_exists( 'ESF_Instagram_Modern_Feed_Widget', false ) ) {
+                    register_widget( 'ESF_Instagram_Modern_Feed_Widget' );
+                }
                 return;
             }
             register_widget( 'ESF_Instagram_Feed_Widget' );
@@ -198,7 +269,9 @@ if ( function_exists( 'efl_fs' ) ) {
     }
     // Shared cron / Graph helpers must load before module bootstraps that schedule token refresh jobs.
     require_once __DIR__ . '/includes/class-esf-token-cron-helpers.php';
+    require_once __DIR__ . '/includes/class-esf-feed-cache-helpers.php';
     require_once __DIR__ . '/includes/class-esf-oauth-token-helpers.php';
+    require_once __DIR__ . '/includes/class-esf-manual-access-token.php';
     require_once __DIR__ . '/includes/class-esf-meta-graph-error.php';
     if ( 'activated' === $youtube_status ) {
         require_once plugin_dir_path( __FILE__ ) . 'youtube/autoload.php';
@@ -216,9 +289,22 @@ if ( function_exists( 'efl_fs' ) ) {
     if ( 'activated' === $twitter_status ) {
         require_once plugin_dir_path( __FILE__ ) . 'twitter/autoload.php';
     }
+    // TikTok Module (default to activated when not explicitly set).
+    $tiktok_status = ( isset( $options['plugins']['tiktok']['status'] ) ? $options['plugins']['tiktok']['status'] : 'activated' );
+    if ( isset( $options['plugins']['tiktok'] ) ) {
+        $tiktok = $options['plugins']['tiktok'];
+    } else {
+        $tiktok = array();
+    }
+    if ( !array_key_exists( 'status', $tiktok ) || '' === $tiktok_status ) {
+        $tiktok_status = 'activated';
+    }
+    if ( 'activated' === $tiktok_status ) {
+        require_once plugin_dir_path( __FILE__ ) . 'tiktok/autoload.php';
+    }
     if ( !class_exists( 'Feed_Them_All' ) ) {
         class Feed_Them_All {
-            public $version = '6.7.8';
+            public $version = '6.7.10';
 
             public $fta_slug = 'easy-facebook-likebox';
 
@@ -269,6 +355,8 @@ if ( function_exists( 'efl_fs' ) ) {
              * Returns nothing.
              */
             public function fta_activated() {
+                // Activation runs before `init`, so constants() has not fired yet.
+                $this->constants();
                 $install_date = $this->fta_get_settings( 'installDate' );
                 $fta_settings = array(
                     'version'     => $this->version,
@@ -277,6 +365,12 @@ if ( function_exists( 'efl_fs' ) ) {
                 );
                 if ( empty( $install_date ) ) {
                     update_option( 'fta_settings', $fta_settings );
+                    if ( !function_exists( 'esf_seed_activated_module_reconnect_alerts' ) ) {
+                        require_once FTA_PLUGIN_DIR . '/includes/core-functions.php';
+                    }
+                    if ( function_exists( 'esf_seed_activated_module_reconnect_alerts' ) ) {
+                        esf_seed_activated_module_reconnect_alerts( $fta_settings );
+                    }
                 }
             }
 
@@ -289,11 +383,15 @@ if ( function_exists( 'efl_fs' ) ) {
                 include FTA_PLUGIN_DIR . '/includes/class-module-search.php';
                 include FTA_PLUGIN_DIR . '/includes/core-functions.php';
                 if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
-                    $moderation_file = FTA_PLUGIN_DIR . '/includes/class-esf-moderation.php';
+                    $moderation_file = FTA_PLUGIN_DIR . '/includes/premium/class-esf-moderation.php';
                     if ( file_exists( $moderation_file ) ) {
                         require_once $moderation_file;
                     }
-                    $shoppable_file = FTA_PLUGIN_DIR . '/includes/class-esf-shoppable.php';
+                    $multifeed_file = FTA_PLUGIN_DIR . '/includes/premium/class-esf-multifeed.php';
+                    if ( file_exists( $multifeed_file ) ) {
+                        require_once $multifeed_file;
+                    }
+                    $shoppable_file = FTA_PLUGIN_DIR . '/includes/premium/class-esf-shoppable.php';
                     if ( file_exists( $shoppable_file ) ) {
                         require_once $shoppable_file;
                     }
@@ -306,12 +404,20 @@ if ( function_exists( 'efl_fs' ) ) {
                 require_once FTA_PLUGIN_DIR . '/includes/class-esf-admin-menu-order.php';
                 require_once FTA_PLUGIN_DIR . '/includes/class-esf-review-request.php';
                 require_once FTA_PLUGIN_DIR . '/includes/class-esf-token-cron-helpers.php';
+                require_once FTA_PLUGIN_DIR . '/includes/class-esf-feed-cache-helpers.php';
                 require_once FTA_PLUGIN_DIR . '/includes/class-esf-oauth-token-helpers.php';
                 require_once FTA_PLUGIN_DIR . '/includes/class-esf-layout-dimensions.php';
                 require_once FTA_PLUGIN_DIR . '/includes/class-esf-meta-graph-error.php';
                 require_once FTA_PLUGIN_DIR . '/includes/class-esf-token-reconnect-mailer.php';
                 include FTA_PLUGIN_DIR . '/includes/class-esf-translation-strings.php';
                 include FTA_PLUGIN_DIR . '/includes/class-esf-gdpr-integrations.php';
+                include FTA_PLUGIN_DIR . '/includes/class-esf-feed-disconnected-cache.php';
+                if ( class_exists( 'ESF_GDPR_Integrations' ) ) {
+                    ESF_GDPR_Integrations::init();
+                }
+                if ( class_exists( 'ESF_Feed_Disconnected_Cache' ) ) {
+                    ESF_Feed_Disconnected_Cache::init();
+                }
                 include FTA_PLUGIN_DIR . 'admin/class-esf-admin.php';
                 $fta_plugins = $this->fta_plugins();
                 $instagram_status = $fta_plugins['instagram']['status'];
@@ -336,7 +442,8 @@ if ( function_exists( 'efl_fs' ) ) {
                     'esf-instagram',
                     'esf-facebook',
                     'esf-youtube',
-                    'esf-twitter'
+                    'esf-twitter',
+                    'esf-tiktok'
                 );
                 foreach ( $folders as $folder ) {
                     $path = $base . '/' . $folder;
@@ -358,6 +465,8 @@ if ( function_exists( 'efl_fs' ) ) {
                 $youtube_status = ( isset( $settings['plugins']['youtube']['status'] ) ? $settings['plugins']['youtube']['status'] : 'activated' );
                 // Default Twitter to activated when no explicit status is stored.
                 $twitter_status = ( isset( $settings['plugins']['twitter']['status'] ) ? $settings['plugins']['twitter']['status'] : 'activated' );
+                // Default TikTok to activated when no explicit status is stored.
+                $tiktok_status = ( isset( $settings['plugins']['tiktok']['status'] ) ? $settings['plugins']['tiktok']['status'] : 'activated' );
                 if ( empty( $fb_status ) ) {
                     $fb_status = 'activated';
                 }
@@ -370,6 +479,9 @@ if ( function_exists( 'efl_fs' ) ) {
                 if ( empty( $twitter_status ) ) {
                     $twitter_status = 'activated';
                 }
+                if ( empty( $tiktok_status ) ) {
+                    $tiktok_status = 'activated';
+                }
                 /*
                  * Making an array of all plugins
                  */
@@ -378,7 +490,7 @@ if ( function_exists( 'efl_fs' ) ) {
                         'name'          => __( 'Custom Facebook Feed - Page Plugin (Likebox)', 'easy-facebook-likebox' ),
                         'slug'          => 'easy-facebook-likebox',
                         'activate_slug' => 'facebook',
-                        'description'   => __( 'Display customizable and mobile-friendly Facebook post, images, videos, events, albums feed and Facebook page plugin using shortcode and widget', 'easy-facebook-likebox' ),
+                        'description'   => __( 'Display customizable Facebook posts, photos, videos, events, albums, and the Page Plugin using shortcodes, widgets, and Gutenberg blocks.', 'easy-facebook-likebox' ),
                         'img_name'      => 'fb_cover.png',
                         'status'        => $fb_status,
                     ),
@@ -386,7 +498,7 @@ if ( function_exists( 'efl_fs' ) ) {
                         'name'          => __( 'Custom Instagram Feed', 'easy-facebook-likebox' ),
                         'slug'          => 'mif',
                         'activate_slug' => 'instagram',
-                        'description'   => __( 'Display stunning photos from the Instagram account in the feed, any Hashtag Feed and gallery of photos in the PopUp using shortcode, widget, inside popup and widget', 'easy-facebook-likebox' ),
+                        'description'   => __( 'Display Instagram photos and videos with grid, row, carousel, and masonry layouts, plus hashtag feeds, stories, and popup gallery.', 'easy-facebook-likebox' ),
                         'img_name'      => 'insta_cover.png',
                         'status'        => $insta_status,
                     ),
@@ -394,7 +506,7 @@ if ( function_exists( 'efl_fs' ) ) {
                         'name'          => __( 'YouTube Feed', 'easy-facebook-likebox' ),
                         'slug'          => 'esf-youtube',
                         'activate_slug' => 'youtube',
-                        'description'   => __( 'Display YouTube videos from your channel using secure OAuth connection with customizable layouts and caching', 'easy-facebook-likebox' ),
+                        'description'   => __( 'Display YouTube videos from your channel, playlists, or search using secure OAuth with customizable layouts and caching.', 'easy-facebook-likebox' ),
                         'img_name'      => 'youtube_cover.png',
                         'status'        => $youtube_status,
                     ),
@@ -405,6 +517,14 @@ if ( function_exists( 'efl_fs' ) ) {
                         'description'   => __( 'Display your X (Twitter) timeline using secure OAuth connection with DB-backed caching. Connect your own account (free) or display any public account feed (Pro).', 'easy-facebook-likebox' ),
                         'img_name'      => 'twitter_cover.png',
                         'status'        => $twitter_status,
+                    ),
+                    'tiktok'    => array(
+                        'name'          => __( 'TikTok Feed', 'easy-facebook-likebox' ),
+                        'slug'          => 'esf-tiktok',
+                        'activate_slug' => 'tiktok',
+                        'description'   => __( 'Display TikTok videos from your account with grid and row layouts, popup lightbox, and DB-backed caching via secure Login Kit OAuth.', 'easy-facebook-likebox' ),
+                        'img_name'      => 'tiktok_cover.png',
+                        'status'        => $tiktok_status,
                     ),
                 );
                 return $fta_plugins;

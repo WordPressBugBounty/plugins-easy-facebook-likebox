@@ -147,13 +147,15 @@ if ( esf_insta_instagram_type() != 'personal' && $esf_insta_business_accounts ) 
 					</div>
 					<div class="input-field col s12 mif_fields esf-insta-addon-upgrade-link">
 						<?php 
-if ( !class_exists( 'Esf_Multifeed_Instagram_Frontend' ) ) {
+if ( !class_exists( 'Esf_Multifeed_Instagram_Frontend' ) && !(function_exists( 'esf_instagram_multifeed_active' ) && esf_instagram_multifeed_active()) ) {
     ?>
 							<a href="<?php 
-    echo esc_url( admin_url( 'admin.php?slug=esf-multifeed&page=feed-them-all-addons' ) );
-    ?>"><?php 
-    esc_html_e( 'Multifeed Add-on: Display photos and videos from multiple accounts (works with hashtag as well) in single feed (pro- addon)', 'easy-facebook-likebox' );
-    ?></a>
+    echo esc_url( ( function_exists( 'esf_get_upgrade_url' ) ? esf_get_upgrade_url( 'instagram_premium' ) : 'https://easysocialfeed.com/pricing/' ) );
+    ?>">
+								<?php 
+    esc_html_e( 'Multifeed (Pro): Display media from multiple accounts in a single feed, sorted by publish date.', 'easy-facebook-likebox' );
+    ?>
+							</a>
 						<?php 
 }
 ?>

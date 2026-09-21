@@ -52,7 +52,7 @@ class ESF_Instagram_DB_Installer {
 			id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			user_id bigint(20) UNSIGNED NOT NULL,
 			account_type enum('personal','business','creator') NOT NULL DEFAULT 'business',
-			auth_source enum('instagram_login','facebook_page') NOT NULL DEFAULT 'facebook_page',
+			auth_source enum('instagram_login','facebook_page','manual') NOT NULL DEFAULT 'facebook_page',
 			instagram_user_id varchar(64) NOT NULL DEFAULT '',
 			username varchar(100) NOT NULL DEFAULT '',
 			display_name varchar(255) NOT NULL DEFAULT '',

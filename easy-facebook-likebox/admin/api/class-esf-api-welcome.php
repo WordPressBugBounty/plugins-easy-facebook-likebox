@@ -325,7 +325,7 @@ if ( ! class_exists( 'ESF_API_Welcome' ) ) {
 
 			return array(
 				'dashboard' => ESF_Admin_Paths::hub_admin_url(),
-				'support'   => 'https://easysocialfeed.com/support/',
+				'support'   => 'https://easysocialfeed.com/contact/',
 				'docs'      => 'https://easysocialfeed.com/documentation/',
 				'upgrade'   => esc_url_raw( $upgrade ),
 			);

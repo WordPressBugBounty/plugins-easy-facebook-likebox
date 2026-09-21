@@ -1,9 +1,6 @@
 <?php
 /**
- * Database Installer
- *
- * Handles database table creation, updates, and removal for the YouTube module.
- * Implements WordPress dbDelta best practices for schema management.
+ * YouTube DB schema install / update / drop.
  *
  * @package Easy_Social_Feed
  * @subpackage YouTube/Database
@@ -18,21 +15,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class ESF_YouTube_DB_Installer
  *
- * Manages database schema for YouTube module.
- * Handles table creation, versioning, and cleanup.
- *
  * @since 6.7.5
  */
 class ESF_YouTube_DB_Installer {
 
 	/**
-	 * Create database tables.
-	 *
-	 * Creates all required tables for the YouTube module.
-	 * Uses dbDelta for safe schema updates.
+	 * Create or update YouTube tables via dbDelta.
 	 *
 	 * @since 6.7.5
-	 * @return bool True on success, false on failure.
+	 * @return bool
 	 */
 	public static function create_tables() {
 		global $wpdb;
@@ -81,6 +72,7 @@ class ESF_YouTube_DB_Installer {
 			view_count bigint(20) UNSIGNED DEFAULT 0 COMMENT 'Total channel views',
 			access_token text NOT NULL,
 			refresh_token text NOT NULL,
+			auth_source enum('oauth','manual') NOT NULL DEFAULT 'oauth',
 			token_expires_at datetime DEFAULT NULL,
 			channel_data longtext DEFAULT NULL COMMENT 'JSON data backup (full API response)',
 			status enum('active','expired','revoked') DEFAULT 'active',
@@ -90,6 +82,7 @@ class ESF_YouTube_DB_Installer {
 			PRIMARY KEY  (id),
 			KEY user_id (user_id),
 			KEY status (status),
+			KEY auth_source (auth_source),
 			KEY token_expires_at (token_expires_at),
 			KEY channel_id (channel_id),
 			KEY subscriber_count (subscriber_count),

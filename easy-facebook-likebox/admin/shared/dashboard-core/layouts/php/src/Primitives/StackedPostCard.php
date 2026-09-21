@@ -35,7 +35,7 @@ final class StackedPostCard {
 	 * - show_time (bool, default true)
 	 * - show_caption (bool, default true)
 	 * - caption_words (int, default 25)
-	 * - show_likes / show_comments / show_share (bool)
+	 * - show_likes / show_comments / show_shares / show_share (bool)
 	 * - metric_labels (array<string,string>)
 	 * - media_options (array): forwarded to MediaTile / MediaCollage
 	 * - media_html (string): optional pre-rendered media (skips MediaTile / MediaCollage)
@@ -47,6 +47,9 @@ final class StackedPostCard {
 	 * - time_label (string): preformatted relative time
 	 * - footer_extra (string): optional HTML after metrics (e.g. CTA)
 	 * - media_position (string): `header_first` (default) or `media_first`
+	 * - card_attrs (string): optional pre-escaped attribute string appended to
+	 *   the `<article>` tag (e.g. a lightbox trigger attribute for text-only
+	 *   posts that have no media tile to attach one to).
 	 *
 	 * @param string              $module  Module slug.
 	 * @param PostItem            $post    Post value object.
@@ -61,6 +64,7 @@ final class StackedPostCard {
 		$show_caption  = ! isset( $options['show_caption'] ) || (bool) $options['show_caption'];
 		$show_likes    = ! isset( $options['show_likes'] ) || (bool) $options['show_likes'];
 		$show_comments = ! isset( $options['show_comments'] ) || (bool) $options['show_comments'];
+		$show_shares   = ! isset( $options['show_shares'] ) || (bool) $options['show_shares'];
 		$show_share    = ! empty( $options['show_share'] );
 		$caption_words = isset( $options['caption_words'] ) ? max( 0, (int) $options['caption_words'] ) : 25;
 		$new_tab       = ! isset( $options['new_tab'] ) || (bool) $options['new_tab'];
@@ -96,6 +100,10 @@ final class StackedPostCard {
 			);
 		}
 
+		$content_extra = isset( $options['content_extra'] ) && is_string( $options['content_extra'] )
+			? $options['content_extra']
+			: '';
+
 		$media_position = isset( $options['media_position'] ) && 'media_first' === $options['media_position']
 			? 'media_first'
 			: 'header_first';
@@ -112,25 +120,27 @@ final class StackedPostCard {
 			)
 			: '';
 
-		$caption_block = '' !== $caption_html
+		$caption_block = ( '' !== $caption_html || '' !== $content_extra )
 			? sprintf(
-				'<div class="esf-%1$s-feed__stacked-content esf-%1$s-feed__stacked-content--caption">%2$s</div>',
+				'<div class="esf-%1$s-feed__stacked-content esf-%1$s-feed__stacked-content--caption">%2$s%3$s</div>',
 				esc_attr( $module ),
-				$caption_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				$caption_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				$content_extra // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Caller-supplied pre-escaped.
 			)
 			: '';
 
 		$combined_content_block = '';
-		if ( '' !== $header_html || '' !== $caption_html ) {
+		if ( '' !== $header_html || '' !== $caption_html || '' !== $content_extra ) {
 			$combined_content_block = sprintf(
-				'<div class="esf-%1$s-feed__stacked-content">%2$s%3$s</div>',
+				'<div class="esf-%1$s-feed__stacked-content">%2$s%3$s%4$s</div>',
 				esc_attr( $module ),
 				$header_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-				$caption_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				$caption_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				$content_extra // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Caller-supplied pre-escaped.
 			);
 		}
 
-		$footer_html = self::render_footer( $module, $post, $permalink, $show_likes, $show_comments, $show_share, $options );
+		$footer_html = self::render_footer( $module, $post, $permalink, $show_likes, $show_comments, $show_shares, $show_share, $options );
 
 		$card_class = 'esf-' . $module . '-feed__stacked-card esf-' . $module . '-feed__stacked-card--' . $media_position;
 
@@ -140,10 +150,15 @@ final class StackedPostCard {
 			$main_html = $header_block . $media_block . $caption_block;
 		}
 
+		$card_attrs = isset( $options['card_attrs'] ) && is_string( $options['card_attrs'] )
+			? $options['card_attrs']
+			: '';
+
 		return sprintf(
-			'<article class="%1$s" data-post-id="%2$s">%3$s%4$s</article>',
+			'<article class="%1$s" data-post-id="%2$s"%3$s>%4$s%5$s</article>',
 			esc_attr( $card_class ),
 			esc_attr( $post->get_id() ),
+			$card_attrs, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Caller-supplied pre-escaped attribute string.
 			$main_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			$footer_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		);
@@ -203,10 +218,14 @@ final class StackedPostCard {
 			return '';
 		}
 
+		$tile_extra = isset( $media_options['extra_count'] )
+			? max( 0, (int) $media_options['extra_count'] )
+			: max( 0, count( $media ) - 1 );
+
 		return MediaTile::render(
 			$module,
 			$primary,
-			max( 0, count( $media ) - 1 ),
+			$tile_extra,
 			$permalink,
 			$alt_text,
 			$media_options
@@ -238,11 +257,24 @@ final class StackedPostCard {
 	): string {
 		$avatar_html = '';
 		if ( '' !== $avatar ) {
+			$prepared = class_exists( '\ESF_GDPR_Integrations' )
+				? \ESF_GDPR_Integrations::prepare_img_src( $avatar, $module )
+				: array(
+					'src'           => $avatar,
+					'class'         => '',
+					'attrs'         => '',
+					'is_restricted' => false,
+				);
+			$img_class = "esf-{$module}-feed__stacked-avatar";
+			if ( ! empty( $prepared['class'] ) ) {
+				$img_class .= ' ' . $prepared['class'];
+			}
 			$img = sprintf(
-				'<img class="esf-%1$s-feed__stacked-avatar" src="%2$s" alt="%3$s" width="40" height="40" loading="lazy" decoding="async" />',
-				esc_attr( $module ),
-				esc_url( $avatar ),
-				esc_attr( $name )
+				'<img class="%1$s" src="%2$s" alt="%3$s" width="40" height="40" loading="lazy" decoding="async"%4$s />',
+				esc_attr( $img_class ),
+				esc_url( $prepared['src'] ),
+				esc_attr( $name ),
+				isset( $prepared['attrs'] ) ? $prepared['attrs'] : '' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in prepare_img_src.
 			);
 			$avatar_html = '' !== $permalink
 				? sprintf(
@@ -273,6 +305,26 @@ final class StackedPostCard {
 				: $name_inner;
 		}
 
+		$status_html = '';
+		$name_suffix = isset( $options['name_suffix'] ) ? trim( (string) $options['name_suffix'] ) : '';
+		if ( '' !== $name_suffix ) {
+			$status_html = sprintf(
+				'<span class="esf-%1$s-feed__stacked-status">%2$s</span>',
+				esc_attr( $module ),
+				esc_html( $name_suffix )
+			);
+		}
+
+		$name_row = '';
+		if ( '' !== $name_html || '' !== $status_html ) {
+			$name_row = sprintf(
+				'<div class="esf-%1$s-feed__stacked-name-row">%2$s%3$s</div>',
+				esc_attr( $module ),
+				$name_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				$status_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			);
+		}
+
 		$time_html = '';
 		if ( $show_time ) {
 			$time_label = isset( $options['time_label'] ) ? (string) $options['time_label'] : '';
@@ -292,7 +344,7 @@ final class StackedPostCard {
 		$meta_html = sprintf(
 			'<div class="esf-%1$s-feed__stacked-author">%2$s%3$s</div>',
 			esc_attr( $module ),
-			$name_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$name_row, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			$time_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		);
 
@@ -312,6 +364,7 @@ final class StackedPostCard {
 	 * @param string              $permalink     Share URL.
 	 * @param bool                $show_likes    Show likes.
 	 * @param bool                $show_comments Show comments.
+	 * @param bool                $show_shares   Show share/repost counts.
 	 * @param bool                $show_share    Show share menu.
 	 * @param array<string,mixed> $options       Card options.
 	 * @return string
@@ -322,6 +375,7 @@ final class StackedPostCard {
 		string $permalink,
 		bool $show_likes,
 		bool $show_comments,
+		bool $show_shares,
 		bool $show_share,
 		array $options
 	): string {
@@ -337,8 +391,14 @@ final class StackedPostCard {
 			array(
 				'likes'    => $show_likes,
 				'comments' => $show_comments,
+				'shares'   => $show_shares,
 			),
-			'div'
+			'div',
+			array(
+				'metric_html' => isset( $options['metric_html'] ) && is_array( $options['metric_html'] )
+					? $options['metric_html']
+					: array(),
+			)
 		);
 
 		$share_html = '';
@@ -346,6 +406,9 @@ final class StackedPostCard {
 			$share_opts = array(
 				'label' => isset( $options['share_label'] ) ? (string) $options['share_label'] : '',
 			);
+			if ( ! empty( $options['footer_icon_only'] ) ) {
+				$share_opts['icon_only'] = true;
+			}
 			if ( isset( $options['share_networks'] ) && is_array( $options['share_networks'] ) ) {
 				$share_opts['networks'] = $options['share_networks'];
 			}
@@ -360,15 +423,22 @@ final class StackedPostCard {
 			return '';
 		}
 
+		$actions_class = 'esf-' . $module . '-feed__stacked-footer-actions';
+		if ( ! empty( $options['footer_icon_only'] ) ) {
+			$actions_class .= ' esf-' . $module . '-feed__stacked-footer-actions--icon-only';
+		}
+
 		return sprintf(
-			'<footer class="esf-%1$s-feed__stacked-footer">' .
+			'<footer class="esf-%1$s-feed__stacked-footer%5$s">' .
 			'<div class="esf-%1$s-feed__stacked-footer-metrics">%2$s</div>' .
-			'<div class="esf-%1$s-feed__stacked-footer-actions">%3$s%4$s</div>' .
+			'<div class="%6$s">%3$s%4$s</div>' .
 			'</footer>',
 			esc_attr( $module ),
 			$meta_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			$extra, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Caller-supplied pre-escaped.
-			$share_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$share_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			! empty( $options['footer_icon_only'] ) ? ' esf-' . esc_attr( $module ) . '-feed__stacked-footer--icon-only' : '',
+			esc_attr( $actions_class )
 		);
 	}
 }

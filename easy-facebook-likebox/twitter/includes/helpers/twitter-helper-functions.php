@@ -36,11 +36,73 @@ function esf_is_twitter_active() {
  * @return mixed Array of all settings or specific setting value.
  */
 function esf_get_twitter_settings(  $key = null  ) {
-    $settings = get_option( 'esf_twitter_settings', array() );
-    if ( null !== $key && isset( $settings[$key] ) ) {
-        return $settings[$key];
+    $saved = get_option( 'esf_twitter_settings', array() );
+    if ( !is_array( $saved ) ) {
+        $saved = array();
+    }
+    $settings = esf_twitter_normalize_settings( $saved );
+    if ( null !== $key ) {
+        return ( array_key_exists( $key, $settings ) ? $settings[$key] : null );
     }
     return $settings;
+}
+
+/**
+ * Merge saved Twitter settings with module defaults.
+ *
+ * @since 6.9.0
+ * @param array<string, mixed> $saved Raw option values.
+ * @return array<string, mixed>
+ */
+function esf_twitter_normalize_settings(  array $saved  ) {
+    $settings = array_merge( array(
+        'cache_duration'                => 43200,
+        'notify_token_reconnect'        => true,
+        'notify_token_reconnect_emails' => array(),
+    ), $saved );
+    $allowed = array(43200, 86400, 604800);
+    if ( !in_array( (int) $settings['cache_duration'], $allowed, true ) ) {
+        $settings['cache_duration'] = 43200;
+    }
+    $has_plan = function_exists( 'esf_twitter_has_twitter_plan' ) && esf_twitter_has_twitter_plan();
+    if ( !$has_plan ) {
+        $settings['cache_duration'] = 604800;
+    }
+    $emails = ( isset( $settings['notify_token_reconnect_emails'] ) && is_array( $settings['notify_token_reconnect_emails'] ) ? $settings['notify_token_reconnect_emails'] : array() );
+    $settings['notify_token_reconnect_emails'] = ( function_exists( 'esf_sanitize_notify_emails' ) ? esf_sanitize_notify_emails( $emails ) : array() );
+    if ( !empty( $settings['notify_token_reconnect'] ) && empty( $settings['notify_token_reconnect_emails'] ) && function_exists( 'esf_default_notify_emails' ) ) {
+        $settings['notify_token_reconnect_emails'] = esf_default_notify_emails();
+    }
+    return $settings;
+}
+
+/**
+ * Whether a Twitter account row needs manual reconnect.
+ *
+ * @since 6.9.0
+ * @param object|null $row Account DB row.
+ * @return bool
+ */
+function esf_twitter_account_needs_reconnect(  $row  ) {
+    if ( !is_object( $row ) ) {
+        return false;
+    }
+    $status = ( isset( $row->status ) ? sanitize_key( (string) $row->status ) : '' );
+    if ( in_array( $status, array('expired', 'invalid'), true ) ) {
+        return true;
+    }
+    if ( 'active' !== $status || 'connected' !== (( isset( $row->account_type ) ? sanitize_key( (string) $row->account_type ) : '' )) ) {
+        return false;
+    }
+    $exp = ( isset( $row->token_expires_at ) ? trim( (string) $row->token_expires_at ) : '' );
+    if ( '' === $exp ) {
+        return false;
+    }
+    $ts = strtotime( $exp . ' UTC' );
+    if ( false === $ts ) {
+        return false;
+    }
+    return time() > $ts;
 }
 
 /**
@@ -300,3 +362,340 @@ function esf_get_twitter_admin_url(  $args = array()  ) {
     $args = wp_parse_args( $args, $default_args );
     return add_query_arg( $args, admin_url( 'admin.php' ) );
 }
+
+/**
+ * Localize strings for the X/Twitter FancyBox lightbox.
+ *
+ * Shared by the public frontend and the dashboard preview.
+ *
+ * @since 6.9.5
+ * @return array<string,mixed>
+ */
+function esf_twitter_get_lightbox_localize_data() {
+    $admin = ( class_exists( 'ESF_GDPR_Integrations' ) ? ESF_GDPR_Integrations::get_lightbox_admin_localize_data() : array(
+        'adminMediaBlockedText' => '',
+        'adminsOnlyText'        => __( 'Admins only', 'easy-facebook-likebox' ),
+    ) );
+    $is_admin_preview = is_admin() && current_user_can( 'edit_posts' );
+    return array_merge( array(
+        'restUrl'                 => rest_url( 'esf/v1' ),
+        'nonce'                   => wp_create_nonce( 'wp_rest' ),
+        'isAdminPreview'          => (bool) $is_admin_preview,
+        'viewOnXText'             => __( esf_get_translated_string( 'tw_view_on_x' ), 'easy-facebook-likebox' ),
+        'videoText'               => __( 'Video', 'easy-facebook-likebox' ),
+        'galleryText'             => __( 'Gallery', 'easy-facebook-likebox' ),
+        'previousMediaText'       => __( 'Previous', 'easy-facebook-likebox' ),
+        'nextMediaText'           => __( 'Next', 'easy-facebook-likebox' ),
+        'imageText'               => __( 'Image', 'easy-facebook-likebox' ),
+        'viewImageText'           => __( 'View image', 'easy-facebook-likebox' ),
+        'verifiedAccountText'     => __( esf_get_translated_string( 'tw_verified_account' ), 'easy-facebook-likebox' ),
+        'repliesText'             => __( esf_get_translated_string( 'tw_replies' ), 'easy-facebook-likebox' ),
+        'likesText'               => __( esf_get_translated_string( 'tw_likes' ), 'easy-facebook-likebox' ),
+        'retweetsText'            => __( esf_get_translated_string( 'tw_retweets' ), 'easy-facebook-likebox' ),
+        'quotesText'              => __( esf_get_translated_string( 'tw_quotes' ), 'easy-facebook-likebox' ),
+        'followText'              => __( esf_get_translated_string( 'tw_follow' ), 'easy-facebook-likebox' ),
+        'commentsText'            => __( 'Comments', 'easy-facebook-likebox' ),
+        'commentsShowingText'     => __( 'Showing %1$s of %2$s', 'easy-facebook-likebox' ),
+        'loadMoreCommentsText'    => __( 'Load more comments', 'easy-facebook-likebox' ),
+        'loadMoreRepliesText'     => __( 'Load more replies', 'easy-facebook-likebox' ),
+        'loadingCommentsText'     => __( 'Loading comments…', 'easy-facebook-likebox' ),
+        'noCommentsText'          => __( 'No comments yet.', 'easy-facebook-likebox' ),
+        'commentsUnavailableText' => __( 'X only shares recent comments and replies here. View all comments and replies on X.', 'easy-facebook-likebox' ),
+        'commentsErrorText'       => __( 'Could not load comments.', 'easy-facebook-likebox' ),
+        'viewRepliesText'         => __( 'View all %d replies', 'easy-facebook-likebox' ),
+        'hideRepliesText'         => __( 'Hide replies', 'easy-facebook-likebox' ),
+        'writeCommentOnXText'     => __( 'Add a comment on X…', 'easy-facebook-likebox' ),
+        'anonymousUserText'       => __( 'Anonymous', 'easy-facebook-likebox' ),
+    ), $admin );
+}
+
+/**
+ * Cache key for an account timeline.
+ *
+ * @since 6.14.1
+ * @param int $account_id Account ID.
+ * @return string Empty when the account ID is invalid.
+ */
+function esf_twitter_tweets_cache_key(  $account_id  ) {
+    $account_id = (int) $account_id;
+    return ( $account_id > 0 ? 'esf_tw_tweets_' . $account_id : '' );
+}
+
+/**
+ * Whether an account row authenticates with a BYOK (manually pasted) token.
+ *
+ * BYOK accounts paste a token generated in the site owner's own X Developer
+ * App. Reads made with that token are billed to their app, not ESF's shared
+ * OAuth app, so BYOK accounts are exempt from the plan-gated cache throttle.
+ * See {@see esf_twitter_resolve_tweets_cache_ttl()} and `twitter/PLAN.md`.
+ *
+ * @since 6.16.0
+ * @param object|null $account Account row (expects an `auth_source` property).
+ * @return bool
+ */
+function esf_twitter_account_is_byok(  $account  ) {
+    if ( !is_object( $account ) || !isset( $account->auth_source ) ) {
+        return false;
+    }
+    if ( !class_exists( 'ESF_Manual_Access_Token' ) ) {
+        return false;
+    }
+    return ESF_Manual_Access_Token::AUTH_MANUAL === ESF_Manual_Access_Token::normalize_auth_source( (string) $account->auth_source );
+}
+
+/**
+ * Resolve the tweets-cache TTL (seconds) to use when storing an account's timeline.
+ *
+ * BYOK accounts (see {@see esf_twitter_account_is_byok()}) always use a short,
+ * plan-independent TTL because refreshing them costs ESF nothing. Every other
+ * account (OAuth-connected via ESF's shared app, or Pro public/proxy
+ * accounts) uses the site's plan-gated `cache_duration` setting, exactly as
+ * before this helper existed.
+ *
+ * @since 6.16.0
+ * @param object|null $account Account row (expects an `auth_source` property).
+ * @return int TTL in seconds, always greater than zero.
+ */
+function esf_twitter_resolve_tweets_cache_ttl(  $account  ) {
+    if ( esf_twitter_account_is_byok( $account ) ) {
+        /**
+         * Filter the tweets-cache TTL (seconds) used for BYOK accounts.
+         *
+         * @since 6.16.0
+         * @param int $ttl Default TTL in seconds.
+         */
+        $ttl = (int) apply_filters( 'esf_twitter_manual_account_cache_ttl', ESF_Twitter_Cache::MANUAL_ACCOUNT_CACHE_TTL );
+        return ( $ttl > 0 ? $ttl : ESF_Twitter_Cache::MANUAL_ACCOUNT_CACHE_TTL );
+    }
+    $ttl = (int) esf_get_twitter_settings( 'cache_duration' );
+    return ( $ttl > 0 ? $ttl : 43200 );
+}
+
+/**
+ * Older feed-scoped cache keys kept for a one-time read fallback.
+ *
+ * @since 6.14.1
+ * @param int $feed_id    Feed ID.
+ * @param int $account_id Account ID.
+ * @return array<int,string>
+ */
+function esf_twitter_tweets_cache_legacy_keys(  $feed_id, $account_id  ) {
+    $feed_id = (int) $feed_id;
+    $account_id = (int) $account_id;
+    if ( $feed_id <= 0 || $account_id <= 0 ) {
+        return array();
+    }
+    return array('esf_tw_tweets_' . $feed_id . '_' . $account_id);
+}
+
+/**
+ * Tweet items from a cache payload.
+ *
+ * Accepts a flat list or `{ tweets: [] }`. Stale rows still count — customize
+ * can render them without a first-load API fetch.
+ *
+ * @since 6.14.1
+ * @param mixed $cached Cache payload.
+ * @return array<int,array<string,mixed>>
+ */
+function esf_twitter_unwrap_cached_tweets(  $cached  ) {
+    if ( !is_array( $cached ) || empty( $cached ) ) {
+        return array();
+    }
+    $tweets = $cached;
+    if ( isset( $cached['tweets'] ) && is_array( $cached['tweets'] ) ) {
+        $tweets = $cached['tweets'];
+    }
+    if ( empty( $tweets ) || !isset( $tweets[0] ) || !is_array( $tweets[0] ) ) {
+        return array();
+    }
+    return $tweets;
+}
+
+/**
+ * Whether customize should treat this feed as a first preview.
+ *
+ * Cold when the Twitter cache table has no row for this account.
+ *
+ * @since 6.9.6
+ * @param int $feed_id    Feed ID.
+ * @param int $account_id Account ID.
+ * @return bool
+ */
+function esf_twitter_feed_preview_is_cold(  $feed_id, $account_id  ) {
+    $feed_id = max( 0, (int) $feed_id );
+    $account_id = max( 0, (int) $account_id );
+    if ( $feed_id <= 0 || $account_id <= 0 ) {
+        return true;
+    }
+    if ( !class_exists( 'ESF_Twitter_Cache' ) || !method_exists( 'ESF_Twitter_Cache', 'account_has_cache' ) ) {
+        return true;
+    }
+    return !ESF_Twitter_Cache::account_has_cache( $account_id, $feed_id );
+}
+
+/**
+ * Whether a cached tweet payload can be used without refetching.
+ *
+ * Rows that still store local upload URLs are treated as stale.
+ *
+ * @since 6.14.1
+ * @param mixed $cached Cache payload.
+ * @return bool
+ */
+function esf_twitter_tweets_cache_is_warm(  $cached  ) {
+    if ( !is_array( $cached ) || empty( $cached ) ) {
+        return false;
+    }
+    $tweets = $cached;
+    if ( isset( $cached['tweets'] ) && is_array( $cached['tweets'] ) ) {
+        $tweets = $cached['tweets'];
+    }
+    if ( empty( $tweets ) || !isset( $tweets[0] ) || !is_array( $tweets[0] ) ) {
+        return false;
+    }
+    if ( !function_exists( 'esf_is_local_media_url' ) ) {
+        return true;
+    }
+    foreach ( $tweets as $tweet ) {
+        if ( !is_array( $tweet ) ) {
+            continue;
+        }
+        if ( !empty( $tweet['author'] ) && is_array( $tweet['author'] ) ) {
+            $avatar = ( isset( $tweet['author']['profile_image_url'] ) ? (string) $tweet['author']['profile_image_url'] : '' );
+            if ( '' !== $avatar && esf_is_local_media_url( $avatar, 'twitter' ) ) {
+                return false;
+            }
+        }
+        if ( empty( $tweet['media'] ) || !is_array( $tweet['media'] ) ) {
+            continue;
+        }
+        foreach ( $tweet['media'] as $media_item ) {
+            if ( !is_array( $media_item ) ) {
+                continue;
+            }
+            foreach ( array(
+                'url',
+                'preview_url',
+                'video_url',
+                'url_full'
+            ) as $field ) {
+                $url = ( isset( $media_item[$field] ) ? (string) $media_item[$field] : '' );
+                if ( '' !== $url && esf_is_local_media_url( $url, 'twitter' ) ) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+/**
+ * Whether a media target is an X video file.
+ *
+ * @since 6.14.1
+ * @param mixed  $id  Media cache key.
+ * @param string $url Remote URL.
+ * @return bool
+ */
+function esf_twitter_is_video_media_target(  $id, $url  ) {
+    $id = (string) $id;
+    $url = (string) $url;
+    if ( 0 === strpos( $id, 'tw_video_' ) ) {
+        return true;
+    }
+    return false !== strpos( $url, 'video.twimg.com' ) || false !== strpos( $url, 'video.twitter.com' );
+}
+
+/**
+ * Disable local downloads for X video files.
+ *
+ * @since 6.14.1
+ * @param bool        $enabled Whether downloads are enabled.
+ * @param string      $module  Module slug.
+ * @param mixed       $id      Media cache key.
+ * @param string|null $url     Remote URL.
+ * @return bool
+ */
+function esf_twitter_should_serve_media_locally(
+    $enabled,
+    $module,
+    $id = null,
+    $url = null
+) {
+    if ( 'twitter' === $module && esf_twitter_is_video_media_target( $id, (string) $url ) ) {
+        return false;
+    }
+    return (bool) $enabled;
+}
+
+if ( function_exists( 'add_filter' ) ) {
+    add_filter(
+        'esf_should_serve_media_locally',
+        'esf_twitter_should_serve_media_locally',
+        10,
+        4
+    );
+}
+/**
+ * X embedded player URL for a tweet video.
+ *
+ * @since 6.14.1
+ * @param string $tweet_id Tweet ID.
+ * @return string Empty when the ID is invalid.
+ */
+function esf_twitter_video_embed_url(  $tweet_id  ) {
+    $tweet_id = (string) preg_replace( '/\\D+/', '', (string) $tweet_id );
+    return ( '' !== $tweet_id ? 'https://twitter.com/i/videos/tweet/' . $tweet_id : '' );
+}
+
+/**
+ * Apply shared moderation hide/show rules to normalized tweets.
+ *
+ * Account-scoped cache stays unfiltered; each feed applies its own rules
+ * after cache/API fetch so sibling feeds can moderate differently.
+ *
+ * @since 6.9.0
+ *
+ * @param array<int,array<string,mixed>> $tweets  Normalized tweet items.
+ * @param int                            $feed_id Feed id.
+ * @return array<int,array<string,mixed>>
+ */
+function esf_twitter_apply_moderation_filter(  $tweets, $feed_id  ) {
+    if ( !is_array( $tweets ) ) {
+        return array();
+    }
+    $feed_id = (int) $feed_id;
+    if ( $feed_id <= 0 || !class_exists( 'ESF_Moderation' ) ) {
+        return array_values( $tweets );
+    }
+    if ( !function_exists( 'efl_fs' ) || !efl_fs()->can_use_premium_code__premium_only() ) {
+        return array_values( $tweets );
+    }
+    if ( !function_exists( 'esf_twitter_has_twitter_plan' ) || !esf_twitter_has_twitter_plan() ) {
+        return array_values( $tweets );
+    }
+    return ESF_Moderation::filter_raw_nodes( $tweets, 'twitter', $feed_id );
+}
+
+if ( function_exists( 'add_filter' ) && function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
+    add_filter(
+        'esf_moderation_get_feed_settings',
+        'esf_twitter_moderation_get_feed_settings__premium_only',
+        10,
+        3
+    );
+    add_filter(
+        'esf_moderation_save_feed_settings',
+        'esf_twitter_moderation_save_feed_settings__premium_only',
+        10,
+        4
+    );
+    add_filter(
+        'esf_moderation_feed_exists',
+        'esf_twitter_moderation_feed_exists__premium_only',
+        10,
+        3
+    );
+}
+/* </fs_premium_only> */

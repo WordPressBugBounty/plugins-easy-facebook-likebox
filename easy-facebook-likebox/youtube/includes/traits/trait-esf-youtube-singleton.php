@@ -1,9 +1,6 @@
 <?php
 /**
- * Singleton Trait
- *
- * Provides singleton pattern implementation for YouTube module classes.
- * This ensures only one instance of each class exists throughout the application.
+ * Singleton for YouTube module classes.
  *
  * @package Easy_Social_Feed
  * @subpackage YouTube/Traits
@@ -17,15 +14,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Trait ESF_YouTube_Singleton
- *
- * Implements the singleton design pattern.
- * Classes using this trait will have a single instance throughout the request lifecycle.
- *
- * Usage:
- * class My_Class {
- *     use ESF_YouTube_Singleton;
- * }
- * $instance = My_Class::get_instance();
  *
  * @since 6.7.5
  */
@@ -41,10 +29,8 @@ trait ESF_YouTube_Singleton {
 	/**
 	 * Get class instance.
 	 *
-	 * Creates instance if it doesn't exist, returns existing instance otherwise.
-	 *
 	 * @since 6.7.5
-	 * @return object Instance of the class.
+	 * @return object
 	 */
 	final public static function get_instance() {
 		if ( null === self::$instance ) {
@@ -55,24 +41,21 @@ trait ESF_YouTube_Singleton {
 	}
 
 	/**
-	 * Prevent cloning of the instance.
+	 * Prevent cloning.
 	 *
 	 * @since 6.7.5
 	 * @return void
 	 */
-	private function __clone() {
-		// Singleton pattern - prevent cloning.
-	}
+	private function __clone() {}
 
 	/**
-	 * Prevent unserializing of the instance.
+	 * Prevent unserializing.
 	 *
 	 * @since 6.7.5
-	 * @throws Exception When attempting to unserialize singleton instance.
+	 * @throws Exception When attempting to unserialize.
 	 * @return void
 	 */
 	final public function __wakeup() {
-		// Singleton pattern - prevent unserialization.
 		throw new Exception( 'Cannot unserialize singleton' );
 	}
 }

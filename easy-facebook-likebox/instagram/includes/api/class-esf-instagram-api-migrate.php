@@ -219,8 +219,8 @@ class ESF_Instagram_API_Migrate {
 
 		return rest_ensure_response(
 			array(
-				'success'                        => true,
-				'migration_guidance_dismissed'   => true,
+				'success'                      => true,
+				'migration_guidance_dismissed' => true,
 			)
 		);
 	}
@@ -250,8 +250,8 @@ class ESF_Instagram_API_Migrate {
 
 		return rest_ensure_response(
 			array(
-				'success'                          => true,
-				'legacy_switch_notice_dismissed'   => true,
+				'success'                        => true,
+				'legacy_switch_notice_dismissed' => true,
 			)
 		);
 	}

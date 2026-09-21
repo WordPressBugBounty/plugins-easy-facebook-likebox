@@ -78,10 +78,11 @@ final class ExpandableCaption {
 		$suffix        = '' !== $post_id ? $post_id : ( function_exists( 'wp_unique_id' ) ? wp_unique_id() : uniqid( 'c', false ) );
 		$control_id    = 'esf-' . $module . '-caption-' . $suffix;
 
-		// Class + hidden + aria-hidden: theme CSS often overrides [hidden] with display:block.
+		// Preview is a <span> so "See more" can sit inline after the truncated text.
+		// Full stays a <div> to preserve block caption HTML when expanded.
 		return sprintf(
 			'<div class="esf-%1$s-feed__caption esf-%1$s-feed__caption--expandable is-collapsed" data-esf-caption-expandable="1">' .
-			'<div class="esf-%1$s-feed__caption-preview" id="%2$s-preview">%3$s</div>' .
+			'<span class="esf-%1$s-feed__caption-preview" id="%2$s-preview">%3$s</span>' .
 			'<div class="esf-%1$s-feed__caption-full" id="%2$s-full" hidden aria-hidden="true">%4$s</div>' .
 			'<button type="button" class="esf-%1$s-feed__caption-toggle" data-esf-caption-toggle aria-expanded="false" aria-controls="%2$s-full" data-label-more="%5$s" data-label-less="%6$s">%7$s</button>' .
 			'</div>',

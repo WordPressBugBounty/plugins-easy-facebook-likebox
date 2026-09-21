@@ -39,6 +39,8 @@ class ESF_Twitter_DB_Installer {
 		$feeds_created    = self::create_feeds_table( $charset_collate );
 		$cache_created    = self::create_cache_table( $charset_collate );
 
+		self::maybe_add_auth_source_column();
+
 		return ( $accounts_created && $feeds_created && $cache_created );
 	}
 
@@ -74,6 +76,7 @@ class ESF_Twitter_DB_Installer {
 			verified_type varchar(50) NOT NULL DEFAULT '' COMMENT 'X verified_type (blue, business, government, etc.)',
 			access_token text DEFAULT NULL COMMENT 'OAuth 2.0 access token (connected accounts only)',
 			refresh_token text DEFAULT NULL COMMENT 'OAuth 2.0 refresh token (connected accounts only)',
+			auth_source enum('oauth','manual') NOT NULL DEFAULT 'oauth',
 			token_expires_at datetime DEFAULT NULL COMMENT 'Access token expiry (connected accounts only)',
 			account_data longtext DEFAULT NULL COMMENT 'Full JSON user object from X API',
 			status enum('active','expired','invalid') DEFAULT 'active',
@@ -86,6 +89,7 @@ class ESF_Twitter_DB_Installer {
 			KEY username (username),
 			KEY account_type (account_type),
 			KEY status (status),
+			KEY auth_source (auth_source),
 			KEY stats_refreshed_at (stats_refreshed_at)
 		) {$charset_collate};";
 
@@ -142,12 +146,9 @@ class ESF_Twitter_DB_Installer {
 	/**
 	 * Create the cache table.
 	 *
-	 * Stores API response cache with expiration support,
-	 * using the same structure as the YouTube cache table.
-	 *
 	 * @since 6.7.6
 	 * @param string $charset_collate DB charset/collation string.
-	 * @return bool True when table exists.
+	 * @return bool True when the table exists.
 	 */
 	private static function create_cache_table( $charset_collate ) {
 		global $wpdb;
@@ -159,7 +160,6 @@ class ESF_Twitter_DB_Installer {
 			cache_key varchar(255) NOT NULL,
 			cache_data longtext NOT NULL COMMENT 'JSON-encoded API response',
 			cache_type enum('account','feed','api') DEFAULT 'api',
-			feed_id bigint(20) UNSIGNED DEFAULT NULL COMMENT 'Feed ID for feed-scoped cache',
 			account_id bigint(20) UNSIGNED DEFAULT NULL COMMENT 'Account ID for account-scoped cache',
 			expires_at datetime NOT NULL,
 			created_at datetime NOT NULL,
@@ -167,7 +167,6 @@ class ESF_Twitter_DB_Installer {
 			UNIQUE KEY cache_key (cache_key),
 			KEY expires_at (expires_at),
 			KEY cache_type (cache_type),
-			KEY feed_id (feed_id),
 			KEY account_id (account_id),
 			KEY cache_key_expires (cache_key, expires_at)
 		) {$charset_collate};";
@@ -180,6 +179,56 @@ class ESF_Twitter_DB_Installer {
 		}
 
 		return ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+	}
+
+	/**
+	 * Ensure accounts.auth_source exists on upgrades that predate the column.
+	 *
+	 * @since 6.7.9
+	 * @return void
+	 */
+	public static function maybe_add_auth_source_column() {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'esf_twitter_accounts';
+		if ( ! function_exists( 'esf_db_maybe_add_column' ) ) {
+			return;
+		}
+
+		esf_db_maybe_add_column(
+			$table,
+			'auth_source',
+			"enum('oauth','manual') NOT NULL DEFAULT 'oauth'",
+			'refresh_token'
+		);
+	}
+
+	/**
+	 * Drop the unused `feed_id` column from the cache table.
+	 *
+	 * dbDelta cannot remove columns. Runs from schema version 3.
+	 *
+	 * @since 6.14.1
+	 * @return void
+	 */
+	public static function maybe_drop_cache_feed_id_column() {
+		global $wpdb;
+
+		$table         = $wpdb->prefix . 'esf_twitter_cache';
+		$table_escaped = esc_sql( $table );
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			return;
+		}
+
+		$column = $wpdb->get_results( $wpdb->prepare( "SHOW COLUMNS FROM `{$table_escaped}` LIKE %s", 'feed_id' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		if ( empty( $column ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "ALTER TABLE `{$table_escaped}` DROP INDEX feed_id" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "ALTER TABLE `{$table_escaped}` DROP COLUMN feed_id" );
 	}
 
 	/**

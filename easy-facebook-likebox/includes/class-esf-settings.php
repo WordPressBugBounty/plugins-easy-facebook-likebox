@@ -53,7 +53,7 @@ if ( ! class_exists( 'ESF_Settings' ) ) {
 		 * @since 6.9.0
 		 * @var array<int,string>
 		 */
-		const MODULE_SLUGS = array( 'facebook', 'instagram', 'youtube', 'twitter' );
+		const MODULE_SLUGS = array( 'facebook', 'instagram', 'youtube', 'twitter', 'tiktok' );
 
 		/**
 		 * Run migration once per site.
@@ -85,6 +85,10 @@ if ( ! class_exists( 'ESF_Settings' ) ) {
 					? (int) (bool) $legacy['preserve_settings_on_uninstall']
 					: 0,
 				'api_locale'                     => isset( $legacy['api_locale'] ) ? (string) $legacy['api_locale'] : '',
+				'download_media_locally'         => function_exists( 'esf_default_download_media_locally_map' )
+					? esf_default_download_media_locally_map()
+					: array_fill_keys( self::MODULE_SLUGS, true ),
+				'feed_entrance_animation'        => 1,
 			);
 
 			$modern['gdpr'] = isset( $legacy['gdpr'] ) && in_array( $legacy['gdpr'], array( 'auto', 'yes', 'no' ), true )
@@ -135,8 +139,13 @@ if ( ! class_exists( 'ESF_Settings' ) ) {
 				'general'              => array(
 					'preserve_settings_on_uninstall' => 0,
 					'api_locale'                     => '',
+					'download_media_locally'         => function_exists( 'esf_default_download_media_locally_map' )
+						? esf_default_download_media_locally_map()
+						: array_fill_keys( self::MODULE_SLUGS, true ),
+					'feed_entrance_animation'        => 1,
 				),
 				'gdpr'                 => 'auto',
+				'gdpr_zero_third_party' => 0,
 				'translation'          => array(),
 				'translation_ai_used'  => array(),
 				'welcome'              => array(),
@@ -202,17 +211,23 @@ if ( ! class_exists( 'ESF_Settings' ) ) {
 		}
 
 		/**
-		 * Save General tab fields (feed language, preserve on uninstall).
+		 * Save General tab fields (feed language, preserve on uninstall, local media, entrance animation).
+		 *
+		 * When a module’s “download images locally” flag flips from on → off,
+		 * its uploads/esf-{module}/ folder is deleted.
 		 *
 		 * @since 6.9.0
 		 *
-		 * @param bool        $preserve_on_uninstall Whether to keep data on uninstall.
-		 * @param string|null $api_locale            Selected API locale or null to skip.
-		 * @return bool
+		 * @param bool        $preserve_on_uninstall     Whether to keep data on uninstall.
+		 * @param string|null $api_locale                Selected API locale or null to skip.
+		 * @param array|null  $download_media_locally    Per-module map or null to leave unchanged.
+		 * @param bool|null   $feed_entrance_animation   Staggered post fade-in; null leaves unchanged.
+		 * @return array{success:bool,purged_modules:array<int,string>}
 		 */
-		public static function save_general( $preserve_on_uninstall, $api_locale = null ) {
+		public static function save_general( $preserve_on_uninstall, $api_locale = null, $download_media_locally = null, $feed_entrance_animation = null ) {
 			$settings            = self::get();
 			$previous_api_locale = isset( $settings['general']['api_locale'] ) ? (string) $settings['general']['api_locale'] : '';
+			$purged_modules      = array();
 
 			$settings['general']['preserve_settings_on_uninstall'] = $preserve_on_uninstall ? 1 : 0;
 
@@ -220,6 +235,35 @@ if ( ! class_exists( 'ESF_Settings' ) ) {
 				$supported = array_keys( esf_get_supported_api_locales() );
 				$locale    = in_array( $api_locale, $supported, true ) ? (string) $api_locale : '';
 				$settings['general']['api_locale'] = $locale;
+			}
+
+			if ( null !== $download_media_locally ) {
+				$previous_map = function_exists( 'esf_normalize_download_media_locally_map' )
+					? esf_normalize_download_media_locally_map(
+						isset( $settings['general']['download_media_locally'] )
+							? $settings['general']['download_media_locally']
+							: null
+					)
+					: array_fill_keys( self::MODULE_SLUGS, true );
+
+				$next_map = function_exists( 'esf_normalize_download_media_locally_map' )
+					? esf_normalize_download_media_locally_map( $download_media_locally )
+					: array_fill_keys( self::MODULE_SLUGS, true );
+
+				$settings['general']['download_media_locally'] = $next_map;
+
+				foreach ( $previous_map as $slug => $was_enabled ) {
+					if ( $was_enabled && empty( $next_map[ $slug ] ) ) {
+						if ( function_exists( 'esf_delete_media_folder' ) ) {
+							esf_delete_media_folder( $slug );
+						}
+						$purged_modules[] = $slug;
+					}
+				}
+			}
+
+			if ( null !== $feed_entrance_animation ) {
+				$settings['general']['feed_entrance_animation'] = $feed_entrance_animation ? 1 : 0;
 			}
 
 			$new_api_locale = isset( $settings['general']['api_locale'] ) ? (string) $settings['general']['api_locale'] : '';
@@ -232,29 +276,68 @@ if ( ! class_exists( 'ESF_Settings' ) ) {
 				}
 			}
 
-			return self::save( $settings );
+			return array(
+				'success'        => self::save( $settings ),
+				'purged_modules' => $purged_modules,
+			);
 		}
 
 		/**
-		 * Save GDPR mode.
+		 * Whether staggered feed post entrance animation is enabled.
+		 *
+		 * Defaults to enabled when the key is missing (existing installs).
+		 *
+		 * @since 6.7.9
+		 * @return bool
+		 */
+		public static function is_feed_entrance_animation_enabled() {
+			$settings = self::get();
+			$general  = isset( $settings['general'] ) && is_array( $settings['general'] )
+				? $settings['general']
+				: array();
+
+			if ( ! array_key_exists( 'feed_entrance_animation', $general ) ) {
+				return true;
+			}
+
+			return ! empty( $general['feed_entrance_animation'] );
+		}
+
+		/**
+		 * Save GDPR mode and optional zero-third-party flag.
 		 *
 		 * @since 6.9.0
 		 *
-		 * @param string $gdpr One of `auto`, `yes`, `no`.
+		 * @param string   $gdpr                    One of `auto`, `yes`, `no`.
+		 * @param bool|null $zero_third_party       Optional fail-closed zero-TP toggle.
 		 * @return bool
 		 */
-		public static function save_gdpr( $gdpr ) {
+		public static function save_gdpr( $gdpr, $zero_third_party = null ) {
 			$gdpr = sanitize_text_field( (string) $gdpr );
 			if ( ! in_array( $gdpr, array( 'auto', 'yes', 'no' ), true ) ) {
 				return false;
 			}
 
 			$settings = self::get();
-			if ( isset( $settings['gdpr'] ) && (string) $settings['gdpr'] === $gdpr ) {
-				return true;
+			$changed  = false;
+
+			if ( ! isset( $settings['gdpr'] ) || (string) $settings['gdpr'] !== $gdpr ) {
+				$settings['gdpr'] = $gdpr;
+				$changed          = true;
 			}
 
-			$settings['gdpr'] = $gdpr;
+			if ( null !== $zero_third_party ) {
+				$flag = $zero_third_party ? 1 : 0;
+				$prev = ! empty( $settings['gdpr_zero_third_party'] ) ? 1 : 0;
+				if ( $prev !== $flag ) {
+					$settings['gdpr_zero_third_party'] = $flag;
+					$changed                           = true;
+				}
+			}
+
+			if ( ! $changed ) {
+				return true;
+			}
 
 			return self::save( $settings );
 		}
@@ -448,9 +531,20 @@ if ( ! class_exists( 'ESF_Settings' ) ) {
 				'general'     => array(
 					'preserve_settings_on_uninstall' => ! empty( $settings['general']['preserve_settings_on_uninstall'] ),
 					'api_locale'                     => isset( $settings['general']['api_locale'] ) ? (string) $settings['general']['api_locale'] : '',
+					'download_media_locally'         => function_exists( 'esf_normalize_download_media_locally_map' )
+						? esf_normalize_download_media_locally_map(
+							isset( $settings['general']['download_media_locally'] )
+								? $settings['general']['download_media_locally']
+								: null
+						)
+						: array_fill_keys( self::MODULE_SLUGS, true ),
+					// Default on when the key is missing (existing installs).
+					'feed_entrance_animation'        => ! array_key_exists( 'feed_entrance_animation', $settings['general'] )
+						|| ! empty( $settings['general']['feed_entrance_animation'] ),
 				),
-				'gdpr'        => isset( $settings['gdpr'] ) ? (string) $settings['gdpr'] : 'auto',
-				'gdpr_meta'   => array(
+				'gdpr'                  => isset( $settings['gdpr'] ) ? (string) $settings['gdpr'] : 'auto',
+				'gdpr_zero_third_party' => ! empty( $settings['gdpr_zero_third_party'] ),
+				'gdpr_meta'             => array(
 					'consent_plugin'    => $consent_plugin,
 					'supported_plugins' => $supported_plugins,
 					'mode_descriptions' => array(
@@ -458,18 +552,22 @@ if ( ! class_exists( 'ESF_Settings' ) ) {
 						'yes'  => __( 'Always Enabled: GDPR restrictions are always on for all visitors. External media and Load More remain disabled, even if visitors give consent.', 'easy-facebook-likebox' ),
 						'no'   => __( 'Disabled: GDPR controls are turned off. All images, videos, popups, and Load More will always load normally for visitors.', 'easy-facebook-likebox' ),
 					),
+					'zero_third_party'  => array(
+						'title' => __( 'Zero third-party requests', 'easy-facebook-likebox' ),
+						'text'  => __( 'When enabled, feeds only serve locally stored media. Missing local copies show a placeholder, and remote videos/embeds will not play — the browser never requests Facebook, Instagram, X, YouTube, or TikTok CDNs. Consent cannot unlock remote URLs in this mode. Logged-in editors see an on-feed reminder explaining this.', 'easy-facebook-likebox' ),
+					),
 					'tooltip'           => array(
 						'always_enabled' => array(
 							'title' => __( 'If set to "Always Enabled":', 'easy-facebook-likebox' ),
-							'text'  => __( 'Prevents all images and videos from being loaded directly from Facebook/Instagram to stop external requests. Some plugin features will be disabled or limited for all visitors.', 'easy-facebook-likebox' ),
+							'text'  => __( 'Prevents all images and videos from being loaded directly from social networks until you also enable local media. Some plugin features will be disabled or limited for all visitors.', 'easy-facebook-likebox' ),
 						),
 						'disabled'       => array(
 							'title' => __( 'If set to "Disabled":', 'easy-facebook-likebox' ),
-							'text'  => __( 'The plugin will load and display images and videos directly from Facebook/Instagram for everyone, without applying additional GDPR restrictions.', 'easy-facebook-likebox' ),
+							'text'  => __( 'The plugin may load images and videos directly from social network CDNs for everyone, without applying consent-based GDPR restrictions.', 'easy-facebook-likebox' ),
 						),
 						'automatic'      => array(
 							'title' => __( 'If set to "Automatic":', 'easy-facebook-likebox' ),
-							'text'  => __( 'The plugin will only load images and videos directly from Facebook/Instagram after consent has been given by a supported GDPR / cookie consent plugin.', 'easy-facebook-likebox' ),
+							'text'  => __( 'The plugin will only load remote images and embeds after consent has been given by a supported GDPR / cookie consent plugin. Local media always loads.', 'easy-facebook-likebox' ),
 						),
 					),
 				),
@@ -538,7 +636,13 @@ if ( ! class_exists( 'ESF_Settings' ) ) {
 			}
 			$settings['modules'][ $slug ]['status'] = $status;
 
-			return self::save( $settings );
+			$saved = self::save( $settings );
+
+			if ( $saved && 'activated' === $status && function_exists( 'esf_seed_module_reconnect_alert_settings' ) ) {
+				esf_seed_module_reconnect_alert_settings( $slug );
+			}
+
+			return $saved;
 		}
 
 		/**
@@ -597,6 +701,9 @@ if ( ! class_exists( 'ESF_Settings' ) ) {
 
 			if ( isset( $modern['gdpr'] ) ) {
 				$legacy['gdpr'] = (string) $modern['gdpr'];
+			}
+			if ( array_key_exists( 'gdpr_zero_third_party', $modern ) ) {
+				$legacy['gdpr_zero_third_party'] = ! empty( $modern['gdpr_zero_third_party'] ) ? 1 : 0;
 			}
 			if ( isset( $modern['translation'] ) && is_array( $modern['translation'] ) ) {
 				$legacy['translation'] = $modern['translation'];

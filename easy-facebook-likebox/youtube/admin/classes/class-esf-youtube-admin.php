@@ -204,13 +204,21 @@ class ESF_YouTube_Admin {
             'discount' => '17%',
             'coupon'   => 'ESPF17',
         ) );
+        $layouts = array();
+        if ( class_exists( '\\EasySocialFeed\\Layouts\\LayoutRegistry' ) ) {
+            $layouts = \EasySocialFeed\Layouts\LayoutRegistry::for( 'youtube' )->to_array();
+        }
         $data = array(
             'hasYoutubePlan'       => $has_youtube_plan,
+            'hasMultifeed'         => function_exists( 'esf_youtube_can_use_multifeed' ) && esf_youtube_can_use_multifeed(),
             'canAddAnotherAccount' => $has_youtube_plan || $repo->get_total_account_count() < 1,
             'upgradeUrl'           => esc_url( esf_get_upgrade_url( 'youtube' ) ),
+            'currentPlan'          => ( function_exists( 'esf_get_active_plan_slug' ) ? esf_get_active_plan_slug() : '' ),
+            'needsComboUpgrade'    => function_exists( 'esf_needs_combo_upgrade_for_module' ) && esf_needs_combo_upgrade_for_module( 'youtube' ),
             'proDiscount'          => ( isset( $pro_promo['discount'] ) ? (string) $pro_promo['discount'] : '17%' ),
             'proCoupon'            => ( isset( $pro_promo['coupon'] ) ? (string) $pro_promo['coupon'] : 'ESPF17' ),
             'defaultSettings'      => ESF_YouTube_Feed_Repository::get_default_settings(),
+            'layouts'              => $layouts,
             'youtubeSettings'      => array(
                 'cache_duration' => $cache_duration,
             ),

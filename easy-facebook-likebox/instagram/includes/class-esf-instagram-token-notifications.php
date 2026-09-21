@@ -41,20 +41,20 @@ class ESF_Instagram_Token_Notifications {
 
 		ESF_Token_Reconnect_Mailer::maybe_notify(
 			array(
-				'account_id'           => (int) $account_id,
+				'account_id'                   => (int) $account_id,
 				'settings'                     => esf_instagram_get_resolved_settings(),
-				'notify_setting_key'   => 'notify_token_reconnect',
-				'transient_prefix'     => self::THROTTLE_PREFIX,
-				'throttle_ttl'         => (int) DAY_IN_SECONDS,
-				'load_row'             => function ( $id ) {
+				'notify_setting_key'           => 'notify_token_reconnect',
+				'transient_prefix'             => self::THROTTLE_PREFIX,
+				'throttle_ttl'                 => (int) DAY_IN_SECONDS,
+				'load_row'                     => function ( $id ) {
 					return ESF_Instagram_Account_Repository::get_instance()->get_by_id( (int) $id );
 				},
 				'needs_reconnect'              => 'esf_instagram_account_needs_reconnect',
 				'recipient_emails_setting_key' => 'notify_token_reconnect_emails',
 				'recipient_filter'             => 'esf_instagram_token_reconnect_mail_recipient',
-				'build_subject'        => array( __CLASS__, 'build_mail_subject' ),
-				'build_body'           => array( __CLASS__, 'build_mail_body' ),
-				'connect_admin_url'    => admin_url( 'admin.php?page=esf-instagram' ),
+				'build_subject'                => array( __CLASS__, 'build_mail_subject' ),
+				'build_body'                   => array( __CLASS__, 'build_mail_body' ),
+				'connect_admin_url'            => admin_url( 'admin.php?page=esf-instagram' ),
 			)
 		);
 	}

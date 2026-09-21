@@ -54,9 +54,10 @@ class ESF_Twitter_API_Service {
     const MAX_TWEET_FETCH = 100;
 
     /**
-     * Maximum proxy payload bytes to accept for public timeline requests.
+     * Maximum HTTP JSON payload bytes to accept from X API or the ESF proxy.
      *
-     * Guards against oversized snapshot responses exhausting PHP memory.
+     * Guards against oversized responses exhausting PHP memory. Connected
+     * timeline calls use the same cap as public proxy fetches.
      *
      * @since 6.7.6
      * @var int
@@ -64,6 +65,14 @@ class ESF_Twitter_API_Service {
     const MAX_PROXY_RESPONSE_BYTES = 8388608;
 
     // 8 MB.
+    /**
+     * Preferred MP4 bitrate for feed and lightbox playback (~720p).
+     *
+     * @since 6.14.1
+     * @var int
+     */
+    const PREFERRED_VIDEO_BITRATE = 2176000;
+
     /**
      * Common tweet fields to request from every timeline call.
      *
@@ -438,28 +447,126 @@ class ESF_Twitter_API_Service {
             $text_raw = $text_parts['text'];
             $url_entities = $text_parts['urls'];
             $text_safe = esc_html( $text_raw );
+            $parent_tweet_id = '';
+            if ( !empty( $raw['referenced_tweets'] ) && is_array( $raw['referenced_tweets'] ) ) {
+                foreach ( $raw['referenced_tweets'] as $ref ) {
+                    if ( !is_array( $ref ) ) {
+                        continue;
+                    }
+                    if ( isset( $ref['type'] ) && 'replied_to' === $ref['type'] && !empty( $ref['id'] ) ) {
+                        $parent_tweet_id = (string) $ref['id'];
+                        break;
+                    }
+                }
+            }
             $tweets[] = array(
-                'tweet_id'      => (string) $raw['id'],
-                'text'          => esc_html( $text_raw ),
-                'text_html'     => esf_twitter_format_tweet_text(
+                'tweet_id'        => (string) $raw['id'],
+                'text'            => esc_html( $text_raw ),
+                'text_html'       => esf_twitter_format_tweet_text(
                     $text_safe,
                     $url_entities,
                     ( isset( $entities['mentions'] ) ? $entities['mentions'] : array() ),
                     ( isset( $entities['hashtags'] ) ? $entities['hashtags'] : array() )
                 ),
-                'created_at'    => ( isset( $raw['created_at'] ) ? $raw['created_at'] : '' ),
-                'like_count'    => ( isset( $metrics['like_count'] ) ? (int) $metrics['like_count'] : 0 ),
-                'retweet_count' => ( isset( $metrics['retweet_count'] ) ? (int) $metrics['retweet_count'] : 0 ),
-                'reply_count'   => ( isset( $metrics['reply_count'] ) ? (int) $metrics['reply_count'] : 0 ),
-                'quote_count'   => ( isset( $metrics['quote_count'] ) ? (int) $metrics['quote_count'] : 0 ),
-                'is_retweet'    => !empty( $raw['referenced_tweets'] ) && $this->has_type( $raw['referenced_tweets'], 'retweeted' ),
-                'is_reply'      => !empty( $raw['referenced_tweets'] ) && $this->has_type( $raw['referenced_tweets'], 'replied_to' ),
-                'media'         => $tweet_media,
-                'author'        => $this->normalize_user( $author ),
-                'tweet_url'     => ( !empty( $author['username'] ) ? 'https://x.com/' . $author['username'] . '/status/' . $raw['id'] : 'https://x.com/i/web/status/' . $raw['id'] ),
+                'created_at'      => ( isset( $raw['created_at'] ) ? $raw['created_at'] : '' ),
+                'like_count'      => ( isset( $metrics['like_count'] ) ? (int) $metrics['like_count'] : 0 ),
+                'retweet_count'   => ( isset( $metrics['retweet_count'] ) ? (int) $metrics['retweet_count'] : 0 ),
+                'reply_count'     => ( isset( $metrics['reply_count'] ) ? (int) $metrics['reply_count'] : 0 ),
+                'quote_count'     => ( isset( $metrics['quote_count'] ) ? (int) $metrics['quote_count'] : 0 ),
+                'is_retweet'      => !empty( $raw['referenced_tweets'] ) && $this->has_type( $raw['referenced_tweets'], 'retweeted' ),
+                'is_reply'        => !empty( $raw['referenced_tweets'] ) && $this->has_type( $raw['referenced_tweets'], 'replied_to' ),
+                'parent_tweet_id' => $parent_tweet_id,
+                'media'           => $tweet_media,
+                'author'          => $this->normalize_user( $author ),
+                'tweet_url'       => ( !empty( $author['username'] ) ? 'https://x.com/' . $author['username'] . '/status/' . $raw['id'] : 'https://x.com/i/web/status/' . $raw['id'] ),
             );
         }
         return $tweets;
+    }
+
+    /**
+     * Sanitize an X tweet / conversation ID (digits only).
+     *
+     * @since 6.7.6
+     * @param string $tweet_id Raw tweet ID.
+     * @return string
+     */
+    public function sanitize_tweet_id( $tweet_id ) {
+        $tweet_id = preg_replace( '/\\D+/', '', (string) $tweet_id );
+        return ( is_string( $tweet_id ) ? substr( $tweet_id, 0, 32 ) : '' );
+    }
+
+    /**
+     * Fetch one page of conversation replies for a tweet (OAuth user token).
+     *
+     * Uses recent search with `conversation_id:{id} is:reply`. Recent search
+     * only covers roughly the last seven days of public replies.
+     *
+     * @since 6.7.6
+     * @param string $access_token     Valid OAuth 2.0 access token.
+     * @param string $tweet_id         Root tweet ID (conversation id).
+     * @param int    $max_results      Page size (10–100; X search minimum is 10).
+     * @param string $pagination_token Optional search next_token.
+     * @return array{tweets:array<int,array<string,mixed>>,next_token:string}|WP_Error
+     */
+    public function fetch_tweet_conversation_page(
+        $access_token,
+        $tweet_id,
+        $max_results = 20,
+        $pagination_token = ''
+    ) {
+        $tweet_id = $this->sanitize_tweet_id( $tweet_id );
+        if ( '' === $tweet_id || '' === trim( (string) $access_token ) ) {
+            return new WP_Error('invalid_tweet_id', __( 'Invalid tweet ID or access token.', 'easy-facebook-likebox' ));
+        }
+        $max_results = max( 10, min( self::MAX_TWEET_FETCH, (int) $max_results ) );
+        $params = array(
+            'query'        => 'conversation_id:' . $tweet_id . ' is:reply',
+            'max_results'  => $max_results,
+            'tweet.fields' => self::TWEET_FIELDS . ',conversation_id',
+            'expansions'   => 'author_id,attachments.media_keys',
+            'user.fields'  => self::USER_FIELDS,
+            'media.fields' => self::MEDIA_FIELDS,
+        );
+        if ( '' !== $pagination_token ) {
+            $params['next_token'] = sanitize_text_field( (string) $pagination_token );
+        }
+        $url = add_query_arg( $params, self::API_BASE . '/tweets/search/recent' );
+        $url = (string) apply_filters(
+            'esf_twitter_conversation_request_url',
+            $url,
+            $tweet_id,
+            $max_results,
+            $pagination_token
+        );
+        $response = $this->api_request( $url, $access_token );
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+        $next_token = ( isset( $response['meta']['next_token'] ) ? sanitize_text_field( (string) $response['meta']['next_token'] ) : '' );
+        return array(
+            'tweets'     => $this->normalize_tweets_response( ( is_array( $response ) ? $response : array() ) ),
+            'next_token' => $next_token,
+        );
+    }
+
+    /**
+     * Fetch conversation replies for a public tweet via the ESF proxy (Pro).
+     *
+     * @since 6.7.6
+     * @param string $tweet_id         Root tweet ID.
+     * @param int    $max_results      Page size.
+     * @param string $pagination_token Optional next_token.
+     * @return array{tweets:array<int,array<string,mixed>>,next_token:string}|WP_Error
+     */
+    public function fetch_public_tweet_conversation_page( $tweet_id, $max_results = 20, $pagination_token = '' ) {
+        if ( !function_exists( 'esf_twitter_has_twitter_plan' ) || !esf_twitter_has_twitter_plan() ) {
+            return new WP_Error('pro_required', __( 'Public tweet replies require the X Pro plan.', 'easy-facebook-likebox' ));
+        }
+        if ( !method_exists( $this, 'fetch_public_tweet_conversation_page__premium_only' ) ) {
+            return new WP_Error('pro_unavailable', __( 'Public tweet replies are unavailable in this build.', 'easy-facebook-likebox' ));
+        }
+        return $this->fetch_public_tweet_conversation_page__premium_only( $tweet_id, $max_results, $pagination_token );
     }
 
     /**
@@ -519,7 +626,11 @@ class ESF_Twitter_API_Service {
     }
 
     /**
-     * Extract best playable MP4 variant URL from media variants.
+     * Extract a playable MP4 variant URL suitable for feed/lightbox playback.
+     *
+     * Prefers the highest bitrate that does not exceed
+     * {@see self::PREFERRED_VIDEO_BITRATE}. Falls back to the lowest available
+     * MP4 when every variant is larger.
      *
      * @since 6.7.6
      * @param array $media_item Raw media object.
@@ -529,24 +640,35 @@ class ESF_Twitter_API_Service {
         if ( empty( $media_item['variants'] ) || !is_array( $media_item['variants'] ) ) {
             return '';
         }
-        $best_url = '';
-        $best_bitrate = -1;
+        $preferred_url = '';
+        $preferred_bitrate = -1;
+        $fallback_url = '';
+        $fallback_bitrate = PHP_INT_MAX;
         foreach ( $media_item['variants'] as $variant ) {
             if ( !is_array( $variant ) ) {
                 continue;
             }
-            $content_type = ( isset( $variant['content_type'] ) ? (string) $variant['content_type'] : '' );
-            $variant_url = ( isset( $variant['url'] ) ? esc_url_raw( (string) $variant['url'] ) : '' );
-            if ( '' === $variant_url || 'video/mp4' !== strtolower( $content_type ) ) {
+            $content_type = ( isset( $variant['content_type'] ) ? strtolower( (string) $variant['content_type'] ) : '' );
+            $raw_url = ( isset( $variant['url'] ) ? (string) $variant['url'] : '' );
+            $variant_url = ( '' !== $raw_url ? esc_url_raw( $raw_url ) : '' );
+            if ( '' === $variant_url ) {
+                $variant_url = $raw_url;
+            }
+            // X sometimes sends `video/mp4;codecs=...` — still a playable MP4.
+            if ( '' === $variant_url || 0 !== strpos( $content_type, 'video/mp4' ) ) {
                 continue;
             }
             $bitrate = ( isset( $variant['bit_rate'] ) ? (int) $variant['bit_rate'] : 0 );
-            if ( $bitrate > $best_bitrate ) {
-                $best_bitrate = $bitrate;
-                $best_url = $variant_url;
+            if ( $bitrate <= self::PREFERRED_VIDEO_BITRATE && $bitrate > $preferred_bitrate ) {
+                $preferred_bitrate = $bitrate;
+                $preferred_url = $variant_url;
+            }
+            if ( $bitrate < $fallback_bitrate ) {
+                $fallback_bitrate = $bitrate;
+                $fallback_url = $variant_url;
             }
         }
-        return $best_url;
+        return ( '' !== $preferred_url ? $preferred_url : $fallback_url );
     }
 
     /**
@@ -637,27 +759,97 @@ class ESF_Twitter_API_Service {
      * @return array|WP_Error Decoded response body, or WP_Error on failure.
      */
     private function api_request( $url, $access_token ) {
+        $max_response_bytes = $this->get_max_api_response_bytes();
         $response = wp_remote_get( $url, array(
-            'headers' => array(
+            'headers'             => array(
                 'Authorization' => 'Bearer ' . $access_token,
                 'User-Agent'    => 'EasySocialFeed-WordPress/' . (( defined( 'FTA_VERSION' ) ? FTA_VERSION : '1.0' )),
             ),
-            'timeout' => 15,
+            'timeout'             => 15,
+            'limit_response_size' => $max_response_bytes,
         ) );
         if ( is_wp_error( $response ) ) {
             return $response;
         }
         $code = wp_remote_retrieve_response_code( $response );
-        $body = json_decode( wp_remote_retrieve_body( $response ), true );
+        $raw_body = wp_remote_retrieve_body( $response );
+        $body = $this->decode_json_response_body( $raw_body );
         if ( 200 !== $code ) {
-            $msg = ( isset( $body['detail'] ) ? $body['detail'] : (( isset( $body['title'] ) ? $body['title'] : sprintf( 'HTTP %d', $code ) )) );
+            $msg = ( is_array( $body ) && isset( $body['detail'] ) ? $body['detail'] : (( is_array( $body ) && isset( $body['title'] ) ? $body['title'] : sprintf( 'HTTP %d', $code ) )) );
             // 401 = expired/invalid token; flag it distinctly.
             if ( 401 === $code ) {
                 return new WP_Error('token_expired', __( 'X access token has expired. Please reconnect your account.', 'easy-facebook-likebox' ));
             }
             return new WP_Error('api_error', $msg);
         }
-        return ( is_array( $body ) ? $body : array() );
+        if ( !is_array( $body ) ) {
+            $is_truncated_payload = '' !== $raw_body && strlen( $raw_body ) >= $max_response_bytes && JSON_ERROR_NONE !== json_last_error();
+            if ( $is_truncated_payload ) {
+                return new WP_Error('api_payload_too_large', __( 'X returned more data than expected. Please try again in a moment.', 'easy-facebook-likebox' ));
+            }
+            return array();
+        }
+        return $body;
+    }
+
+    /**
+     * Decode a JSON HTTP body, preserving large X snowflake IDs as strings.
+     *
+     * @since 6.7.6
+     * @param string $raw_body Raw response body.
+     * @return array<string,mixed>|null
+     */
+    private function decode_json_response_body( $raw_body ) {
+        $raw_body = (string) $raw_body;
+        if ( '' === $raw_body ) {
+            return null;
+        }
+        $flags = ( defined( 'JSON_BIGINT_AS_STRING' ) ? JSON_BIGINT_AS_STRING : 0 );
+        $body = json_decode(
+            $raw_body,
+            true,
+            512,
+            $flags
+        );
+        return ( is_array( $body ) ? $body : null );
+    }
+
+    /**
+     * Validate an ESF public tweets/replies proxy payload.
+     *
+     * The bridge sometimes caches `{success:false,error:…}` error objects and
+     * later replays them as HTTP 200. Treat those as errors instead of an empty
+     * conversation (which previously produced a silent "No comments yet").
+     *
+     * @since 6.7.6
+     * @param array<string,mixed> $body       Decoded proxy JSON.
+     * @param string              $error_code WP_Error code for proxy failures.
+     * @return array<string,mixed>|WP_Error
+     */
+    private function validate_public_tweets_proxy_payload( array $body, $error_code = 'invalid_proxy_response' ) {
+        if ( array_key_exists( 'success', $body ) && false === $body['success'] ) {
+            $msg = ( isset( $body['error'] ) ? (string) $body['error'] : __( 'Public X proxy returned an error.', 'easy-facebook-likebox' ) );
+            return new WP_Error((string) $error_code, $msg);
+        }
+        // Accept raw X API shapes: data (list or omitted) + optional meta/includes.
+        if ( !array_key_exists( 'data', $body ) && !array_key_exists( 'meta', $body ) ) {
+            return new WP_Error('invalid_proxy_response', __( 'Invalid response from ESF proxy.', 'easy-facebook-likebox' ));
+        }
+        if ( array_key_exists( 'data', $body ) && null !== $body['data'] && !is_array( $body['data'] ) ) {
+            return new WP_Error('invalid_proxy_response', __( 'Invalid response from ESF proxy.', 'easy-facebook-likebox' ));
+        }
+        return $body;
+    }
+
+    /**
+     * Resolve the JSON response-size cap for X API and ESF proxy requests.
+     *
+     * @since 6.14.1
+     * @return int
+     */
+    private function get_max_api_response_bytes() {
+        $max = (int) apply_filters( 'esf_twitter_api_max_response_bytes', self::MAX_PROXY_RESPONSE_BYTES );
+        return ( $max > 0 ? $max : self::MAX_PROXY_RESPONSE_BYTES );
     }
 
     /**

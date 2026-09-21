@@ -56,11 +56,11 @@ if ( !class_exists( 'ESF_Admin' ) ) {
                 require_once $missing_feed_api;
             }
             if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
-                $moderation_api = $base . 'admin/api/class-esf-api-moderation.php';
+                $moderation_api = $base . 'admin/api/premium/class-esf-api-moderation.php';
                 if ( !class_exists( 'ESF_API_Moderation' ) && file_exists( $moderation_api ) ) {
                     require_once $moderation_api;
                 }
-                $shoppable_api = $base . 'admin/api/class-esf-api-shoppable.php';
+                $shoppable_api = $base . 'admin/api/premium/class-esf-api-shoppable.php';
                 if ( !class_exists( 'ESF_API_Shoppable' ) && file_exists( $shoppable_api ) ) {
                     require_once $shoppable_api;
                 }

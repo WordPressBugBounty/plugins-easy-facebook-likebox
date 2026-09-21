@@ -51,6 +51,15 @@ class ESF_Instagram_Token_Refresh_Client {
 	 * @return array<string,mixed>|WP_Error Patch keys for upsert (always include `instagram_user_id` when calling upsert).
 	 */
 	public static function refresh_tokens( $row ) {
+		if ( function_exists( 'esf_instagram_account_supports_token_refresh' )
+			&& ! esf_instagram_account_supports_token_refresh( $row ) ) {
+			return new WP_Error(
+				'esf_ig_refresh_manual',
+				__( 'Manual tokens are not renewed automatically. Paste a new token to reconnect.', 'easy-facebook-likebox' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$auth = esf_instagram_auth_source_for_account_row( $row );
 		if ( 'instagram_login' === $auth ) {
 			$token = isset( $row->access_token ) ? trim( (string) $row->access_token ) : '';
@@ -140,9 +149,9 @@ class ESF_Instagram_Token_Refresh_Client {
 
 		$ig_id = isset( $row->instagram_user_id ) ? trim( (string) $row->instagram_user_id ) : '';
 		$body  = array(
-			'site_url'            => home_url(),
-			'auth_source'         => $auth,
-			'instagram_user_id'   => $ig_id,
+			'site_url'          => home_url(),
+			'auth_source'       => $auth,
+			'instagram_user_id' => $ig_id,
 		);
 
 		if ( 'instagram_login' === $auth ) {
@@ -234,7 +243,7 @@ class ESF_Instagram_Token_Refresh_Client {
 	 *
 	 * @since 6.8.0
 	 * @param array<string,mixed> $data Decoded JSON.
-	 * @param string               $auth instagram_login|facebook_page.
+	 * @param string              $auth instagram_login|facebook_page.
 	 * @return array<string,mixed>|WP_Error
 	 */
 	private static function normalize_bridge_response( array $data, $auth ) {

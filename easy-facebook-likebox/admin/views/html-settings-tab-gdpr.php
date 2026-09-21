@@ -15,7 +15,7 @@ $consent_plugin_info = ESF_GDPR_Integrations::get_consent_plugin_info();
 <div id="esf-settings-gdpr" class="col s12 efbl_tab_c slideLeft active">
 	<h5><?php esc_html_e( 'GDPR', 'easy-facebook-likebox' ); ?></h5>
 	<p>
-		<?php esc_html_e( 'Control how Facebook and Instagram feeds respect visitor consent. This applies to all feeds (Facebook and Instagram).', 'easy-facebook-likebox' ); ?>
+		<?php esc_html_e( 'Control how Instagram, X, YouTube, TikTok, and Facebook feeds respect visitor consent and third-party requests.', 'easy-facebook-likebox' ); ?>
 	</p>
 
 	<div class="row" style="margin-top: 20px;">

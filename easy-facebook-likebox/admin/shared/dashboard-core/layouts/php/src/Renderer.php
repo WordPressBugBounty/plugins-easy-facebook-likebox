@@ -1,17 +1,6 @@
 <?php
 /**
- * Module-agnostic feed renderer.
- *
- * Each module owns post fetching (caching, API calls). This Renderer takes a
- * pre-fetched `PostItem[]` array, resolves the layout from the per-module
- * registry, fires the same hook stack the future X/YT migration will fire,
- * and returns the rendered HTML plus the assets the layout depends on.
- *
- * Two contexts:
- * - Frontend shortcode: caller can enqueue the assets list directly via
- *   `wp_enqueue_style`/`wp_enqueue_script`.
- * - Admin live preview: same output, the REST endpoint returns the asset
- *   URLs so the dashboard injects them into the document head.
+ * Shared layout renderer for pre-mapped posts (frontend + admin preview).
  *
  * @package Easy_Social_Feed
  * @subpackage Layouts
@@ -99,17 +88,34 @@ final class Renderer {
 		$layout_html = (string) apply_filters( 'esf_' . $module . '_layout_render_layout_html', $layout_html, $feed, $definition, $posts, $account );
 
 		$feed_id        = isset( $feed->id ) ? (int) $feed->id : 0;
-		$inline_css     = $this->extract_custom_css( $settings );
+		$inline_css     = $this->extract_custom_css( $settings, $module );
 		$inline_css_tag = '' !== $inline_css && $feed_id > 0
 			? '<style id="esf-' . $module . '-feed-' . $feed_id . '-custom-css">' . $inline_css . '</style>'
 			: '';
 
+		// Add simple loading overlay for modern modules — frontend only (not admin/preview).
+		$loader_html    = '';
+		$is_preview     = isset( $overrides['media_context'] ) && 'preview' === $overrides['media_context'];
+		$is_admin       = \is_admin();
+		$is_rest        = defined( 'REST_REQUEST' ) && REST_REQUEST;
+		$is_customize   = ( function_exists( 'is_customize_preview' ) && is_customize_preview() );
+		$has_admin_path = isset( $_SERVER['REQUEST_URI'] ) && 
+		                  ( false !== strpos( $_SERVER['REQUEST_URI'], '/wp-admin/' ) || 
+		                    false !== strpos( $_SERVER['REQUEST_URI'], 'page=esf-' ) ||
+		                    false !== strpos( $_SERVER['REQUEST_URI'], 'tab=customize' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		
+		// Only show loader on actual public frontend (not admin/REST/customize/admin-facing URLs)
+		if ( ! $is_preview && ! $is_admin && ! $is_rest && ! $is_customize && ! $has_admin_path && in_array( $module, array( 'twitter', 'youtube', 'facebook', 'instagram' ), true ) && function_exists( 'esf_get_simple_loader_html' ) ) {
+			$loader_html = esf_get_simple_loader_html( $module );
+		}
+
 		$html = sprintf(
-			'<div id="esf-%1$s-feed-%2$d" class="%3$s"%4$s>%5$s</div>%6$s',
+			'<div id="esf-%1$s-feed-%2$d" class="%3$s"%4$s>%5$s%6$s</div>%7$s',
 			esc_attr( $module ),
 			$feed_id,
 			esc_attr( implode( ' ', $wrapper_classes ) ),
 			$wrapper_attr_html, // already escaped in serializer
+			$loader_html, // simple loading overlay (hidden after content loads)
 			$layout_html, // primitive output is pre-escaped
 			$inline_css_tag // primitive output is pre-escaped
 		);
@@ -130,8 +136,11 @@ final class Renderer {
 
 	/**
 	 * Enqueue every asset declared by a layout. Used by shortcode rendering.
+	 *
+	 * @param LayoutDefinition $definition Layout definition whose assets should load.
+	 * @param string           $module     Optional module slug used to resolve cross-layout CSS deps.
 	 */
-	public function enqueue_assets( LayoutDefinition $definition ): void {
+	public function enqueue_assets( LayoutDefinition $definition, string $module = '' ): void {
 		$assets = $definition->get_assets();
 
 		$base_css = $assets->get_base_css();
@@ -141,18 +150,56 @@ final class Renderer {
 
 		$layout_css = $assets->get_layout_css();
 		if ( null !== $layout_css ) {
+			$this->register_layout_style_dependencies( $layout_css, $module );
 			wp_enqueue_style( $layout_css['handle'], $layout_css['src'], $layout_css['deps'], $layout_css['ver'] );
 		}
 
 		$layout_js = $assets->get_layout_js();
 		if ( null !== $layout_js ) {
+			$js_deps = isset( $layout_js['deps'] ) && is_array( $layout_js['deps'] ) ? $layout_js['deps'] : array();
+			if ( in_array( 'esf-masonry-pack', $js_deps, true ) && function_exists( 'esf_register_masonry_pack_script' ) ) {
+				esf_register_masonry_pack_script();
+			}
 			wp_enqueue_script(
 				$layout_js['handle'],
 				$layout_js['src'],
-				$layout_js['deps'],
+				$js_deps,
 				$layout_js['ver'],
 				$layout_js['in_footer']
 			);
+		}
+	}
+
+	/**
+	 * Register layout CSS declared in the registry when another layout lists it as a dependency.
+	 *
+	 * @param array<string,mixed> $style  Layout CSS asset array.
+	 * @param string              $module Module slug used to resolve sibling layout handles.
+	 */
+	private function register_layout_style_dependencies( array $style, string $module ): void {
+		$deps = isset( $style['deps'] ) && is_array( $style['deps'] ) ? $style['deps'] : array();
+
+		foreach ( $deps as $dep ) {
+			$dep = sanitize_key( (string) $dep );
+			if ( '' === $dep || wp_style_is( $dep, 'registered' ) || wp_style_is( $dep, 'enqueued' ) ) {
+				continue;
+			}
+
+			$dep_style = LayoutRegistry::find_layout_css_by_handle( $dep, $module );
+			if ( null === $dep_style ) {
+				continue;
+			}
+
+			$this->register_layout_style_dependencies( $dep_style, $module );
+
+			if ( ! wp_style_is( $dep, 'registered' ) ) {
+				wp_register_style(
+					$dep_style['handle'],
+					$dep_style['src'],
+					isset( $dep_style['deps'] ) && is_array( $dep_style['deps'] ) ? $dep_style['deps'] : array(),
+					$dep_style['ver'] ?? false
+				);
+			}
 		}
 	}
 
@@ -173,8 +220,12 @@ final class Renderer {
 
 	/**
 	 * Pull and sanitize the user's custom CSS from the feed settings.
+	 *
+	 * @param array<string,mixed> $settings Feed settings.
+	 * @param string              $module   Module slug.
+	 * @return string
 	 */
-	private function extract_custom_css( array $settings ): string {
+	private function extract_custom_css( array $settings, string $module = '' ): string {
 		$style = isset( $settings['style'] ) && is_array( $settings['style'] ) ? $settings['style'] : array();
 		$css   = isset( $style['custom_css'] ) ? trim( (string) $style['custom_css'] ) : '';
 
@@ -182,7 +233,25 @@ final class Renderer {
 			return '';
 		}
 
-		return preg_replace( '#</?style[^>]*>#i', '', $css );
+		$css = preg_replace( '#</?style[^>]*>#i', '', $css );
+		if ( ! is_string( $css ) || '' === trim( $css ) ) {
+			return '';
+		}
+
+		/**
+		 * Filter layout custom CSS before inline injection.
+		 *
+		 * @since 6.7.12
+		 * @param string              $css      Sanitized CSS (style tags stripped).
+		 * @param string              $module   Module slug (facebook, instagram, …).
+		 * @param array<string,mixed> $settings Feed settings.
+		 */
+		$css = apply_filters( 'esf_layouts_custom_css', $css, $module, $settings );
+		if ( '' !== $module ) {
+			$css = apply_filters( "esf_{$module}_layouts_custom_css", $css, $settings );
+		}
+
+		return is_string( $css ) ? $css : '';
 	}
 
 	/**

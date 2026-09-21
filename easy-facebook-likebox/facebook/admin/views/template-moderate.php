@@ -50,7 +50,7 @@ if ( $feed_img ) {
         ?>
 					   <div class="efbl-content-holder">
 							<p><?php 
-        echo wp_trim_words( $post_text, 10, '' );
+        echo esc_html( wp_trim_words( $post_text, 10, '' ) );
         ?></p>
 					   </div>
 					<?php 

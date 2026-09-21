@@ -239,6 +239,7 @@ class ESF_Twitter_Auth_Callback_Listener {
 
 		echo '<!doctype html><html><head><meta charset="utf-8"><title>' . esc_html__( 'X Account Connected', 'easy-facebook-likebox' ) . '</title></head><body>';
 		echo '<p>' . esc_html__( 'Finishing authentication. You can close this window if it does not close automatically.', 'easy-facebook-likebox' ) . '</p>';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON from wp_json_encode for popup postMessage bootstrap.
 		echo '<script>(function(){var payload=' . $payload . ';';
 		echo 'try{if(window.opener&&!window.opener.closed){window.opener.postMessage(payload,' . wp_json_encode( $origin ) . ');}}catch(e){}';
 		echo 'try{window.close();}catch(e){}';

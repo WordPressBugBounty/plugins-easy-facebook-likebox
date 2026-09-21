@@ -10,6 +10,15 @@
  * @since 6.7.6
  */
 
+use EasySocialFeed\Layouts\Contracts\Layout;
+use EasySocialFeed\Layouts\Contracts\PostItem;
+use EasySocialFeed\Layouts\Primitives\MediaCollage;
+use EasySocialFeed\Layouts\ValueObjects\LayoutDefinition;
+use EasySocialFeed\Layouts\ValueObjects\AccountSummary;
+use EasySocialFeed\Layouts\ValueObjects\PostMedia;
+use EasySocialFeed\Twitter\Layouts\PostMapper;
+use EasySocialFeed\Twitter\Layouts\AccountMapper;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -20,7 +29,23 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 6.7.6
  */
-abstract class ESF_Twitter_Layout_Base {
+abstract class ESF_Twitter_Layout_Base implements Layout {
+
+	/**
+	 * Module slug.
+	 *
+	 * @since 6.9.0
+	 * @var string
+	 */
+	protected $module;
+
+	/**
+	 * Layout definition.
+	 *
+	 * @since 6.9.0
+	 * @var LayoutDefinition
+	 */
+	protected $definition;
 
 	/**
 	 * Feed object (id, name, account_id, feed_type, source_id, settings).
@@ -31,7 +56,15 @@ abstract class ESF_Twitter_Layout_Base {
 	protected $feed;
 
 	/**
-	 * Normalized tweet items.
+	 * Post value objects.
+	 *
+	 * @since 6.9.0
+	 * @var PostItem[]
+	 */
+	protected $posts;
+
+	/**
+	 * Normalized tweet items (legacy).
 	 *
 	 * @since 6.7.6
 	 * @var array
@@ -39,25 +72,46 @@ abstract class ESF_Twitter_Layout_Base {
 	protected $tweets;
 
 	/**
-	 * Account object for the feed header.
+	 * Account summary.
 	 *
-	 * @since 6.7.6
-	 * @var object|null
+	 * @since 6.9.0
+	 * @var AccountSummary|null
 	 */
 	protected $account;
 
 	/**
-	 * Constructor.
+	 * Constructor (shared framework signature).
 	 *
-	 * @since 6.7.6
-	 * @param object      $feed    Feed object with settings.
-	 * @param array       $tweets  Normalized tweet items.
-	 * @param object|null $account Account object. Optional.
+	 * @since 6.9.0
+	 * @param string              $module     Module slug.
+	 * @param LayoutDefinition    $definition Layout definition.
+	 * @param object              $feed       Feed object with settings.
+	 * @param PostItem[]          $posts      Post value objects.
+	 * @param AccountSummary|null $account  Account summary. Optional.
 	 */
-	public function __construct( $feed, $tweets, $account = null ) {
-		$this->feed    = $feed;
-		$this->tweets  = is_array( $tweets ) ? $tweets : array();
-		$this->account = $account;
+	public function __construct( string $module, LayoutDefinition $definition, $feed, array $posts, ?AccountSummary $account = null ) {
+		$this->module     = $module;
+		$this->definition = $definition;
+		$this->feed       = $feed;
+		$this->account    = $account;
+
+		// Filter and store Post objects
+		$filtered_posts = array();
+		foreach ( $posts as $post ) {
+			if ( $post instanceof PostItem ) {
+				$filtered_posts[] = $post;
+			}
+		}
+		$this->posts = $filtered_posts;
+
+		// Extract raw tweet data from Post objects for backwards compatibility with existing render logic
+		$this->tweets = array();
+		foreach ( $this->posts as $post ) {
+			$extras = $post->get_extras();
+			if ( isset( $extras['raw_tweet'] ) && is_array( $extras['raw_tweet'] ) ) {
+				$this->tweets[] = $extras['raw_tweet'];
+			}
+		}
 	}
 
 	/**
@@ -66,7 +120,46 @@ abstract class ESF_Twitter_Layout_Base {
 	 * @since 6.7.6
 	 * @return string HTML output.
 	 */
-	abstract public function render();
+	abstract public function render(): string;
+
+	/**
+	 * Public bridge for layouts that do not extend this base (Half Width).
+	 *
+	 * @since 6.15.0
+	 * @return string
+	 */
+	public function render_account_header_html() {
+		return $this->render_header();
+	}
+
+	/**
+	 * Whether the FancyBox lightbox is enabled for this feed (public bridge).
+	 *
+	 * @since 6.15.0
+	 * @return bool
+	 */
+	public function is_tweet_popup_enabled() {
+		return $this->is_popup_enabled_for_feed();
+	}
+
+	/**
+	 * Build lightbox payload (public bridge for Half Width / shared layouts).
+	 *
+	 * @since 6.15.0
+	 * @param array $context Tweet context for popup payload.
+	 * @return array|null
+	 */
+	public function build_tweet_popup_payload( $context ) {
+		return $this->build_popup_payload( $context );
+	}
+
+	/**
+	 * Get the layout definition (required by Layout interface).
+	 *
+	 * @since 6.9.0
+	 * @return LayoutDefinition
+	 */
+	abstract public function get_definition(): LayoutDefinition;
 
 	/**
 	 * Get the WordPress style handle for this layout's CSS.
@@ -102,12 +195,12 @@ abstract class ESF_Twitter_Layout_Base {
 		$settings = isset( $this->feed->settings ) && is_array( $this->feed->settings ) ? $this->feed->settings : array();
 		$feed     = isset( $settings['feed'] ) && is_array( $settings['feed'] ) ? $settings['feed'] : array();
 
-		$per_page         = isset( $feed['per_page'] ) ? max( 1, min( 50, (int) $feed['per_page'] ) ) : 10;
+		$per_page          = isset( $feed['per_page'] ) ? max( 1, min( 50, (int) $feed['per_page'] ) ) : 10;
 		$has_loadmore_plan = function_exists( 'esf_twitter_has_twitter_plan' ) && esf_twitter_has_twitter_plan();
 		$wants_load_more   = ! array_key_exists( 'load_more', $feed ) || ! empty( $feed['load_more'] );
-		$total            = count( $tweets );
-		$visible_tweets   = $tweets;
-		$load_more_html   = '';
+		$total             = count( $tweets );
+		$visible_tweets    = $tweets;
+		$load_more_html    = '';
 
 		if ( $total > $per_page ) {
 			$visible_tweets = array_slice( $tweets, 0, $per_page );
@@ -120,26 +213,40 @@ abstract class ESF_Twitter_Layout_Base {
 			$feed_id_attr = isset( $this->feed->id ) ? (int) $this->feed->id : 0;
 			$next_token   = '';
 			if ( $feed_id_attr > 0 && isset( $this->feed->account_id ) ) {
-				$meta_key   = 'esf_tw_tweets_' . $feed_id_attr . '_' . (int) $this->feed->account_id . '_meta';
+				$meta_key   = function_exists( 'esf_twitter_tweets_cache_key' )
+					? esf_twitter_tweets_cache_key( (int) $this->feed->account_id ) . '_meta'
+					: 'esf_tw_tweets_' . (int) $this->feed->account_id . '_meta';
 				$meta_cache = ESF_Twitter_Cache::get( $meta_key );
+				if ( ! is_array( $meta_cache ) && function_exists( 'esf_twitter_tweets_cache_legacy_keys' ) ) {
+					foreach ( esf_twitter_tweets_cache_legacy_keys( $feed_id_attr, (int) $this->feed->account_id ) as $legacy_key ) {
+						$meta_cache = ESF_Twitter_Cache::get( $legacy_key . '_meta' );
+						if ( is_array( $meta_cache ) ) {
+							break;
+						}
+					}
+				}
 				if ( is_array( $meta_cache ) && ! empty( $meta_cache['next_token'] ) ) {
 					$next_token = sanitize_text_field( (string) $meta_cache['next_token'] );
 				}
 			}
-			$bg_color     = isset( $feed['load_more_bg_color'] ) && is_string( $feed['load_more_bg_color'] )
-				? sanitize_hex_color( $feed['load_more_bg_color'] )
-				: '';
-			$text_color   = isset( $feed['load_more_text_color'] ) && is_string( $feed['load_more_text_color'] )
-				? sanitize_hex_color( $feed['load_more_text_color'] )
-				: '';
-			$style_parts  = array();
+			$bg_color    = $this->sanitize_theme_hex( isset( $feed['load_more_bg_color'] ) ? $feed['load_more_bg_color'] : '' );
+			$text_color  = $this->sanitize_theme_hex( isset( $feed['load_more_text_color'] ) ? $feed['load_more_text_color'] : '' );
+			$hover_bg    = $this->sanitize_theme_hex( isset( $feed['load_more_hover_bg_color'] ) ? $feed['load_more_hover_bg_color'] : '' );
+			$hover_text  = $this->sanitize_theme_hex( isset( $feed['load_more_hover_text_color'] ) ? $feed['load_more_hover_text_color'] : '' );
+			$style_parts = array();
 			if ( '' !== $bg_color ) {
-				$style_parts[] = 'background-color:' . esc_attr( $bg_color );
+				$style_parts[] = '--esf-lm-bg:' . $bg_color;
 			}
 			if ( '' !== $text_color ) {
-				$style_parts[] = 'color:' . esc_attr( $text_color );
+				$style_parts[] = '--esf-lm-text:' . $text_color;
 			}
-			$button_style  = ! empty( $style_parts ) ? implode( ';', $style_parts ) : '';
+			if ( '' !== $hover_bg ) {
+				$style_parts[] = '--esf-lm-bg-hover:' . $hover_bg;
+			}
+			if ( '' !== $hover_text ) {
+				$style_parts[] = '--esf-lm-text-hover:' . $hover_text;
+			}
+			$button_style   = ! empty( $style_parts ) ? implode( ';', $style_parts ) : '';
 			$load_more_html = sprintf(
 				'<div class="esf-tw-feed__load-more-wrap"><button type="button" class="esf-tw-feed__load-more" data-feed-id="%1$d" data-offset="%2$d" data-next-token="%6$s" aria-label="%3$s" %5$s>%4$s</button></div>',
 				$feed_id_attr,
@@ -227,12 +334,12 @@ abstract class ESF_Twitter_Layout_Base {
 			return '';
 		}
 
-		$show_avatar        = ! isset( $header['show_avatar'] ) || ! empty( $header['show_avatar'] );
-		$show_name          = ! isset( $header['show_name'] ) || ! empty( $header['show_name'] );
-		$show_followers     = ! isset( $header['show_followers'] ) || ! empty( $header['show_followers'] );
-		$show_following     = ! isset( $header['show_following'] ) || ! empty( $header['show_following'] );
-		$show_tweets        = ! isset( $header['show_tweets'] ) || ! empty( $header['show_tweets'] );
-		$show_bio           = ! isset( $header['show_bio'] ) || ! empty( $header['show_bio'] );
+		$show_avatar              = ! isset( $header['show_avatar'] ) || ! empty( $header['show_avatar'] );
+		$show_name                = ! isset( $header['show_name'] ) || ! empty( $header['show_name'] );
+		$show_followers           = ! isset( $header['show_followers'] ) || ! empty( $header['show_followers'] );
+		$show_following           = ! isset( $header['show_following'] ) || ! empty( $header['show_following'] );
+		$show_tweets              = ! isset( $header['show_tweets'] ) || ! empty( $header['show_tweets'] );
+		$show_bio                 = ! isset( $header['show_bio'] ) || ! empty( $header['show_bio'] );
 		$show_follow_button       = false;
 		$can_toggle_follow_button = false;
 
@@ -256,19 +363,41 @@ abstract class ESF_Twitter_Layout_Base {
 			$show_bio       = true;
 		}
 
-		$display_name = isset( $this->account->display_name ) ? (string) $this->account->display_name : '';
-		$username     = isset( $this->account->username ) ? (string) $this->account->username : '';
-		$avatar       = isset( $this->account->profile_image_url ) ? (string) $this->account->profile_image_url : '';
-		if ( function_exists( 'esf_twitter_get_best_profile_image_url' ) ) {
+		// Use getter methods for AccountSummary, fallback to property access for legacy objects
+		if ( method_exists( $this->account, 'get_name' ) ) {
+			// Modern AccountSummary object
+			$display_name = $this->account->get_name();
+			$username     = $this->account->get_handle();
+			$avatar       = $this->account->get_avatar_url();
+			$bio          = $this->account->get_bio();
+			$followers    = $this->account->get_stat( 'followers', 0 );
+			$following    = $this->account->get_stat( 'following', 0 );
+			$tweet_count  = $this->account->get_stat( 'tweets', 0 );
+		} else {
+			// Legacy object with direct property access
+			$display_name = isset( $this->account->display_name ) ? (string) $this->account->display_name : '';
+			$username     = isset( $this->account->username ) ? (string) $this->account->username : '';
+			$avatar       = isset( $this->account->profile_image_url ) ? (string) $this->account->profile_image_url : '';
+			$followers    = isset( $this->account->followers_count ) ? (int) $this->account->followers_count : 0;
+			$following    = isset( $this->account->following_count ) ? (int) $this->account->following_count : 0;
+			$tweet_count  = isset( $this->account->tweet_count ) ? (int) $this->account->tweet_count : 0;
+			$bio          = isset( $this->account->description ) ? (string) $this->account->description : '';
+		}
+
+		if ( class_exists( 'ESF_Twitter_Local_Media' ) ) {
+			$resolved_avatar = ESF_Twitter_Local_Media::resolve_avatar_display_url( $this->account );
+			if ( '' !== $resolved_avatar ) {
+				$avatar = $resolved_avatar;
+			} elseif ( function_exists( 'esf_is_local_media_url' ) && esf_is_local_media_url( $avatar, 'twitter' ) ) {
+				$avatar = '';
+			}
+		} elseif ( function_exists( 'esf_twitter_get_best_profile_image_url' ) ) {
 			$avatar = esf_twitter_get_best_profile_image_url( $avatar );
 		}
-		$followers    = isset( $this->account->followers_count ) ? (int) $this->account->followers_count : 0;
-		$following    = isset( $this->account->following_count ) ? (int) $this->account->following_count : 0;
-		$tweet_count  = isset( $this->account->tweet_count ) ? (int) $this->account->tweet_count : 0;
-		$bio          = isset( $this->account->description ) ? (string) $this->account->description : '';
-		$profile_url  = $username ? 'https://x.com/' . $username : 'https://x.com';
-		$is_verified  = $this->is_account_verified();
-		$header_data  = array(
+
+		$profile_url = $username ? 'https://x.com/' . $username : 'https://x.com';
+		$is_verified = $this->is_account_verified();
+		$header_data = array(
 			'display_name'       => $display_name,
 			'username'           => $username,
 			'avatar'             => $avatar,
@@ -286,7 +415,7 @@ abstract class ESF_Twitter_Layout_Base {
 			'show_follow_button' => $show_follow_button,
 			'is_verified'        => $is_verified,
 		);
-		$header_data  = apply_filters( 'esf_twitter_layout_header_data', $header_data, $header, $this->feed, $this->account, $this );
+		$header_data = apply_filters( 'esf_twitter_layout_header_data', $header_data, $header, $this->feed, $this->account, $this );
 
 		$display_name       = isset( $header_data['display_name'] ) ? (string) $header_data['display_name'] : $display_name;
 		$username           = isset( $header_data['username'] ) ? (string) $header_data['username'] : $username;
@@ -308,10 +437,44 @@ abstract class ESF_Twitter_Layout_Base {
 			$show_follow_button = false;
 		}
 
+		$header_classes    = array( 'esf-tw-feed__header' );
+		$header_style_attr = '';
+		if ( function_exists( 'esf_twitter_has_twitter_plan' ) && esf_twitter_has_twitter_plan() ) {
+			$show_border  = ! isset( $header['show_border'] ) || ! empty( $header['show_border'] );
+			$bg_color     = $this->sanitize_theme_hex( isset( $header['bg_color'] ) ? $header['bg_color'] : '' );
+			$text_color   = $this->sanitize_theme_hex( isset( $header['text_color'] ) ? $header['text_color'] : '' );
+			$border_color = $this->sanitize_theme_hex( isset( $header['border_color'] ) ? $header['border_color'] : '' );
+			$padding_raw  = isset( $header['padding'] ) ? (int) $header['padding'] : 20;
+			$padding      = max( 0, min( 48, $padding_raw ) );
+			$style_parts  = array();
+
+			if ( '' !== $bg_color ) {
+				$style_parts[] = 'background-color:' . $bg_color;
+			}
+			if ( '' !== $text_color ) {
+				$style_parts[]    = 'color:' . $text_color;
+				$header_classes[] = 'esf-tw-feed__header--custom-text';
+			}
+			if ( ! $show_border ) {
+				$style_parts[]    = 'border:none';
+				$style_parts[]    = 'box-shadow:none';
+				$header_classes[] = 'esf-tw-feed__header--no-border';
+			} elseif ( '' !== $border_color ) {
+				$style_parts[] = 'border-color:' . $border_color;
+			}
+			if ( 20 !== $padding ) {
+				$style_parts[] = 'padding:' . $padding . 'px';
+			}
+
+			if ( ! empty( $style_parts ) ) {
+				$header_style_attr = ' style="' . esc_attr( implode( ';', $style_parts ) ) . '"';
+			}
+		}
+
 		ob_start();
 		?>
 		<?php do_action( 'esf_twitter_layout_before_header', $header_data, $this->feed, $this->account, $this ); ?>
-		<div class="esf-tw-feed__header">
+		<div class="<?php echo esc_attr( implode( ' ', $header_classes ) ); ?>"<?php echo $header_style_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?>>
 			<div class="esf-tw-feed__header-inner">
 				<?php if ( $show_avatar && $avatar ) : ?>
 					<a class="esf-tw-feed__header-avatar-link"
@@ -402,19 +565,26 @@ abstract class ESF_Twitter_Layout_Base {
 			? $settings['feed']
 			: array();
 
-		$show_image    = ! isset( $card['show_image'] ) || ! empty( $card['show_image'] );
-		$show_text     = ! isset( $card['show_text'] ) || ! empty( $card['show_text'] );
-		$show_date     = ! isset( $card['show_date'] ) || ! empty( $card['show_date'] );
-		$show_likes    = ! isset( $card['show_likes'] ) || ! empty( $card['show_likes'] );
-		$show_retweets = ! isset( $card['show_retweets'] ) || ! empty( $card['show_retweets'] );
-		$show_replies  = ! isset( $card['show_replies'] ) || ! empty( $card['show_replies'] );
-		$show_quotes   = ! isset( $card['show_quotes'] ) || ! empty( $card['show_quotes'] );
-		$popup_show_author    = ! isset( $feed['popup_show_author'] ) || ! empty( $feed['popup_show_author'] );
-		$popup_show_date      = ! isset( $feed['popup_show_date'] ) || ! empty( $feed['popup_show_date'] );
-		$popup_show_follow    = ! isset( $feed['popup_show_follow'] ) || ! empty( $feed['popup_show_follow'] );
-		$popup_show_text      = ! isset( $feed['popup_show_text'] ) || ! empty( $feed['popup_show_text'] );
-		$popup_show_metrics   = ! isset( $feed['popup_show_metrics'] ) || ! empty( $feed['popup_show_metrics'] );
-		$popup_show_view_on_x = ! isset( $feed['popup_show_view_on_x'] ) || ! empty( $feed['popup_show_view_on_x'] );
+		$show_image               = ! isset( $card['show_image'] ) || ! empty( $card['show_image'] );
+		$show_text                = ! isset( $card['show_text'] ) || ! empty( $card['show_text'] );
+		$show_date                = ! isset( $card['show_date'] ) || ! empty( $card['show_date'] );
+		$show_likes               = ! isset( $card['show_likes'] ) || ! empty( $card['show_likes'] );
+		$show_retweets            = ! isset( $card['show_retweets'] ) || ! empty( $card['show_retweets'] );
+		$show_replies             = ! isset( $card['show_replies'] ) || ! empty( $card['show_replies'] );
+		$show_quotes              = ! isset( $card['show_quotes'] ) || ! empty( $card['show_quotes'] );
+		$hover_overlay            = ! isset( $feed['hover_overlay'] ) || ! empty( $feed['hover_overlay'] );
+		$show_hover_plus          = $hover_overlay && ( ! isset( $feed['show_hover_plus'] ) || ! empty( $feed['show_hover_plus'] ) );
+		$show_media_type_icon     = ! isset( $feed['show_media_type_icon'] ) || ! empty( $feed['show_media_type_icon'] );
+		$popup_show_author        = ! isset( $feed['popup_show_author'] ) || ! empty( $feed['popup_show_author'] );
+		$popup_show_date          = ! isset( $feed['popup_show_date'] ) || ! empty( $feed['popup_show_date'] );
+		$popup_show_follow        = ! isset( $feed['popup_show_follow'] ) || ! empty( $feed['popup_show_follow'] );
+		$popup_show_text          = ! isset( $feed['popup_show_text'] ) || ! empty( $feed['popup_show_text'] );
+		$popup_show_metrics       = ! isset( $feed['popup_show_metrics'] ) || ! empty( $feed['popup_show_metrics'] );
+		$popup_show_view_on_x     = ! isset( $feed['popup_show_view_on_x'] ) || ! empty( $feed['popup_show_view_on_x'] );
+		$popup_show_comments_list = ! isset( $feed['popup_show_comments_list'] ) || ! empty( $feed['popup_show_comments_list'] );
+		$popup_comments_per_page  = isset( $feed['popup_comments_per_page'] )
+			? max( 1, min( 50, (int) $feed['popup_comments_per_page'] ) )
+			: 20;
 
 		$tweet_id   = isset( $tweet['tweet_id'] ) ? $tweet['tweet_id'] : '';
 		$text_html  = isset( $tweet['text_html'] ) ? $tweet['text_html'] : '';
@@ -423,10 +593,10 @@ abstract class ESF_Twitter_Layout_Base {
 		$media      = isset( $tweet['media'] ) && is_array( $tweet['media'] ) ? $tweet['media'] : array();
 
 		// Card-level author data with feed-account fallback.
-		$author        = isset( $tweet['author'] ) && is_array( $tweet['author'] ) ? $tweet['author'] : array();
-		$author_name   = ! empty( $author['display_name'] ) ? $author['display_name']
+		$author             = isset( $tweet['author'] ) && is_array( $tweet['author'] ) ? $tweet['author'] : array();
+		$author_name        = ! empty( $author['display_name'] ) ? $author['display_name']
 			: ( $this->account ? (string) $this->account->display_name : '' );
-		$author_handle = ! empty( $author['username'] ) ? $author['username']
+		$author_handle      = ! empty( $author['username'] ) ? $author['username']
 			: ( $this->account ? (string) $this->account->username : '' );
 		$author_is_verified = $this->is_user_verified( $author );
 		if ( ! $author_is_verified && $this->account ) {
@@ -440,7 +610,7 @@ abstract class ESF_Twitter_Layout_Base {
 		if ( function_exists( 'esf_twitter_get_best_profile_image_url' ) ) {
 			$author_avatar = esf_twitter_get_best_profile_image_url( $author_avatar );
 		}
-		$profile_url   = $author_handle ? 'https://x.com/' . $author_handle : 'https://x.com';
+		$profile_url = $author_handle ? 'https://x.com/' . $author_handle : 'https://x.com';
 
 		// Media rendering starts from the first available item.
 		$first_media = ! empty( $media ) ? $media[0] : array();
@@ -472,37 +642,41 @@ abstract class ESF_Twitter_Layout_Base {
 		}
 
 		$popup_payload_attr = '';
+		$popup_trigger_attr = '';
 		$card_classes       = 'esf-tw-feed__card' . ( $has_media ? ' esf-tw-feed__card--has-media' : '' );
 		$popup_payload      = null;
 
 		if ( $this->is_popup_enabled_for_feed() ) {
 			$popup_payload = $this->build_popup_payload(
 				array(
-					'tweet'         => $tweet,
-					'tweet_url'     => $tweet_url,
-					'text_html'     => $text_html,
-					'created_at'    => $created_at,
-					'date_human'    => $date_human,
-					'author_name'   => $author_name,
-					'author_handle' => $author_handle,
-					'author_avatar' => $author_avatar,
-					'author_is_verified' => $author_is_verified,
-					'profile_url'   => $profile_url,
-					'media'         => $media,
-					'like_count'    => $like_count,
-					'reply_count'   => $reply_count,
-					'retweet_count' => $rt_count,
-					'quote_count'   => $quote_count,
-					'show_likes'    => $show_likes,
-					'show_replies'  => $show_replies,
-					'show_retweets' => $show_retweets,
-					'show_quotes'   => $show_quotes,
-					'popup_show_author'    => $popup_show_author,
-					'popup_show_date'      => $popup_show_date,
-					'popup_show_follow'    => $popup_show_follow,
-					'popup_show_text'      => $popup_show_text,
-					'popup_show_metrics'   => $popup_show_metrics,
-					'popup_show_view_on_x' => $popup_show_view_on_x,
+					'tweet'                    => $tweet,
+					'tweet_url'                => $tweet_url,
+					'text_html'                => $text_html,
+					'created_at'               => $created_at,
+					'date_human'               => $date_human,
+					'author_name'              => $author_name,
+					'author_handle'            => $author_handle,
+					'author_avatar'            => $author_avatar,
+					'author_is_verified'       => $author_is_verified,
+					'profile_url'              => $profile_url,
+					'media'                    => $media,
+					'like_count'               => $like_count,
+					'reply_count'              => $reply_count,
+					'retweet_count'            => $rt_count,
+					'quote_count'              => $quote_count,
+					'show_likes'               => $show_likes,
+					'show_replies'             => $show_replies,
+					'show_retweets'            => $show_retweets,
+					'show_quotes'              => $show_quotes,
+					'popup_show_author'        => $popup_show_author,
+					'popup_show_date'          => $popup_show_date,
+					'popup_show_follow'        => $popup_show_follow,
+					'popup_show_text'          => $popup_show_text,
+					'popup_show_metrics'       => $popup_show_metrics,
+					'popup_show_view_on_x'     => $popup_show_view_on_x,
+					'popup_show_comments_list' => $popup_show_comments_list,
+					'popup_comments_per_page'  => $popup_comments_per_page,
+					'feed_id'                  => $feed_id_attr,
 				)
 			);
 		}
@@ -513,45 +687,49 @@ abstract class ESF_Twitter_Layout_Base {
 			$popup_payload_attr = is_string( $popup_json ) && '' !== $popup_json
 				? ' data-esf-tw-popup="' . esc_attr( $popup_json ) . '"'
 				: '';
+			if ( ! $has_media ) {
+				$card_classes      .= ' esf-tw-feed__card--popup-text';
+				$popup_trigger_attr = ' data-esf-tw-popup-trigger="1"';
+			}
 			if ( '' !== $popup_payload_attr && function_exists( 'esf_twitter_flag_lightbox_script' ) ) {
 				esf_twitter_flag_lightbox_script();
 			}
 		}
 
 		$tweet_context = array(
-			'tweet'          => $tweet,
-			'tweet_id'       => $tweet_id,
-			'text_html'      => $text_html,
-			'created_at'     => $created_at,
-			'tweet_url'      => $tweet_url,
-			'media'          => $media,
-			'first_media'    => $first_media,
-			'media_url'      => $media_url,
-			'media_type'     => $media_type,
-			'has_media'      => $has_media,
-			'date_human'     => $date_human,
-			'like_count'     => $like_count,
-			'retweet_count'  => $rt_count,
-			'reply_count'    => $reply_count,
-			'quote_count'    => $quote_count,
-			'is_retweet'     => $is_retweet,
-			'retweet_from'   => $retweet_from,
-			'show_image'     => $show_image,
-			'show_text'      => $show_text,
-			'show_date'      => $show_date,
-			'show_likes'     => $show_likes,
-			'show_retweets'  => $show_retweets,
-			'show_replies'   => $show_replies,
-			'show_quotes'    => $show_quotes,
-			'author_name'    => $author_name,
-			'author_handle'  => $author_handle,
-			'author_avatar'  => $author_avatar,
+			'tweet'              => $tweet,
+			'tweet_id'           => $tweet_id,
+			'text_html'          => $text_html,
+			'created_at'         => $created_at,
+			'tweet_url'          => $tweet_url,
+			'media'              => $media,
+			'first_media'        => $first_media,
+			'media_url'          => $media_url,
+			'media_type'         => $media_type,
+			'has_media'          => $has_media,
+			'date_human'         => $date_human,
+			'like_count'         => $like_count,
+			'retweet_count'      => $rt_count,
+			'reply_count'        => $reply_count,
+			'quote_count'        => $quote_count,
+			'is_retweet'         => $is_retweet,
+			'retweet_from'       => $retweet_from,
+			'show_image'         => $show_image,
+			'show_text'          => $show_text,
+			'show_date'          => $show_date,
+			'show_likes'         => $show_likes,
+			'show_retweets'      => $show_retweets,
+			'show_replies'       => $show_replies,
+			'show_quotes'        => $show_quotes,
+			'author_name'        => $author_name,
+			'author_handle'      => $author_handle,
+			'author_avatar'      => $author_avatar,
 			'author_is_verified' => $author_is_verified,
-			'profile_url'    => $profile_url,
-			'media_alt'      => function_exists( 'esf_seo_media_alt' )
+			'profile_url'        => $profile_url,
+			'media_alt'          => function_exists( 'esf_seo_media_alt' )
 				? esf_seo_media_alt( $text_html, $author_name, 'photo' )
 				: $author_name,
-			'feed_id'        => $feed_id_attr,
+			'feed_id'            => $feed_id_attr,
 		);
 		$tweet_context = apply_filters( 'esf_twitter_layout_tweet_context', $tweet_context, $tweet, $this->feed, $this->account, $this );
 		$media_alt     = isset( $tweet_context['media_alt'] ) ? (string) $tweet_context['media_alt'] : $author_name;
@@ -560,7 +738,7 @@ abstract class ESF_Twitter_Layout_Base {
 		?>
 		<?php do_action( 'esf_twitter_layout_before_tweet_card', $tweet_context, $this->feed, $this->account, $this ); ?>
 		<article class="<?php echo esc_attr( $card_classes ); ?>"
-				data-feed-id="<?php echo esc_attr( (string) $feed_id_attr ); ?>"<?php echo $popup_payload_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped JSON data attribute. ?>>
+				data-feed-id="<?php echo esc_attr( (string) $feed_id_attr ); ?>"<?php echo $this->get_post_id_attr( is_array( $tweet ) ? $tweet : array() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Helper returns escaped attribute. ?><?php echo $popup_payload_attr . $popup_trigger_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped JSON data attribute. ?>>
 			<div class="esf-tw-feed__card-body">
 				<header class="esf-tw-feed__card-header">
 					<?php if ( $author_avatar ) : ?>
@@ -623,81 +801,18 @@ abstract class ESF_Twitter_Layout_Base {
 					<div class="esf-tw-feed__card-media">
 						<?php if ( count( $media ) > 1 ) : ?>
 							<?php
-							$grid_items = array();
-							foreach ( array_slice( $media, 0, 3 ) as $grid_media_item ) {
-								if ( ! is_array( $grid_media_item ) ) {
-									continue;
-								}
-								$grid_type = isset( $grid_media_item['type'] ) ? (string) $grid_media_item['type'] : 'photo';
-								$grid_src  = 'photo' === $grid_type
-									? ( isset( $grid_media_item['url'] ) ? (string) $grid_media_item['url'] : '' )
-									: ( isset( $grid_media_item['preview_url'] ) ? (string) $grid_media_item['preview_url'] : '' );
-								if ( '' === $grid_src ) {
-									continue;
-								}
-								$grid_items[] = array(
-									'type' => $grid_type,
-									'src'  => $grid_src,
-								);
-							}
-							$extra_count = max( 0, count( $media ) - 3 );
+							// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped inside render_tweet_media_collage().
+							echo $this->render_tweet_media_collage(
+								$media,
+								$tweet_url,
+								$media_alt,
+								! empty( $popup_payload ),
+								$hover_overlay,
+								$show_hover_plus,
+								$show_media_type_icon
+							);
+							// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 							?>
-							<?php if ( ! empty( $grid_items ) ) : ?>
-								<a href="<?php echo esc_url( $tweet_url ); ?>" target="_blank" rel="noopener noreferrer"
-									class="esf-tw-feed__card-media-grid-link<?php echo ! empty( $popup_payload ) ? ' esf-tw-feed__card-media-link' : ''; ?>"
-									<?php if ( ! empty( $popup_payload ) ) : ?>
-										data-esf-tw-popup-trigger="1"
-										data-esf-tw-media-type="gallery"
-									<?php endif; ?>>
-									<?php if ( 2 === count( $grid_items ) ) : ?>
-										<div class="esf-tw-feed__card-media-grid esf-tw-feed__card-media-grid--two">
-											<div class="esf-tw-feed__card-media-grid-cell">
-												<img src="<?php echo esc_url( $grid_items[0]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
-											</div>
-											<div class="esf-tw-feed__card-media-grid-cell">
-												<img src="<?php echo esc_url( $grid_items[1]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
-											</div>
-										</div>
-									<?php else : ?>
-										<div class="esf-tw-feed__card-media-grid">
-											<div class="esf-tw-feed__card-media-grid-left">
-												<img src="<?php echo esc_url( $grid_items[0]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
-											</div>
-											<div class="esf-tw-feed__card-media-grid-right">
-												<?php if ( isset( $grid_items[1] ) ) : ?>
-													<div class="esf-tw-feed__card-media-grid-cell">
-														<img src="<?php echo esc_url( $grid_items[1]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
-													</div>
-												<?php endif; ?>
-												<?php if ( isset( $grid_items[2] ) ) : ?>
-													<div class="esf-tw-feed__card-media-grid-cell">
-														<img src="<?php echo esc_url( $grid_items[2]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
-														<?php if ( $extra_count > 0 ) : ?>
-															<span class="esf-tw-feed__card-media-grid-more">+<?php echo esc_html( (string) $extra_count ); ?> <?php esc_html_e( esf_get_translated_string( 'tw_more' ), 'easy-facebook-likebox' ); ?></span>
-														<?php endif; ?>
-													</div>
-												<?php elseif ( isset( $grid_items[1] ) && $extra_count > 0 ) : ?>
-													<div class="esf-tw-feed__card-media-grid-cell">
-														<img src="<?php echo esc_url( $grid_items[1]['src'] ); ?>" alt="<?php echo esc_attr( $media_alt ); ?>" class="esf-tw-feed__card-media-grid-img" loading="lazy" />
-														<span class="esf-tw-feed__card-media-grid-more">+<?php echo esc_html( (string) $extra_count ); ?> <?php esc_html_e( esf_get_translated_string( 'tw_more' ), 'easy-facebook-likebox' ); ?></span>
-													</div>
-												<?php endif; ?>
-											</div>
-										</div>
-									<?php endif; ?>
-									<?php if ( ! empty( $popup_payload ) ) : ?>
-										<span class="esf-tw-feed__card-media-overlay" aria-hidden="true">
-											<span class="esf-tw-feed__card-media-overlay-plus">+</span>
-											<span class="esf-tw-feed__card-media-overlay-icon esf-tw-feed__card-media-overlay-icon--gallery">
-												<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-													<rect x="8" y="8" width="12" height="12" rx="2"></rect>
-													<path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
-												</svg>
-											</span>
-										</span>
-									<?php endif; ?>
-								</a>
-							<?php endif; ?>
 						<?php else : ?>
 							<a href="<?php echo esc_url( $tweet_url ); ?>" target="_blank" rel="noopener noreferrer"
 								class="esf-tw-feed__card-media-link<?php echo 'photo' !== $media_type ? ' esf-tw-feed__card-media-link--video' : ''; ?>"
@@ -705,39 +820,50 @@ abstract class ESF_Twitter_Layout_Base {
 									data-esf-tw-popup-trigger="1"
 									data-esf-tw-media-type="<?php echo esc_attr( 'photo' === $media_type ? 'image' : 'video' ); ?>"
 								<?php endif; ?>>
+								<?php
+								$media_width  = isset( $first_media['width'] ) ? (int) $first_media['width'] : 0;
+								$media_height = isset( $first_media['height'] ) ? (int) $first_media['height'] : 0;
+								?>
 								<img src="<?php echo esc_url( $media_url ); ?>"
 									alt="<?php echo esc_attr( $media_alt ); ?>"
-									class="esf-tw-feed__card-media-img" loading="lazy" />
-								<span class="esf-tw-feed__card-media-overlay" aria-hidden="true">
-									<span class="esf-tw-feed__card-media-overlay-plus">+</span>
-									<?php if ( 'photo' !== $media_type ) : ?>
-										<span class="esf-tw-feed__card-media-overlay-icon esf-tw-feed__card-media-overlay-icon--video">
-											<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-												<polygon points="10 8 16 12 10 16 10 8"></polygon>
-												<rect x="4" y="5" width="16" height="14" rx="2"></rect>
-											</svg>
-										</span>
+									<?php if ( $media_width > 0 && $media_height > 0 ) : ?>
+										width="<?php echo esc_attr( (string) $media_width ); ?>" height="<?php echo esc_attr( (string) $media_height ); ?>"
 									<?php endif; ?>
-								</span>
+									class="esf-tw-feed__card-media-img" loading="lazy" />
+								<?php if ( $show_media_type_icon && 'photo' !== $media_type ) : ?>
+									<span class="esf-tw-feed__card-media-type-icon" aria-hidden="true">
+										<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+											<polygon points="10 8 16 12 10 16 10 8"></polygon>
+											<rect x="4" y="5" width="16" height="14" rx="2"></rect>
+										</svg>
+									</span>
+								<?php endif; ?>
+								<?php if ( $show_hover_plus ) : ?>
+									<span class="esf-tw-feed__card-media-overlay" aria-hidden="true">
+										<span class="esf-tw-feed__card-media-overlay-plus">+</span>
+									</span>
+								<?php endif; ?>
 							</a>
 						<?php endif; ?>
 					</div>
 				<?php endif; ?>
 
 				<?php
+				// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped inside render_tweet_meta_actions().
 				echo $this->render_tweet_meta_actions(
 					array(
-						'tweet_url'      => $tweet_url,
-						'reply_count'    => $reply_count,
-						'like_count'     => $like_count,
-						'retweet_count'  => $rt_count,
-						'quote_count'    => $quote_count,
-						'show_replies'   => $show_replies,
-						'show_likes'     => $show_likes,
-						'show_retweets'  => $show_retweets,
-						'show_quotes'    => $show_quotes,
+						'tweet_url'     => $tweet_url,
+						'reply_count'   => $reply_count,
+						'like_count'    => $like_count,
+						'retweet_count' => $rt_count,
+						'quote_count'   => $quote_count,
+						'show_replies'  => $show_replies,
+						'show_likes'    => $show_likes,
+						'show_retweets' => $show_retweets,
+						'show_quotes'   => $show_quotes,
 					)
 				);
+				// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				?>
 			</div>
 		</article>
@@ -953,6 +1079,115 @@ abstract class ESF_Twitter_Layout_Base {
 	}
 
 	/**
+	 * Convert normalized tweet media arrays to PostMedia objects.
+	 *
+	 * @since 6.9.5
+	 * @param array<int,array<string,mixed>> $media Tweet media items.
+	 * @return PostMedia[]
+	 */
+	protected function convert_tweet_media_to_post_media( array $media ): array {
+		$items = array();
+
+		foreach ( $media as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+
+			$type      = isset( $item['type'] ) ? (string) $item['type'] : 'photo';
+			$is_video  = 'photo' !== $type;
+			$url       = isset( $item['url'] ) ? (string) $item['url'] : '';
+			$preview   = isset( $item['preview_url'] ) ? (string) $item['preview_url'] : '';
+			$video_url = isset( $item['video_url'] ) ? (string) $item['video_url'] : '';
+
+			if ( $is_video && '' === $video_url && '' !== $url ) {
+				$video_url = $url;
+			}
+
+			$post_media = new PostMedia(
+				array(
+					'type'        => $is_video ? PostMedia::TYPE_VIDEO : PostMedia::TYPE_PHOTO,
+					'url'         => $url,
+					'preview_url' => $preview,
+					'video_url'   => $video_url,
+					'width'       => isset( $item['width'] ) ? (int) $item['width'] : 0,
+					'height'      => isset( $item['height'] ) ? (int) $item['height'] : 0,
+					'alt'         => isset( $item['alt_text'] ) ? (string) $item['alt_text'] : '',
+				)
+			);
+
+			if ( '' === $post_media->get_display_url() && ! $post_media->has_placeholder_poster() ) {
+				continue;
+			}
+
+			$items[] = $post_media;
+		}
+
+		return $items;
+	}
+
+	/**
+	 * Render a multi-image collage via the shared MediaCollage primitive.
+	 *
+	 * @since 6.9.5
+	 * @param array<int,array<string,mixed>> $media      Tweet media items.
+	 * @param string                         $tweet_url  Permalink.
+	 * @param string                         $alt        Alt text fallback.
+	 * @param bool                           $has_popup             Whether popup is enabled.
+	 * @param bool                           $hover_overlay         Whether hover overlay is enabled.
+	 * @param bool                           $show_hover_plus       Whether to show the hover plus.
+	 * @param bool                           $show_media_type_icon  Whether to show the type icon.
+	 * @return string
+	 */
+	protected function render_tweet_media_collage( array $media, $tweet_url, $alt, $has_popup, $hover_overlay = true, $show_hover_plus = true, $show_media_type_icon = true ) {
+		$items = $this->convert_tweet_media_to_post_media( $media );
+		if ( count( $items ) < 2 ) {
+			return '';
+		}
+
+		$more_label = function_exists( 'esf_get_translated_string' )
+			? (string) esf_get_translated_string( 'tw_more' )
+			: __( 'more', 'easy-facebook-likebox' );
+
+		return MediaCollage::render(
+			'tw',
+			$items,
+			(string) $tweet_url,
+			(string) $alt,
+			array(
+				'variant'              => 'card',
+				'prefer_preview'       => true,
+				'popup_trigger'        => (bool) $has_popup,
+				'show_overlay'         => (bool) $hover_overlay,
+				'show_hover_plus'      => (bool) $show_hover_plus,
+				'show_media_type_icon' => (bool) $show_media_type_icon,
+				'more_label'           => $more_label,
+			)
+		);
+	}
+
+	/**
+	 * Escaped data-post-id attribute for moderation / free-teaser parsers.
+	 *
+	 * @since 6.7.6
+	 * @param array $tweet Tweet row.
+	 * @return string Attribute including leading space, or empty string.
+	 */
+	protected function get_post_id_attr( array $tweet ) {
+		$id = '';
+		if ( ! empty( $tweet['tweet_id'] ) ) {
+			$id = (string) $tweet['tweet_id'];
+		} elseif ( ! empty( $tweet['id'] ) ) {
+			$id = (string) $tweet['id'];
+		}
+
+		if ( '' === $id ) {
+			return '';
+		}
+
+		return ' data-post-id="' . esc_attr( $id ) . '"';
+	}
+
+	/**
 	 * Check whether popup/lightbox is enabled for this feed.
 	 *
 	 * @since 6.7.6
@@ -974,6 +1209,47 @@ abstract class ESF_Twitter_Layout_Base {
 	}
 
 	/**
+	 * Resolve comment-list display flags for the lightbox payload.
+	 *
+	 * Context keys win; otherwise feed settings; otherwise on.
+	 *
+	 * @since 6.7.6
+	 * @param array<string,mixed> $context Popup context.
+	 * @return array<string,mixed>
+	 */
+	protected function get_popup_comment_display_settings( array $context ) {
+		$settings = ( isset( $this->feed->settings ) && is_array( $this->feed->settings ) )
+			? $this->feed->settings
+			: array();
+		$feed     = ( isset( $settings['feed'] ) && is_array( $settings['feed'] ) )
+			? $settings['feed']
+			: array();
+
+		$enabled = static function ( $key ) use ( $context, $feed ) {
+			if ( array_key_exists( $key, $context ) ) {
+				return ! empty( $context[ $key ] );
+			}
+			return ! isset( $feed[ $key ] ) || ! empty( $feed[ $key ] );
+		};
+
+		$per_page = 20;
+		if ( isset( $context['popup_comments_per_page'] ) ) {
+			$per_page = (int) $context['popup_comments_per_page'];
+		} elseif ( isset( $feed['popup_comments_per_page'] ) ) {
+			$per_page = (int) $feed['popup_comments_per_page'];
+		}
+
+		return array(
+			'popup_show_comments_list'    => $enabled( 'popup_show_comments_list' ),
+			'popup_comments_per_page'     => max( 1, min( 50, $per_page ) ),
+			'popup_comment_show_avatar'   => $enabled( 'popup_comment_show_avatar' ),
+			'popup_comment_show_username' => $enabled( 'popup_comment_show_username' ),
+			'popup_comment_show_date'     => $enabled( 'popup_comment_show_date' ),
+			'popup_comment_show_likes'    => $enabled( 'popup_comment_show_likes' ),
+		);
+	}
+
+	/**
 	 * Build popup payload for frontend lightbox rendering.
 	 *
 	 * @since 6.7.6
@@ -985,58 +1261,77 @@ abstract class ESF_Twitter_Layout_Base {
 			return null;
 		}
 
-		$media = isset( $context['media'] ) && is_array( $context['media'] ) ? $context['media'] : array();
-		if ( empty( $media ) ) {
-			return null;
-		}
+		$media     = isset( $context['media'] ) && is_array( $context['media'] ) ? $context['media'] : array();
+		$text_html = isset( $context['text_html'] ) ? (string) $context['text_html'] : '';
 
 		$media_items = array();
-		foreach ( $media as $item ) {
+		foreach ( $media as $media_index => $item ) {
 			if ( ! is_array( $item ) ) {
 				continue;
 			}
-			$type    = isset( $item['type'] ) ? sanitize_key( (string) $item['type'] ) : 'photo';
-			$image   = 'photo' === $type
-				? ( isset( $item['url'] ) ? esc_url_raw( (string) $item['url'] ) : '' )
+			$type      = isset( $item['type'] ) ? sanitize_key( (string) $item['type'] ) : 'photo';
+			$image     = 'photo' === $type
+				? ( ! empty( $item['url_full'] )
+					? esc_url_raw( (string) $item['url_full'] )
+					: ( isset( $item['url'] ) ? esc_url_raw( (string) $item['url'] ) : '' ) )
 				: ( isset( $item['preview_url'] ) ? esc_url_raw( (string) $item['preview_url'] ) : '' );
-			$alt     = isset( $item['alt_text'] ) ? sanitize_text_field( (string) $item['alt_text'] ) : '';
-			if ( '' === $image ) {
+			$alt       = isset( $item['alt_text'] ) ? sanitize_text_field( (string) $item['alt_text'] ) : '';
+			$video_url = isset( $item['video_url'] ) ? (string) $item['video_url'] : '';
+			if ( '' !== $video_url ) {
+				$video_url = esc_url_raw( $video_url );
+			}
+			$tweet_id = isset( $context['tweet']['tweet_id'] ) ? (string) $context['tweet']['tweet_id'] : '';
+			if ( '' !== $tweet_id && function_exists( 'esf_local_media_url' ) && isset( $this->feed->account_id ) ) {
+				$local_video = esf_local_media_url(
+					'tw_video_' . $tweet_id . '_' . (int) $media_index,
+					'twitter',
+					0,
+					(int) $this->feed->account_id
+				);
+				if ( is_string( $local_video ) && '' !== $local_video ) {
+					$video_url = $local_video;
+				}
+			}
+			// Keep playable videos even when the poster was never downloaded.
+			if ( '' === $image && '' === $video_url ) {
 				continue;
 			}
 			$media_items[] = array(
 				'type'      => $type,
 				'src'       => $image,
-				'video_url' => isset( $item['video_url'] ) ? esc_url_raw( (string) $item['video_url'] ) : '',
+				'video_url' => $video_url,
 				'alt'       => $alt,
-				'width'  => isset( $item['width'] ) ? (int) $item['width'] : 0,
-				'height' => isset( $item['height'] ) ? (int) $item['height'] : 0,
+				'width'     => isset( $item['width'] ) ? (int) $item['width'] : 0,
+				'height'    => isset( $item['height'] ) ? (int) $item['height'] : 0,
 			);
 		}
 
-		if ( empty( $media_items ) ) {
+		// Text-only posts can open the lightbox when they have caption content.
+		if ( empty( $media_items ) && '' === trim( wp_strip_all_tags( $text_html ) ) ) {
 			return null;
 		}
 
-		return array(
-			'tweet_id'       => isset( $context['tweet']['tweet_id'] ) ? sanitize_text_field( (string) $context['tweet']['tweet_id'] ) : '',
-			'tweet_url'      => isset( $context['tweet_url'] ) ? esc_url_raw( (string) $context['tweet_url'] ) : '',
-			'text_html'      => isset( $context['text_html'] ) ? (string) $context['text_html'] : '',
-			'created_at'     => isset( $context['created_at'] ) ? sanitize_text_field( (string) $context['created_at'] ) : '',
-			'date_human'     => isset( $context['date_human'] ) ? sanitize_text_field( (string) $context['date_human'] ) : '',
-			'author_name'    => isset( $context['author_name'] ) ? sanitize_text_field( (string) $context['author_name'] ) : '',
-			'author_handle'  => isset( $context['author_handle'] ) ? sanitize_text_field( (string) $context['author_handle'] ) : '',
-			'author_avatar'  => isset( $context['author_avatar'] ) ? esc_url_raw( (string) $context['author_avatar'] ) : '',
-			'author_is_verified' => ! empty( $context['author_is_verified'] ),
-			'profile_url'    => isset( $context['profile_url'] ) ? esc_url_raw( (string) $context['profile_url'] ) : '',
-			'media'          => $media_items,
-			'like_count'     => isset( $context['like_count'] ) ? (int) $context['like_count'] : 0,
-			'reply_count'    => isset( $context['reply_count'] ) ? (int) $context['reply_count'] : 0,
-			'retweet_count'  => isset( $context['retweet_count'] ) ? (int) $context['retweet_count'] : 0,
-			'quote_count'    => isset( $context['quote_count'] ) ? (int) $context['quote_count'] : 0,
-			'show_likes'     => ! empty( $context['show_likes'] ),
-			'show_replies'   => ! empty( $context['show_replies'] ),
-			'show_retweets'  => ! empty( $context['show_retweets'] ),
-			'show_quotes'    => ! empty( $context['show_quotes'] ),
+		$payload = array(
+			'tweet_id'             => isset( $context['tweet']['tweet_id'] ) ? sanitize_text_field( (string) $context['tweet']['tweet_id'] ) : '',
+			'feed_id'              => isset( $context['feed_id'] ) ? (int) $context['feed_id'] : ( isset( $this->feed->id ) ? (int) $this->feed->id : 0 ),
+			'tweet_url'            => isset( $context['tweet_url'] ) ? esc_url_raw( (string) $context['tweet_url'] ) : '',
+			'text_html'            => $text_html,
+			'created_at'           => isset( $context['created_at'] ) ? sanitize_text_field( (string) $context['created_at'] ) : '',
+			'date_human'           => isset( $context['date_human'] ) ? sanitize_text_field( (string) $context['date_human'] ) : '',
+			'author_name'          => isset( $context['author_name'] ) ? sanitize_text_field( (string) $context['author_name'] ) : '',
+			'author_handle'        => isset( $context['author_handle'] ) ? sanitize_text_field( (string) $context['author_handle'] ) : '',
+			'author_avatar'        => isset( $context['author_avatar'] ) ? esc_url_raw( (string) $context['author_avatar'] ) : '',
+			'author_is_verified'   => ! empty( $context['author_is_verified'] ),
+			'profile_url'          => isset( $context['profile_url'] ) ? esc_url_raw( (string) $context['profile_url'] ) : '',
+			'media'                => $media_items,
+			'like_count'           => isset( $context['like_count'] ) ? (int) $context['like_count'] : 0,
+			'reply_count'          => isset( $context['reply_count'] ) ? (int) $context['reply_count'] : 0,
+			'retweet_count'        => isset( $context['retweet_count'] ) ? (int) $context['retweet_count'] : 0,
+			'quote_count'          => isset( $context['quote_count'] ) ? (int) $context['quote_count'] : 0,
+			'show_likes'           => ! empty( $context['show_likes'] ),
+			'show_replies'         => ! empty( $context['show_replies'] ),
+			'show_retweets'        => ! empty( $context['show_retweets'] ),
+			'show_quotes'          => ! empty( $context['show_quotes'] ),
 			'popup_show_author'    => ! isset( $context['popup_show_author'] ) || ! empty( $context['popup_show_author'] ),
 			'popup_show_date'      => ! isset( $context['popup_show_date'] ) || ! empty( $context['popup_show_date'] ),
 			'popup_show_follow'    => ! isset( $context['popup_show_follow'] ) || ! empty( $context['popup_show_follow'] ),
@@ -1044,6 +1339,14 @@ abstract class ESF_Twitter_Layout_Base {
 			'popup_show_metrics'   => ! isset( $context['popup_show_metrics'] ) || ! empty( $context['popup_show_metrics'] ),
 			'popup_show_view_on_x' => ! isset( $context['popup_show_view_on_x'] ) || ! empty( $context['popup_show_view_on_x'] ),
 		);
+
+		$payload = array_merge( $payload, $this->get_popup_comment_display_settings( $context ) );
+
+		if ( class_exists( '\ESF_GDPR_Integrations' ) ) {
+			$payload = \ESF_GDPR_Integrations::sanitize_popup_payload( $payload, 'twitter' );
+		}
+
+		return $payload;
 	}
 
 	/**
@@ -1070,9 +1373,28 @@ abstract class ESF_Twitter_Layout_Base {
 	 * @since 6.7.6
 	 * @return bool
 	 */
+	/**
+	 * Sanitize a hex color used for theme CSS vars / inline styles.
+	 *
+	 * @since 6.9.9
+	 * @param mixed $value Raw color value.
+	 * @return string Sanitized hex or empty string.
+	 */
+	protected function sanitize_theme_hex( $value ) {
+		if ( ! is_string( $value ) || '' === $value ) {
+			return '';
+		}
+		$hex = sanitize_hex_color( $value );
+
+		return is_string( $hex ) ? $hex : '';
+	}
+
 	protected function is_account_verified() {
 		if ( ! $this->account ) {
 			return false;
+		}
+		if ( method_exists( $this->account, 'is_verified' ) && $this->account->is_verified() ) {
+			return true;
 		}
 		if ( $this->has_verified_flag( isset( $this->account->is_verified ) ? $this->account->is_verified : null ) ) {
 			return true;
@@ -1103,7 +1425,7 @@ abstract class ESF_Twitter_Layout_Base {
 		}
 
 		if ( is_numeric( $value ) ) {
-			return (int) $value === 1;
+			return 1 === (int) $value;
 		}
 
 		if ( is_string( $value ) ) {

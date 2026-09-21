@@ -48,6 +48,45 @@ class ESF_YouTube_API_OAuth {
 				'args'                => array(),
 			)
 		);
+
+		register_rest_route(
+			'esf/v1',
+			'/youtube/oauth/manual',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( __CLASS__, 'stage_manual_token' ),
+				'permission_callback' => array( __CLASS__, 'write_permissions_check' ),
+				'args'                => array(
+					'access_token' => array(
+						'description' => __( 'YouTube access token.', 'easy-facebook-likebox' ),
+						'type'        => 'string',
+						'required'    => true,
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Write permission callback (capability + REST nonce).
+	 *
+	 * @since 6.9.0
+	 * @param WP_REST_Request $request Request.
+	 * @return bool|WP_Error
+	 */
+	public static function write_permissions_check( $request ) {
+		if ( ! esf_youtube_user_can_manage() ) {
+			return false;
+		}
+		$nonce = $request instanceof WP_REST_Request ? $request->get_header( 'X-WP-Nonce' ) : '';
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+			return new WP_Error(
+				'rest_cookie_invalid_nonce',
+				__( 'Cookie check failed.', 'easy-facebook-likebox' ),
+				array( 'status' => 403 )
+			);
+		}
+		return true;
 	}
 
 	/**
@@ -117,19 +156,48 @@ class ESF_YouTube_API_OAuth {
 			admin_url( 'admin.php' )
 		);
 
-		// Build the connect URL (external OAuth app URL with return_url and site_url).
-		$connect_url = add_query_arg(
-			array(
-				'return_url' => rawurlencode( $return_url ),
-				'site_url'   => rawurlencode( $site_url ),
-			),
-			$base_url
+		// Always request comments mode so the bridge uses youtube.force-ssl
+		// (required for commentThreads.list / comments.list). Bridge still maps
+		// esf_yt_mode=comments → oauth_scopes_comments until default oauth_scopes
+		// is flipped to force-ssl on the live bridge.
+		$bridge_args = array(
+			'return_url'  => rawurlencode( $return_url ),
+			'site_url'    => rawurlencode( $site_url ),
+			'esf_yt_mode' => 'comments',
 		);
+
+		// Build the connect URL (external OAuth app URL with return_url and site_url).
+		$connect_url = add_query_arg( $bridge_args, $base_url );
 
 		$data = array(
 			'url' => esc_url_raw( $connect_url ),
 		);
 
 		return rest_ensure_response( $data );
+	}
+
+	/**
+	 * POST pasted access token — validate and connect the channel.
+	 *
+	 * @since 6.9.0
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function stage_manual_token( $request ) {
+		$token = $request instanceof WP_REST_Request
+			? $request->get_param( 'access_token' )
+			: '';
+		$token = is_string( $token ) ? $token : '';
+
+		$result = ESF_YouTube_Manual_Oauth_Service::submit_manual_access_token(
+			get_current_user_id(),
+			$token
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( $result );
 	}
 }

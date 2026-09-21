@@ -28,7 +28,7 @@ if ( ! class_exists( 'ESF_Module_Catalogue' ) ) {
 		 * @since 6.9.0
 		 * @var array<int,string>
 		 */
-		const MODULE_SLUGS = array( 'facebook', 'instagram', 'youtube', 'twitter' );
+		const MODULE_SLUGS = array( 'facebook', 'instagram', 'youtube', 'twitter', 'tiktok' );
 
 		/**
 		 * Return module catalogue rows with live activation status.
@@ -73,9 +73,7 @@ if ( ! class_exists( 'ESF_Module_Catalogue' ) ) {
 		 * @return array<string,array<string,mixed>>
 		 */
 		private static function get_base_catalogue() {
-			$has_instagram_plan = function_exists( 'esf_instagram_has_instagram_plan' )
-				&& esf_instagram_has_instagram_plan();
-			$has_twitter_plan   = (
+			$has_twitter_plan = (
 				function_exists( 'efl_fs' ) &&
 				method_exists( efl_fs(), 'can_use_premium_code__premium_only' ) &&
 				efl_fs()->can_use_premium_code__premium_only() &&
@@ -86,11 +84,13 @@ if ( ! class_exists( 'ESF_Module_Catalogue' ) ) {
 			return array(
 				'facebook'  => array(
 					'name'             => __( 'Facebook Feed', 'easy-facebook-likebox' ),
-					'tagline'          => __( 'Posts, albums, events and the Like Box (Page Plugin).', 'easy-facebook-likebox' ),
+					'tagline'          => __( 'Page posts, albums, events, and the Page Plugin.', 'easy-facebook-likebox' ),
 					'features'         => array(
-						__( 'Custom feed of posts, photos and videos', 'easy-facebook-likebox' ),
-						__( 'Facebook Page Plugin (Like Box)', 'easy-facebook-likebox' ),
-						__( 'Lightbox / popup gallery', 'easy-facebook-likebox' ),
+						__( 'Timeline, photos, videos, albums, and events from your Pages', 'easy-facebook-likebox' ),
+						__( 'Grid, masonry, carousel, and row layouts with popup gallery', 'easy-facebook-likebox' ),
+						__( 'Load more and infinite scroll', 'easy-facebook-likebox' ),
+						__( 'Visual moderation to hide posts', 'easy-facebook-likebox' ),
+						__( 'Multifeed to combine multiple Pages', 'easy-facebook-likebox' ),
 					),
 					'configure_url'    => admin_url( 'admin.php?page=easy-facebook-likebox' ),
 					'is_modern'        => false,
@@ -100,27 +100,29 @@ if ( ! class_exists( 'ESF_Module_Catalogue' ) ) {
 				),
 				'instagram' => array(
 					'name'             => __( 'Instagram Feed', 'easy-facebook-likebox' ),
-					'tagline'          => __( 'Photos, videos and hashtag feeds from your Instagram account.', 'easy-facebook-likebox' ),
+					'tagline'          => __( 'Photos, videos, stories, and hashtag feeds.', 'easy-facebook-likebox' ),
 					'features'         => array(
-						__( 'Account, hashtag and gallery feeds', 'easy-facebook-likebox' ),
-						__( 'Lightbox / popup gallery', 'easy-facebook-likebox' ),
-						$has_instagram_plan
-							? __( 'Shoppable feeds', 'easy-facebook-likebox' )
-							: __( 'Shoppable feeds (Pro)', 'easy-facebook-likebox' ),
+						__( 'User, hashtag, and tagged media from your account', 'easy-facebook-likebox' ),
+						__( 'Grid, row, carousel, and masonry layouts with lightbox', 'easy-facebook-likebox' ),
+						__( 'Load more and infinite scroll', 'easy-facebook-likebox' ),
+						__( 'Visual moderation to hide posts', 'easy-facebook-likebox' ),
+						__( 'Multifeed to combine multiple accounts', 'easy-facebook-likebox' ),
 					),
 					'configure_url'    => admin_url( 'admin.php?page=mif' ),
-					'is_modern'        => false,
+					'is_modern'        => true,
 					'has_inline_oauth' => false,
 					'brand_color'      => '#e1306c',
 					'brand_color_2'    => '#f77737',
 				),
 				'youtube'   => array(
 					'name'             => __( 'YouTube Feed', 'easy-facebook-likebox' ),
-					'tagline'          => __( 'Latest videos from your channel via secure OAuth.', 'easy-facebook-likebox' ),
+					'tagline'          => __( 'Channel, playlist, and search video feeds.', 'easy-facebook-likebox' ),
 					'features'         => array(
-						__( 'Secure OAuth 2.0 connection (no API key)', 'easy-facebook-likebox' ),
-						__( 'Modern dashboard with live preview', 'easy-facebook-likebox' ),
-						__( 'Customisable layouts and caching', 'easy-facebook-likebox' ),
+						__( 'Videos from channels, playlists, and YouTube search', 'easy-facebook-likebox' ),
+						__( 'Grid, row, carousel, and masonry layouts with lightbox', 'easy-facebook-likebox' ),
+						__( 'Load more and infinite scroll', 'easy-facebook-likebox' ),
+						__( 'Visual moderation to hide videos', 'easy-facebook-likebox' ),
+						__( 'Multifeed to combine multiple accounts', 'easy-facebook-likebox' ),
 					),
 					'configure_url'    => admin_url( 'admin.php?page=esf-youtube' ),
 					'is_modern'        => true,
@@ -130,15 +132,13 @@ if ( ! class_exists( 'ESF_Module_Catalogue' ) ) {
 				),
 				'twitter'   => array(
 					'name'             => __( 'X / Twitter Feed', 'easy-facebook-likebox' ),
-					'tagline'          => $has_twitter_plan
-						? __( 'Display your X timeline or any public account.', 'easy-facebook-likebox' )
-						: __( 'Display your X timeline or any public account (Pro).', 'easy-facebook-likebox' ),
+					'tagline'          => __( 'Your timeline, or any public X account.', 'easy-facebook-likebox' ),
 					'features'         => array(
-						__( 'Secure OAuth connection to your X account', 'easy-facebook-likebox' ),
-						__( 'DB-backed caching for fast page loads', 'easy-facebook-likebox' ),
-						$has_twitter_plan
-							? __( 'Public account feeds', 'easy-facebook-likebox' )
-							: __( 'Public account feeds (Pro)', 'easy-facebook-likebox' ),
+						__( 'Posts from your connected X account', 'easy-facebook-likebox' ),
+						__( 'Timeline, row, grid, and masonry layouts with lightbox', 'easy-facebook-likebox' ),
+						__( 'Load more and infinite scroll', 'easy-facebook-likebox' ),
+						__( 'Visual moderation to hide posts', 'easy-facebook-likebox' ),
+						__( 'Multifeed to combine multiple accounts', 'easy-facebook-likebox' ),
 					),
 					'configure_url'    => admin_url( 'admin.php?page=esf-twitter' ),
 					'is_modern'        => true,
@@ -147,6 +147,21 @@ if ( ! class_exists( 'ESF_Module_Catalogue' ) ) {
 					'can_add_public_username'  => $has_twitter_plan,
 					'brand_color'      => '#000000',
 					'brand_color_2'    => '#2a2a2a',
+				),
+				'tiktok'    => array(
+					'name'             => __( 'TikTok Feed', 'easy-facebook-likebox' ),
+					'tagline'          => __( 'Videos from your TikTok account on your site.', 'easy-facebook-likebox' ),
+					'features'         => array(
+						__( 'Videos from your connected TikTok account', 'easy-facebook-likebox' ),
+						__( 'Grid and row layouts with popup lightbox, more coming', 'easy-facebook-likebox' ),
+						__( 'Load more and infinite scroll', 'easy-facebook-likebox' ),
+						__( 'Multifeed to combine multiple accounts', 'easy-facebook-likebox' ),
+					),
+					'configure_url'    => admin_url( 'admin.php?page=esf-tiktok' ),
+					'is_modern'        => true,
+					'has_inline_oauth' => true,
+					'brand_color'      => '#000000',
+					'brand_color_2'    => '#FE2C55',
 				),
 			);
 		}
@@ -177,8 +192,8 @@ if ( ! class_exists( 'ESF_Module_Catalogue' ) ) {
 			if ( ! empty( $status['using_modern'] ) && ! empty( $status['modern_admin_url'] ) ) {
 				$meta['configure_url'] = (string) $status['modern_admin_url'];
 				$meta['is_modern']     = true;
-				// Modern Instagram uses the same popup OAuth handoff as YouTube / X.
-				if ( 'instagram' === $slug ) {
+				// Modern Instagram / Facebook use the same popup OAuth handoff as YouTube / X.
+				if ( in_array( $slug, array( 'instagram', 'facebook' ), true ) ) {
 					$meta['has_inline_oauth'] = true;
 				}
 			} elseif ( ! empty( $status['legacy_admin_url'] ) ) {

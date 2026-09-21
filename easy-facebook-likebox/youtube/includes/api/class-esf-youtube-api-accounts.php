@@ -150,6 +150,8 @@ class ESF_YouTube_API_Accounts {
 			'channel_id',
 			'handle',
 			'channel_thumbnail',
+			'subscriber_count',
+			'video_count',
 			'status',
 			'token_expires_at',
 		);
@@ -168,8 +170,21 @@ class ESF_YouTube_API_Accounts {
 			array_unshift( $fields, 'id' );
 		}
 
+		// Local media keys use channel_id — ensure it is selected when resolving logos.
+		$select_fields_list   = array_values( $fields );
+		$injected_channel_id  = false;
+		$wants_channel_images = in_array( 'channel_thumbnail', $fields, true )
+			|| in_array( 'channel_banner', $fields, true );
+		if (
+			$wants_channel_images
+			&& ! in_array( 'channel_id', $select_fields_list, true )
+		) {
+			$select_fields_list[] = 'channel_id';
+			$injected_channel_id  = true;
+		}
+
 		// Build SELECT query dynamically.
-		$select_fields = implode( ', ', array_map( 'esc_sql', $fields ) );
+		$select_fields = implode( ', ', array_map( 'esc_sql', $select_fields_list ) );
 
 		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and field list are whitelisted.
@@ -183,8 +198,12 @@ class ESF_YouTube_API_Accounts {
 
 		// Convert numeric strings to integers for cleaner JSON response (if those fields exist).
 		// Strip Pro-only field channel_banner for users without YouTube plan.
+		// Prefer local uploads for logos/banners — CDN (yt3.ggpht.com) often breaks in admin <img>.
 		$has_youtube_plan = function_exists( 'esf_youtube_has_youtube_plan' ) && esf_youtube_has_youtube_plan();
 		foreach ( $rows as &$row ) {
+			if ( isset( $row['id'] ) ) {
+				$row['id'] = (int) $row['id'];
+			}
 			if ( isset( $row['subscriber_count'] ) ) {
 				$row['subscriber_count'] = (int) $row['subscriber_count'];
 			}
@@ -194,19 +213,30 @@ class ESF_YouTube_API_Accounts {
 			if ( isset( $row['view_count'] ) ) {
 				$row['view_count'] = (int) $row['view_count'];
 			}
+
+			if ( class_exists( 'ESF_YouTube_Local_Media' ) && $wants_channel_images ) {
+				$row = ESF_YouTube_Local_Media::localize_account_row_images( $row );
+			}
+
+			if ( $injected_channel_id ) {
+				unset( $row['channel_id'] );
+			}
+
 			if ( ! $has_youtube_plan && array_key_exists( 'channel_banner', $row ) ) {
 				unset( $row['channel_banner'] );
 			}
 		}
+		unset( $row );
 
 		return rest_ensure_response( $rows );
 	}
 
 	/**
-	 * Delete a YouTube account and revoke Google access.
+	 * Delete a YouTube account and best-effort revoke Google access.
 	 *
-	 * Revokes the token with Google OAuth revoke endpoint, then deletes
-	 * the account row from the database. Deletion proceeds even if revoke fails.
+	 * Removes the account row from the database first so disconnect always
+	 * succeeds locally, then calls Google OAuth revoke with a short timeout.
+	 * Revoke failures (expired tokens, network errors) do not block deletion.
 	 *
 	 * @since 6.7.5
 	 *
@@ -227,11 +257,7 @@ class ESF_YouTube_API_Accounts {
 			);
 		}
 
-		$api_service     = ESF_YouTube_API_Service::get_instance();
 		$token_to_revoke = ! empty( $account->refresh_token ) ? $account->refresh_token : $account->access_token;
-		if ( ! empty( $token_to_revoke ) ) {
-			$api_service->revoke_token( $token_to_revoke );
-		}
 
 		$deleted = $repository->delete( $account_id );
 		if ( ! $deleted ) {
@@ -240,6 +266,10 @@ class ESF_YouTube_API_Accounts {
 				__( 'Failed to delete account.', 'easy-facebook-likebox' ),
 				array( 'status' => 500 )
 			);
+		}
+
+		if ( ! empty( $token_to_revoke ) ) {
+			ESF_YouTube_API_Service::get_instance()->revoke_token( $token_to_revoke, 3 );
 		}
 
 		return rest_ensure_response(

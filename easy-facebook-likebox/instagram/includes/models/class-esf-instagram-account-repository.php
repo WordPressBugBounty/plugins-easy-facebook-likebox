@@ -143,6 +143,31 @@ class ESF_Instagram_Account_Repository {
 		$fields['instagram_user_id'] = $instagram_user_id;
 		$fields['updated_at']        = $now;
 
+		if ( function_exists( 'esf_db_safe_text' ) ) {
+			foreach ( array( 'username', 'display_name', 'biography', 'facebook_page_name' ) as $text_key ) {
+				if ( isset( $fields[ $text_key ] ) && is_string( $fields[ $text_key ] ) ) {
+					$fields[ $text_key ] = esf_db_safe_text( $fields[ $text_key ] );
+				}
+			}
+
+			if ( array_key_exists( 'account_data', $fields ) && null !== $fields['account_data'] ) {
+				if ( is_array( $fields['account_data'] ) || is_object( $fields['account_data'] ) ) {
+					$fields['account_data'] = esf_db_safe_text( $fields['account_data'] );
+					$encoded                = wp_json_encode( $fields['account_data'] );
+					$fields['account_data'] = false !== $encoded ? $encoded : null;
+				} elseif ( is_string( $fields['account_data'] ) ) {
+					$decoded = json_decode( $fields['account_data'], true );
+					if ( is_array( $decoded ) ) {
+						$decoded                = esf_db_safe_text( $decoded );
+						$encoded                = wp_json_encode( $decoded );
+						$fields['account_data'] = false !== $encoded ? $encoded : esf_db_safe_text( $fields['account_data'] );
+					} else {
+						$fields['account_data'] = esf_db_safe_text( $fields['account_data'] );
+					}
+				}
+			}
+		}
+
 		// Order must match $fields (wpdb maps formats to columns in array order).
 		$format = array(
 			'%d', // user_id.
@@ -170,7 +195,7 @@ class ESF_Instagram_Account_Repository {
 		);
 
 		if ( $existing ) {
-			$updated = $wpdb->update( $table, $fields, array( 'id' => (int) $existing->id ), $format, array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$updated    = $wpdb->update( $table, $fields, array( 'id' => (int) $existing->id ), $format, array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$account_id = false === $updated ? false : (int) $existing->id;
 		} else {
 			$fields['created_at'] = $now;
@@ -217,9 +242,9 @@ class ESF_Instagram_Account_Repository {
 		}
 
 		$account_row = (object) array(
-			'id'                 => $account_id,
-			'instagram_user_id'  => $instagram_user_id,
-			'profile_image_url'  => $profile_url,
+			'id'                => $account_id,
+			'instagram_user_id' => $instagram_user_id,
+			'profile_image_url' => $profile_url,
 		);
 
 		ESF_Instagram_Local_Media::localize_avatar_from_row( $account_row );
@@ -336,14 +361,17 @@ class ESF_Instagram_Account_Repository {
 
 		$this->delete_associated_data( $row );
 
-		$table = $this->get_table_name();
+		$table   = $this->get_table_name();
 		$deleted = $wpdb->delete( $table, array( 'id' => $account_id ), array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		return false !== $deleted && $deleted > 0;
 	}
 
 	/**
-	 * Remove feeds, local media, and cache rows tied to an account.
+	 * Remove warm-cache transients tied to an account; preserve feeds and API cache.
+	 *
+	 * Feeds keep their rows (with the orphaned account_id) so the public frontend
+	 * can continue serving cached posts until TTL expiry after disconnect.
 	 *
 	 * @since 6.9.0
 	 *
@@ -357,35 +385,31 @@ class ESF_Instagram_Account_Repository {
 
 		$account_id = (int) $row->id;
 
-		$this->purge_legacy_cached_post_files( $account_id );
-
-		if ( class_exists( 'ESF_Instagram_Feed_Repository' ) ) {
-			$feed_repo = ESF_Instagram_Feed_Repository::get_instance();
-			foreach ( $feed_repo->get_by_account_id( $account_id ) as $feed ) {
-				if ( ! is_object( $feed ) || empty( $feed->id ) ) {
-					continue;
-				}
-
-				$feed_id = (int) $feed->id;
-				if ( class_exists( 'ESF_Instagram_Local_Media' ) ) {
-					ESF_Instagram_Local_Media::clear_feed_warm_transient( $feed_id, $account_id );
-				}
-				$feed_repo->delete( $feed_id );
+		try {
+			if ( class_exists( 'ESF_Instagram_Cache' ) ) {
+				ESF_Instagram_Cache::save_account_profile_snapshot( $row );
 			}
-		}
 
-		if ( class_exists( 'ESF_Instagram_Local_Media' ) ) {
-			ESF_Instagram_Local_Media::purge_account_media( $account_id );
-		}
+			if ( class_exists( 'ESF_Feed_Disconnected_Cache' ) ) {
+				ESF_Feed_Disconnected_Cache::maybe_notify_instagram_account_disconnected( $row );
+			}
 
-		if ( ! empty( $row->instagram_user_id ) && function_exists( 'esf_delete_media' ) ) {
-			$avatar_key = 'ig_avatar_' . (string) $row->instagram_user_id;
-			esf_delete_media( $avatar_key, 'instagram', $account_id );
-			esf_delete_media( $avatar_key, 'instagram', 0 );
-		}
-
-		if ( class_exists( 'ESF_Instagram_Cache' ) ) {
-			ESF_Instagram_Cache::flush_account_cache( $account_id );
+			if ( class_exists( 'ESF_Instagram_Feed_Repository' ) ) {
+				$feed_repo = ESF_Instagram_Feed_Repository::get_instance();
+				foreach ( $feed_repo->get_by_account_id( $account_id ) as $feed ) {
+					if ( ! is_object( $feed ) || empty( $feed->id ) ) {
+						continue;
+					}
+					if ( class_exists( 'ESF_Instagram_Local_Media' ) ) {
+						ESF_Instagram_Local_Media::clear_feed_warm_transient( (int) $feed->id, $account_id );
+					}
+				}
+			}
+		} catch ( \Throwable $e ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- debug-only disconnect cleanup trail.
+				error_log( 'ESF Instagram account disconnect cleanup failed: ' . $e->getMessage() );
+			}
 		}
 	}
 
@@ -459,7 +483,7 @@ class ESF_Instagram_Account_Repository {
 			return false;
 		}
 
-		$table = $this->get_table_name();
+		$table   = $this->get_table_name();
 		$updated = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$table,
 			array(

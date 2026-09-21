@@ -64,3 +64,23 @@ require_once ESF_YOUTUBE_DIR . 'class-esf-youtube-main.php';
  * Uses singleton pattern to ensure single instance.
  */
 ESF_YouTube_Main::get_instance();
+
+/**
+ * Load Multifeed marker class (Pro only).
+ *
+ * This class signals Multifeed availability when the standalone addon is not active.
+ * Multifeed is bundled with YouTube Pro; this marker enables the shared ESF_Multifeed
+ * detection to work correctly.
+ *
+ * @since 6.14.0
+ */
+if (
+	function_exists( 'efl_fs' )
+	&& efl_fs()->can_use_premium_code__premium_only()
+	&& function_exists( 'esf_youtube_has_youtube_plan' )
+	&& esf_youtube_has_youtube_plan()
+	&& ! class_exists( 'Esf_Multifeed_YouTube_Modern', false )
+) {
+	require_once ESF_YOUTUBE_DIR . 'multifeed/frontend/class-esf-multifeed-youtube-modern.php';
+	new Esf_Multifeed_YouTube_Modern();
+}

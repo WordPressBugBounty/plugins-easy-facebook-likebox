@@ -35,8 +35,9 @@ class ESF_Twitter_API_Settings {
 	 * @var array
 	 */
 	private static $defaults = array(
-		'cache_duration'      => 43200, // 12 hours.
-		'notify_token_expiry' => false,
+		'cache_duration'                => 43200, // 12 hours.
+		'notify_token_reconnect'        => true,
+		'notify_token_reconnect_emails' => array(),
 	);
 
 	/**
@@ -117,17 +118,11 @@ class ESF_Twitter_API_Settings {
 		unset( $request );
 
 		$saved    = get_option( 'esf_twitter_settings', array() );
-		$settings = array_merge( self::$defaults, is_array( $saved ) ? $saved : array() );
-		$has_plan = function_exists( 'esf_twitter_has_twitter_plan' ) && esf_twitter_has_twitter_plan();
+		$settings = function_exists( 'esf_get_twitter_settings' )
+			? esf_get_twitter_settings()
+			: array_merge( self::$defaults, is_array( $saved ) ? $saved : array() );
 
-		if ( ! in_array( (int) $settings['cache_duration'], self::CACHE_DURATION_OPTIONS, true ) ) {
-			$settings['cache_duration'] = 43200;
-		}
-		if ( ! $has_plan ) {
-			$settings['cache_duration'] = 604800;
-		}
-
-		return rest_ensure_response( $settings );
+		return rest_ensure_response( self::format_settings_response( $settings ) );
 	}
 
 	/**
@@ -159,8 +154,15 @@ class ESF_Twitter_API_Settings {
 				$existing['cache_duration'] = 604800;
 			}
 		}
-		if ( isset( $body['notify_token_expiry'] ) ) {
-			$existing['notify_token_expiry'] = (bool) $body['notify_token_expiry'];
+		if ( array_key_exists( 'notify_token_reconnect', $body ) ) {
+			$existing['notify_token_reconnect'] = (bool) $body['notify_token_reconnect'];
+		}
+		if ( array_key_exists( 'notify_token_reconnect_emails', $body ) && function_exists( 'esf_sanitize_notify_emails' ) ) {
+			$existing['notify_token_reconnect_emails'] = esf_sanitize_notify_emails( $body['notify_token_reconnect_emails'] );
+		}
+
+		if ( ! empty( $existing['notify_token_reconnect'] ) && empty( $existing['notify_token_reconnect_emails'] ) && function_exists( 'esf_default_notify_emails' ) ) {
+			$existing['notify_token_reconnect_emails'] = esf_default_notify_emails();
 		}
 
 		update_option( 'esf_twitter_settings', $existing );
@@ -168,26 +170,63 @@ class ESF_Twitter_API_Settings {
 			ESF_Twitter_Main::get_instance()->reschedule_feed_cache_refresh();
 		}
 
-		$result = array_merge( self::$defaults, $existing );
+		$result = function_exists( 'esf_get_twitter_settings' )
+			? esf_get_twitter_settings()
+			: array_merge( self::$defaults, $existing );
 
-		return rest_ensure_response( $result );
+		return rest_ensure_response( self::format_settings_response( $result ) );
 	}
 
 	/**
 	 * Clear Twitter API cache.
 	 *
+	 * Pro-gated: this bulk action wipes every account's cached timeline at
+	 * once, which would let free users bypass the 7‑day cache throttle on
+	 * demand and drive up ESF's shared X API spend. Free users who need a
+	 * lighter-weight, targeted refresh should use the per-account
+	 * "Refresh now" action instead ({@see ESF_Twitter_API_Accounts::refresh_cache()}),
+	 * which stays available for BYOK accounts on any plan. See `twitter/PLAN.md`.
+	 *
 	 * @since 6.7.6
 	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response
+	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function clear_cache( $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
-		$deleted = ESF_Twitter_Cache::flush_api_cache();
+		if ( ! function_exists( 'esf_twitter_has_twitter_plan' ) || ! esf_twitter_has_twitter_plan() ) {
+			return new WP_Error(
+				'pro_required',
+				__( 'Clearing the cache on demand needs the X Pro plan. X charges for API access, so free sites refresh less often. Use Refresh now on the Accounts tab to update a single feed instead.', 'easy-facebook-likebox' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		$deleted = ESF_Twitter_Cache::flush_all_cache();
 
 		return rest_ensure_response(
 			array(
 				'success' => false !== $deleted,
 				'deleted' => false !== $deleted ? (int) $deleted : 0,
 			)
+		);
+	}
+
+	/**
+	 * Shape the REST response with UI-only administrator email choices.
+	 *
+	 * @since 6.9.0
+	 * @param array<string,mixed> $settings Normalized settings.
+	 * @return array<string,mixed>
+	 */
+	private static function format_settings_response( array $settings ) {
+		return array(
+			'cache_duration'                => isset( $settings['cache_duration'] ) ? (int) $settings['cache_duration'] : 43200,
+			'notify_token_reconnect'        => ! empty( $settings['notify_token_reconnect'] ),
+			'notify_token_reconnect_emails' => isset( $settings['notify_token_reconnect_emails'] ) && is_array( $settings['notify_token_reconnect_emails'] )
+				? $settings['notify_token_reconnect_emails']
+				: array(),
+			'admin_email_options'           => function_exists( 'esf_get_site_administrator_email_options' )
+				? esf_get_site_administrator_email_options()
+				: array(),
 		);
 	}
 }

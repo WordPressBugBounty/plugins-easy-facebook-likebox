@@ -308,11 +308,8 @@ if ( ! class_exists( 'EFBL_SKINS' ) ) :
 						update_option( 'fta_settings', $fta_settings );
 					}
 				}
-			} catch ( Exception $e ) {
-				// Never let a seeding error bubble up into wp-admin.
-				if ( function_exists( 'error_log' ) ) {
-					error_log( 'EFBL_SKINS seeding error: ' . $e->getMessage() );
-				}
+			} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Seeding must never break wp-admin.
+				unset( $e );
 			}
 
 			$this->release_seeding_lock();

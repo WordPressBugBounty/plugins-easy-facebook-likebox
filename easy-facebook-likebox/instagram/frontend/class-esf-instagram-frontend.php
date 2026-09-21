@@ -34,9 +34,12 @@ class ESF_Instagram_Frontend {
      */
     private function init_hooks() {
         add_shortcode( 'esf_instagram_feed', array($this, 'render_shortcode') );
-        if ( function_exists( 'esf_instagram_has_legacy_data' ) && esf_instagram_has_legacy_data() ) {
-            add_shortcode( 'my-instagram-feed', array($this, 'render_legacy_shortcode_placeholder') );
-        }
+        /*
+         * Permanent modern alias — not tied to legacy module code. Keeps old
+         * embeds working after legacy removal; background rewriter may also
+         * convert classic post_content over time.
+         */
+        add_shortcode( 'my-instagram-feed', array($this, 'render_legacy_shortcode_placeholder') );
         add_action( 'wp_footer', array($this, 'maybe_enqueue_frontend_assets') );
         add_action( 'wp_footer', array($this, 'maybe_enqueue_missing_feed_admin_assets'), 8 );
     }
@@ -61,39 +64,47 @@ class ESF_Instagram_Frontend {
     }
 
     /**
-     * Legacy [my-instagram-feed] shortcode after migration.
+     * Permanent alias for legacy [my-instagram-feed] shortcodes.
      *
-     * Visitors see the default migrated feed. Logged-in admins get the shared
-     * missing-feed recovery UI to preview feeds and replace the shortcode.
+     * Resolves account/hashtag attributes onto a modern feed. Renders for
+     * everyone when a feed is found — the alias stays even after legacy module
+     * removal so sites never go blank.
      *
-     * @param array $atts Legacy shortcode attributes (ignored).
+     * @param array $atts Legacy shortcode attributes.
      * @return string HTML output.
      */
     public function render_legacy_shortcode_placeholder( $atts ) {
-        unset($atts);
+        $atts = shortcode_atts( array(
+            'user_id' => '',
+            'hashtag' => '',
+        ), ( is_array( $atts ) ? $atts : array() ), 'my-instagram-feed' );
         $default_feed_id = ( function_exists( 'esf_instagram_get_migration_default_feed_id' ) ? esf_instagram_get_migration_default_feed_id() : 0 );
-        $can_manage = function_exists( 'esf_instagram_user_can_manage' ) && esf_instagram_user_can_manage();
-        if ( !$can_manage && $default_feed_id > 0 ) {
-            esf_instagram_flag_feed_script();
-            $renderer = new ESF_Instagram_Renderer();
-            return $renderer->render( $default_feed_id, array(), true );
+        $feed_id = ( function_exists( 'esf_instagram_resolve_legacy_shortcode_feed_id' ) ? (int) esf_instagram_resolve_legacy_shortcode_feed_id( $atts, $default_feed_id ) : (int) $default_feed_id );
+        if ( $feed_id <= 0 ) {
+            $feed_id = (int) $default_feed_id;
         }
-        if ( $default_feed_id <= 0 ) {
-            return '';
+        if ( $feed_id <= 0 ) {
+            $can_manage = function_exists( 'esf_instagram_user_can_manage' ) && esf_instagram_user_can_manage();
+            if ( !$can_manage ) {
+                return '';
+            }
+            $post_id = ( function_exists( 'get_the_ID' ) ? (int) get_the_ID() : 0 );
+            $context = new \EasySocialFeed\Layouts\ValueObjects\MissingFeedContext(
+                'instagram',
+                0,
+                'my-instagram-feed',
+                $post_id,
+                true,
+                \EasySocialFeed\Layouts\Primitives\MissingFeedState::default_public_message( 'instagram' ),
+                admin_url( 'admin.php?page=esf-instagram&screen=feeds' ),
+                '/instagram/feeds/{id}/preview',
+                '/instagram/feeds'
+            );
+            return \EasySocialFeed\Layouts\Primitives\MissingFeedState::render( $context );
         }
-        $post_id = ( function_exists( 'get_the_ID' ) ? (int) get_the_ID() : 0 );
-        $context = new \EasySocialFeed\Layouts\ValueObjects\MissingFeedContext(
-            'instagram',
-            $default_feed_id,
-            'my-instagram-feed',
-            $post_id,
-            $can_manage,
-            \EasySocialFeed\Layouts\Primitives\MissingFeedState::default_public_message( 'instagram' ),
-            admin_url( 'admin.php?page=esf-instagram&screen=feeds' ),
-            '/instagram/feeds/{id}/preview',
-            '/instagram/feeds'
-        );
-        return \EasySocialFeed\Layouts\Primitives\MissingFeedState::render( $context );
+        esf_instagram_flag_feed_script();
+        $renderer = new ESF_Instagram_Renderer();
+        return $renderer->render( $feed_id, array(), true );
     }
 
     /**
@@ -119,6 +130,12 @@ class ESF_Instagram_Frontend {
                 $version
             );
         }
+        if ( class_exists( 'ESF_GDPR_Integrations' ) ) {
+            ESF_GDPR_Integrations::maybe_enqueue_consent_script();
+        }
+        if ( function_exists( 'esf_enqueue_feed_loading_script' ) ) {
+            esf_enqueue_feed_loading_script();
+        }
     }
 
     /**
@@ -128,13 +145,13 @@ class ESF_Instagram_Frontend {
      * @return void
      */
     private function enqueue_load_more_public_script( $version ) {
-        $script_path = ESF_INSTAGRAM_DIR . 'frontend/assets/js/esf-ig-public.js';
+        $script_path = ESF_INSTAGRAM_DIR . 'frontend/assets/js/esf-ig-public__premium_only.js';
         if ( !file_exists( $script_path ) ) {
             return;
         }
         wp_enqueue_script(
             'esf-instagram-public',
-            ESF_INSTAGRAM_URL . 'frontend/assets/js/esf-ig-public.js',
+            ESF_INSTAGRAM_URL . 'frontend/assets/js/esf-ig-public__premium_only.js',
             array(),
             (string) filemtime( $script_path ),
             true

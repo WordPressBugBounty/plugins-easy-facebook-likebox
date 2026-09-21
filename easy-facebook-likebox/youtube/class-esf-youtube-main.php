@@ -35,7 +35,6 @@ class ESF_YouTube_Main {
     private function __construct() {
         $this->init_hooks();
         $this->load_dependencies();
-        $this->maybe_initialize_components();
     }
 
     /**
@@ -49,6 +48,8 @@ class ESF_YouTube_Main {
     private function init_hooks() {
         // Initialize after WordPress is fully loaded.
         add_action( 'init', array($this, 'init'), 5 );
+        // Initialize components and register layouts (after translations are loaded).
+        add_action( 'init', array($this, 'maybe_initialize_components'), 11 );
         // Module status check.
         add_action( 'init', array($this, 'check_module_status'), 10 );
         // Register REST API routes when REST API is initialized.
@@ -73,12 +74,15 @@ class ESF_YouTube_Main {
         // Models / repositories.
         require_once ESF_YOUTUBE_DIR . 'includes/models/class-esf-youtube-account-repository.php';
         require_once ESF_YOUTUBE_DIR . 'includes/models/class-esf-youtube-feed-repository.php';
+        require_once ESF_YOUTUBE_DIR . 'includes/class-esf-youtube-local-media.php';
         // Token manager for auto-refresh.
         require_once ESF_YOUTUBE_DIR . 'includes/class-esf-youtube-token-manager.php';
+        require_once ESF_YOUTUBE_DIR . 'includes/class-esf-youtube-token-notifications.php';
         // Load admin components only in admin area.
         if ( is_admin() ) {
             require_once ESF_YOUTUBE_DIR . 'admin/classes/class-esf-youtube-admin.php';
             require_once ESF_YOUTUBE_DIR . 'includes/class-esf-youtube-auth-callback-listener.php';
+            require_once ESF_YOUTUBE_DIR . 'includes/class-esf-youtube-manual-oauth-service.php';
         }
         // REST API controllers.
         if ( function_exists( 'register_rest_route' ) ) {
@@ -88,12 +92,32 @@ class ESF_YouTube_Main {
             require_once ESF_YOUTUBE_DIR . 'includes/api/class-esf-youtube-api-refresh.php';
             require_once ESF_YOUTUBE_DIR . 'includes/api/class-esf-youtube-api-preview.php';
             require_once ESF_YOUTUBE_DIR . 'includes/api/class-esf-youtube-api-settings.php';
+            $youtube_load_more = ESF_YOUTUBE_DIR . 'includes/api/premium/class-esf-youtube-api-load-more.php';
         }
         // Cache and frontend (shortcode, layouts, renderer).
         require_once ESF_YOUTUBE_DIR . 'includes/class-esf-youtube-cache.php';
         require_once ESF_YOUTUBE_DIR . 'includes/layouts/class-esf-youtube-layout-base.php';
         require_once ESF_YOUTUBE_DIR . 'includes/layouts/class-esf-youtube-layout-grid.php';
+        require_once ESF_YOUTUBE_DIR . 'includes/layouts/class-esf-youtube-layout-row.php';
         require_once ESF_YOUTUBE_DIR . 'includes/layouts/class-esf-youtube-layout-registry.php';
+        if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
+            $carousel_layout = ESF_YOUTUBE_DIR . 'includes/layouts/premium/class-esf-youtube-layout-carousel.php';
+            if ( file_exists( $carousel_layout ) ) {
+                require_once $carousel_layout;
+            }
+            $half_width_layout = ESF_YOUTUBE_DIR . 'includes/layouts/premium/class-esf-youtube-layout-half-width.php';
+            if ( file_exists( $half_width_layout ) ) {
+                require_once $half_width_layout;
+            }
+            $full_width_layout = ESF_YOUTUBE_DIR . 'includes/layouts/premium/class-esf-youtube-layout-full-width.php';
+            if ( file_exists( $full_width_layout ) ) {
+                require_once $full_width_layout;
+            }
+            $masonry_layout = ESF_YOUTUBE_DIR . 'includes/layouts/premium/class-esf-youtube-layout-masonry.php';
+            if ( file_exists( $masonry_layout ) ) {
+                require_once $masonry_layout;
+            }
+        }
         require_once ESF_YOUTUBE_DIR . 'includes/class-esf-youtube-renderer.php';
         require_once ESF_YOUTUBE_DIR . 'frontend/class-esf-youtube-frontend.php';
     }
@@ -106,7 +130,7 @@ class ESF_YouTube_Main {
      * @since 6.7.5
      * @return void
      */
-    private function maybe_initialize_components() {
+    public function maybe_initialize_components() {
         if ( !$this->is_module_active() ) {
             return;
         }
@@ -382,18 +406,47 @@ class ESF_YouTube_Main {
             'status' => 'active',
         ) );
         if ( !empty( $feeds ) ) {
-            $now_utc = current_time( 'mysql', true );
             $renderer = new ESF_YouTube_Renderer();
+            $account_repo = ESF_YouTube_Account_Repository::get_instance();
+            $seen_keys = array();
             foreach ( $feeds as $feed ) {
                 $feed_id = (int) $feed->id;
                 $account_id = ( isset( $feed->account_id ) ? (int) $feed->account_id : 0 );
                 if ( $feed_id <= 0 || $account_id <= 0 ) {
                     continue;
                 }
-                $cache_key = 'esf_yt_videos_' . $feed_id . '_' . $account_id;
-                $expires_at = ESF_YouTube_Cache::get_expires_at( $cache_key );
-                if ( null !== $expires_at && $expires_at > $now_utc ) {
+                $feed_type = ( isset( $feed->feed_type ) ? (string) $feed->feed_type : 'channel' );
+                $source_id = ( isset( $feed->source_id ) ? (string) $feed->source_id : '' );
+                $settings = array();
+                if ( isset( $feed->settings ) ) {
+                    $decoded = ( is_string( $feed->settings ) ? json_decode( $feed->settings, true ) : $feed->settings );
+                    $settings = ( is_array( $decoded ) ? $decoded : array() );
+                }
+                $content_filter = ( function_exists( 'esf_youtube_content_filter_from_settings' ) ? esf_youtube_content_filter_from_settings( ESF_YouTube_Feed_Repository::merge_settings_with_defaults( $settings ) ) : 'all' );
+                $channel_id = '';
+                $account = $account_repo->get_by_id( $account_id );
+                if ( $account && isset( $account->channel_id ) ) {
+                    $channel_id = (string) $account->channel_id;
+                }
+                if ( function_exists( 'esf_youtube_resolve_videos_source' ) ) {
+                    $resolved = esf_youtube_resolve_videos_source(
+                        $feed_type,
+                        $source_id,
+                        $content_filter,
+                        $channel_id
+                    );
+                    $feed_type = $resolved['feed_type'];
+                    $source_id = $resolved['source_id'];
+                }
+                $cache_key = ( function_exists( 'esf_youtube_videos_cache_key' ) ? esf_youtube_videos_cache_key( $account_id, $feed_type, $source_id ) : 'esf_yt_videos_' . $account_id );
+                if ( '' === $cache_key || isset( $seen_keys[$cache_key] ) ) {
                     continue;
+                }
+                $seen_keys[$cache_key] = true;
+                $expires_at = ESF_YouTube_Cache::get_expires_at( $cache_key );
+                if ( function_exists( 'esf_feed_cache_is_due_for_refresh' ) && !esf_feed_cache_is_due_for_refresh( $expires_at ) ) {
+                    continue;
+                    // still outside lead window
                 }
                 $renderer->get_videos_for_feed_by_id( $feed_id );
             }

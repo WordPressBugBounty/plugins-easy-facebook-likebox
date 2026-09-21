@@ -38,6 +38,9 @@ if ( ! class_exists( 'ESF_Admin_Menu_Order' ) ) {
 		const YOUTUBE = 40;
 
 		/** @var int */
+		const TIKTOK = 47;
+
+		/** @var int */
 		const SETTINGS = 50;
 
 		/** @var int First slot for third-party items (Freemius, add-ons). */
@@ -55,10 +58,12 @@ if ( ! class_exists( 'ESF_Admin_Menu_Order' ) ) {
 		public static function get_slug_positions() {
 			return array(
 				'easy-facebook-likebox' => self::FACEBOOK,
+				'esf-facebook'          => self::FACEBOOK,
 				'esf-youtube'           => self::YOUTUBE,
 				'esf-instagram'         => self::INSTAGRAM,
 				'mif'                   => self::INSTAGRAM,
 				'esf-twitter'           => self::TWITTER,
+				'esf-tiktok'            => self::TIKTOK,
 				'esf-settings'          => self::SETTINGS,
 			);
 		}

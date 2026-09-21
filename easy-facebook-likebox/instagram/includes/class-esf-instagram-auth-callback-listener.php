@@ -265,7 +265,7 @@ class ESF_Instagram_Auth_Callback_Listener {
 				'followers_count',
 			)
 		);
-		$minimal      = 'id,username,account_type,media_count';
+		$minimal     = 'id,username,account_type,media_count';
 
 		foreach ( array( $full_fields, $minimal ) as $fields ) {
 			$url      = add_query_arg(
@@ -409,7 +409,7 @@ class ESF_Instagram_Auth_Callback_Listener {
 
 		echo '<!doctype html><html><head><meta charset="utf-8"><title>' . esc_html__( 'Instagram Account Connected', 'easy-facebook-likebox' ) . '</title></head><body>';
 		echo '<p>' . esc_html__( 'Finishing authentication. You can close this window if it does not close automatically.', 'easy-facebook-likebox' ) . '</p>';
-		echo '<script>(function(){var payload=' . $payload . ';var origins=' . $origins_json . ';';
+		echo '<script>(function(){var payload=' . $payload . ';var origins=' . $origins_json . ';'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON payload for postMessage.
 		echo 'try{if(window.opener&&!window.opener.closed&&origins&&origins.length){for(var i=0;i<origins.length;i++){try{window.opener.postMessage(payload,origins[i]);}catch(e){}}}}catch(e){}';
 		echo 'try{window.close();}catch(e){}';
 		echo 'setTimeout(function(){window.location.href=' . wp_json_encode( $redirect_url ) . ';},800);';

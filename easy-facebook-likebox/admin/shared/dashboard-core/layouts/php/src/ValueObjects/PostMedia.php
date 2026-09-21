@@ -42,6 +42,16 @@ final class PostMedia {
 	private $video_url;
 
 	/**
+	 * Facebook video plugin embed URL (`/plugins/video.php?...`).
+	 *
+	 * Used when Graph does not expose a raw MP4 `source` (common for
+	 * nested video subattachments in multi-photo posts).
+	 *
+	 * @var string
+	 */
+	private $video_embed_url;
+
+	/**
 	 * @var int
 	 */
 	private $width;
@@ -71,11 +81,12 @@ final class PostMedia {
 		if ( ! in_array( $type, array( self::TYPE_PHOTO, self::TYPE_VIDEO, self::TYPE_REEL ), true ) ) {
 			$type = self::TYPE_PHOTO;
 		}
-		$this->type        = $type;
-		$this->url         = isset( $data['url'] ) ? (string) $data['url'] : '';
-		$this->preview_url = isset( $data['preview_url'] ) ? (string) $data['preview_url'] : '';
-		$this->video_url   = isset( $data['video_url'] ) ? (string) $data['video_url'] : '';
-		$this->width       = isset( $data['width'] ) ? (int) $data['width'] : 0;
+		$this->type            = $type;
+		$this->url             = isset( $data['url'] ) ? (string) $data['url'] : '';
+		$this->preview_url     = isset( $data['preview_url'] ) ? (string) $data['preview_url'] : '';
+		$this->video_url       = isset( $data['video_url'] ) ? (string) $data['video_url'] : '';
+		$this->video_embed_url = isset( $data['video_embed_url'] ) ? (string) $data['video_embed_url'] : '';
+		$this->width           = isset( $data['width'] ) ? (int) $data['width'] : 0;
 		$this->height      = isset( $data['height'] ) ? (int) $data['height'] : 0;
 		$this->alt         = isset( $data['alt'] ) ? (string) $data['alt'] : '';
 		$this->is_placeholder_poster = ! empty( $data['is_placeholder_poster'] );
@@ -103,6 +114,13 @@ final class PostMedia {
 
 	public function get_video_url(): string {
 		return $this->video_url;
+	}
+
+	/**
+	 * Facebook video plugin embed URL, or empty when unavailable.
+	 */
+	public function get_video_embed_url(): string {
+		return $this->video_embed_url;
 	}
 
 	/**
@@ -143,6 +161,7 @@ final class PostMedia {
 			'url'                   => $this->url,
 			'preview_url'           => $this->preview_url,
 			'video_url'             => $this->video_url,
+			'video_embed_url'       => $this->video_embed_url,
 			'width'                 => $this->width,
 			'height'                => $this->height,
 			'alt'                   => $this->alt,

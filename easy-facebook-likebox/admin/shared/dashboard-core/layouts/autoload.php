@@ -47,6 +47,8 @@ spl_autoload_register(
 				'EasySocialFeed\\Instagram\\Layouts\\' => $plugin_dir . 'instagram/includes/layouts/src/',
 				'EasySocialFeed\\Twitter\\Layouts\\'   => $plugin_dir . 'twitter/includes/layouts/src/',
 				'EasySocialFeed\\YouTube\\Layouts\\'   => $plugin_dir . 'youtube/includes/layouts/src/',
+				'EasySocialFeed\\TikTok\\Layouts\\'    => $plugin_dir . 'tiktok/includes/layouts/src/',
+				'EasySocialFeed\\Facebook\\Layouts\\'  => $plugin_dir . 'facebook/includes/layouts/src/',
 			);
 		}
 

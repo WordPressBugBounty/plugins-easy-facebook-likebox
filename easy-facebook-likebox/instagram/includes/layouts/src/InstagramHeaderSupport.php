@@ -38,11 +38,10 @@ trait InstagramHeaderSupport {
 				'show_name'          => (bool) $this->setting( 'header.show_name', true ),
 				'show_handle'        => false,
 				'show_bio'           => false,
-				'avatar_round'       => true,
 				'avatar_icon_html'   => $this->render_hashtag_header_icon(),
 				'show_stats'         => array(),
 				'show_follow_button' => false,
-				'follow_label'       => __( 'Follow on Instagram', 'easy-facebook-likebox' ),
+				'follow_label'       => esf_translate_registry_string( 'follow_on_instagram', 'Follow on Instagram' ),
 			);
 		}
 
@@ -59,15 +58,14 @@ trait InstagramHeaderSupport {
 			'show_name'          => (bool) $this->setting( 'header.show_name', true ),
 			'show_handle'        => (bool) $this->setting( 'header.show_handle', true ),
 			'show_bio'           => (bool) $this->setting( 'header.show_bio', true ),
-			'avatar_round'       => (bool) $this->setting( 'header.avatar_round', true ),
 			'show_stats'         => $header_stats,
 			'stat_display'       => 'icons',
 			'stat_labels'        => array(
-				'followers' => __( 'Followers', 'easy-facebook-likebox' ),
-				'media'     => __( 'Posts', 'easy-facebook-likebox' ),
+				'followers' => esf_translate_registry_string( 'followers', 'Followers' ),
+				'media'     => esf_translate_registry_string( 'ig_posts', 'Posts' ),
 			),
 			'show_follow_button' => (bool) $this->setting( 'header.show_follow_button', true ),
-			'follow_label'       => __( 'Follow on Instagram', 'easy-facebook-likebox' ),
+			'follow_label'       => esf_translate_registry_string( 'follow_on_instagram', 'Follow on Instagram' ),
 		);
 
 		if ( function_exists( 'esf_instagram_has_instagram_plan' ) && esf_instagram_has_instagram_plan() ) {
@@ -81,7 +79,10 @@ trait InstagramHeaderSupport {
 
 			$header_options['rounded']     = (bool) $this->setting( 'header.header_rounded', true );
 			$header_options['show_border'] = (bool) $this->setting( 'header.show_border', true );
-			$padding                       = max( 0, min( 48, (int) $this->setting( 'header.padding', 16 ) ) );
+			if ( ! (bool) $this->setting( 'header.avatar_round', true ) ) {
+				$header_options['avatar_wrapper_class'] = 'esf-instagram-feed__header-avatar-wrap--square';
+			}
+			$padding = max( 0, min( 48, (int) $this->setting( 'header.padding', 16 ) ) );
 			if ( 16 !== $padding ) {
 				$header_options['padding'] = $padding;
 			}

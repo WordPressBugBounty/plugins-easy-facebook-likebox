@@ -66,14 +66,31 @@ class ESF_YouTube_Feed_Repository {
 	public static function get_default_settings() {
 		return array(
 			'feed'   => array(
-				'per_page'             => 12,
-				'load_more'            => true,
-				'load_more_bg_color'   => '',
-				'load_more_text_color' => '',
+				'per_page'                   => 12,
+				'content_filter'             => 'all',
+				/**
+				 * Extra source accounts for Multifeed (Pro / addon). Primary
+				 * `account_id` column remains the default / header account.
+				 *
+				 * @var int[]
+				 */
+				'account_ids'                => array(),
+				'multifeed_sort'             => 'newest',
+				'hover_overlay'              => true,
+				'show_hover_play'            => true,
+				'hover_play_color'           => '',
+				'hover_play_icon_color'      => '',
+				'hover_play_size'            => 52,
+				'load_more'                  => true,
+				'load_more_mode'             => 'button',
+				'load_more_bg_color'         => '',
+				'load_more_text_color'       => '',
+				'load_more_hover_bg_color'   => '',
+				'load_more_hover_text_color' => '',
 			),
 			'layout' => array(
-				'type' => 'grid',
-				'grid' => array_merge(
+				'type'       => 'grid',
+				'grid'       => array_merge(
 					function_exists( 'esf_layout_dimension_defaults' )
 						? esf_layout_dimension_defaults()
 						: array(),
@@ -81,8 +98,123 @@ class ESF_YouTube_Feed_Repository {
 						'columns'            => 3,
 						'columns_tablet'     => 2,
 						'columns_mobile'     => 1,
-						'gap'                => 16,
+						'gap'                => 20,
 						'media_aspect_ratio' => '16:9',
+						'bg_color'           => '',
+						'text_color'         => '',
+						'meta_color'         => '',
+						'accent_color'       => '',
+					)
+				),
+				'row'        => array_merge(
+					function_exists( 'esf_layout_dimension_defaults' )
+						? esf_layout_dimension_defaults()
+						: array(),
+					array(
+						'row_style'          => 'standard',
+						'wave_offset'        => 16,
+						'media_aspect_ratio' => '1:1',
+						'columns'            => 4,
+						'columns_tablet'     => 3,
+						'columns_mobile'     => 2,
+						'gap'                => 0,
+						'tile_border_radius' => 0,
+						'tile_shadow'        => false,
+						'tile_shadow_color'  => 'rgba(0,0,0,0.12)',
+					)
+				),
+				'carousel'   => array(
+					'display_mode'         => 'detailed',
+					'media_aspect_ratio'   => '16:9',
+					'columns'              => 3,
+					'columns_tablet'       => 2,
+					'columns_mobile'       => 1,
+					'gap'                  => 16,
+					'tile_border_radius'   => 8,
+					'show_arrows'          => true,
+					'show_dots'            => true,
+					'loop'                 => true,
+					'autoplay'             => true,
+					'autoplay_speed'       => 3000,
+					'caption_words'        => 18,
+					'show_caption'         => true,
+					'show_meta'            => true,
+					'show_time'            => true,
+					'details_bg_color'     => '#ffffff',
+					'details_text_color'   => '#0f0f0f',
+					'details_accent_color' => '#ff0000',
+					'details_meta_color'   => '#606060',
+					'nav_color'            => '#d6d6d6',
+					'nav_active_color'     => '#ff0000',
+				),
+				'half_width' => array_merge(
+					function_exists( 'esf_layout_dimension_defaults' )
+						? esf_layout_dimension_defaults()
+						: array(),
+					array(
+						'gap'                 => 16,
+						'card_border_radius'  => 12,
+						'card_shadow'         => true,
+						'card_shadow_color'   => 'rgba(0,0,0,0.08)',
+						'media_aspect_ratio'  => '16:9',
+						'bg_color'            => '',
+						'footer_bg_color'     => '',
+						'text_color'          => '',
+						'accent_color'        => '',
+						'caption_words'       => 25,
+						'show_post_header'    => true,
+						'show_post_time'      => true,
+						'show_share'          => true,
+						'hover_show_likes'    => false,
+						'hover_show_comments' => false,
+					)
+				),
+				'masonry'    => array_merge(
+					function_exists( 'esf_layout_dimension_defaults' )
+						? esf_layout_dimension_defaults()
+						: array(),
+					array(
+						'display_mode'         => 'media_only',
+						'columns'              => 4,
+						'columns_tablet'       => 3,
+						'columns_mobile'       => 2,
+						'gap'                  => 8,
+						'tile_border_radius'   => 8,
+						'tile_shadow'          => true,
+						'tile_shadow_color'    => 'rgba(0,0,0,0.12)',
+						'caption_words'        => 18,
+						'show_caption'         => true,
+						'show_meta'            => true,
+						'show_time'            => true,
+						'details_bg_color'     => '#ffffff',
+						'details_text_color'   => '#0f0f0f',
+						'details_meta_color'   => '#606060',
+						'details_accent_color' => '#ff0000',
+						'hover_show_likes'     => false,
+						'hover_show_comments'  => false,
+					)
+				),
+				'full_width' => array_merge(
+					function_exists( 'esf_layout_dimension_defaults' )
+						? esf_layout_dimension_defaults()
+						: array(),
+					array(
+						'gap'                 => 16,
+						'card_border_radius'  => 12,
+						'card_shadow'         => true,
+						'card_shadow_color'   => 'rgba(0,0,0,0.08)',
+						'media_aspect_ratio'  => '16:9',
+						'media_position'      => 'header_first',
+						'bg_color'            => '',
+						'footer_bg_color'     => '',
+						'text_color'          => '',
+						'accent_color'        => '',
+						'caption_words'       => 25,
+						'show_post_header'    => true,
+						'show_post_time'      => true,
+						'show_share'          => true,
+						'hover_show_likes'    => false,
+						'hover_show_comments' => false,
 					)
 				),
 			),
@@ -90,24 +222,34 @@ class ESF_YouTube_Feed_Repository {
 				'show'                  => true,
 				'show_logo'             => true,
 				'show_name'             => true,
-				'show_stats'            => true,
+				'show_subscribers'      => true,
+				'show_video_count'      => true,
+				'show_channel_views'    => true,
 				'show_description'      => true,
 				'show_subscribe_button' => true,
 				'show_banner'           => true,
+				'show_border'           => true,
+				'padding'               => 16,
+				'bg_color'              => '',
+				'text_color'            => '',
+				'border_color'          => '',
 			),
 			'card'   => array(
 				'show_thumbnail'   => true,
 				'show_title'       => true,
-				'show_description' => false,
+				'show_description' => true,
 				'show_date'        => true,
-				'show_views'       => false,
+				'show_views'       => true,
+				'show_duration'    => true,
 			),
 			'popup'  => array(
-				'enabled'          => true,
-				'show_description' => true,
-				'show_stats'       => true,
-				'autoplay'         => true,
-				'mute'             => true,
+				'enabled'            => true,
+				'show_description'   => true,
+				'show_stats'         => true,
+				'autoplay'           => true,
+				'mute'               => false,
+				'show_comments_list' => true,
+				'comments_per_page'  => 20,
 			),
 			'style'  => array(
 				'custom_css' => '',
@@ -131,7 +273,70 @@ class ESF_YouTube_Feed_Repository {
 			return $defaults;
 		}
 
-		return self::array_merge_recursive_distinct( $defaults, $settings );
+		// Migrate legacy header.show_stats before defaults fill the new keys.
+		if ( isset( $settings['header'] ) && is_array( $settings['header'] ) ) {
+			$header = $settings['header'];
+			if ( array_key_exists( 'show_stats', $header ) ) {
+				if ( ! array_key_exists( 'show_subscribers', $header ) ) {
+					$settings['header']['show_subscribers'] = ! empty( $header['show_stats'] );
+				}
+				if ( ! array_key_exists( 'show_video_count', $header ) ) {
+					$settings['header']['show_video_count'] = ! empty( $header['show_stats'] );
+				}
+			}
+		}
+
+		$merged = self::array_merge_recursive_distinct( $defaults, $settings );
+		return self::sanitize_content_filter_setting( $merged );
+	}
+
+	/**
+	 * Normalize content_filter; force "all" without a YouTube plan.
+	 *
+	 * @since 6.7.6
+	 *
+	 * @param array $settings Merged settings.
+	 * @return array
+	 */
+	public static function sanitize_content_filter_setting( $settings ) {
+		if ( ! is_array( $settings ) ) {
+			return self::get_default_settings();
+		}
+
+		if ( ! isset( $settings['feed'] ) || ! is_array( $settings['feed'] ) ) {
+			$settings['feed'] = array();
+		}
+
+		$filter = function_exists( 'esf_youtube_normalize_content_filter' )
+			? esf_youtube_normalize_content_filter(
+				isset( $settings['feed']['content_filter'] ) ? $settings['feed']['content_filter'] : 'all'
+			)
+			: 'all';
+
+		if (
+			'all' !== $filter
+			&& (
+				! function_exists( 'esf_youtube_has_youtube_plan' )
+				|| ! esf_youtube_has_youtube_plan()
+			)
+		) {
+			$filter = 'all';
+		}
+
+		$settings['feed']['content_filter'] = $filter;
+
+		if ( isset( $settings['feed']['account_ids'] ) && is_array( $settings['feed']['account_ids'] ) ) {
+			$ids = array();
+			foreach ( $settings['feed']['account_ids'] as $id ) {
+				$id = (int) $id;
+				if ( $id > 0 && ! in_array( $id, $ids, true ) ) {
+					$ids[] = $id;
+				}
+			}
+			$settings['feed']['account_ids'] = $ids;
+		}
+
+		return $settings;
 	}
 
 	/**
@@ -181,6 +386,33 @@ class ESF_YouTube_Feed_Repository {
 		);
 
 		return $row;
+	}
+
+	/**
+	 * Get feeds linked to an account.
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param int $account_id Internal account id.
+	 * @return array<int,object>
+	 */
+	public function get_by_account_id( $account_id ) {
+		global $wpdb;
+
+		$account_id = (int) $account_id;
+		if ( $account_id <= 0 ) {
+			return array();
+		}
+
+		$table = $this->get_table_name();
+		$rows  = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				'SELECT * FROM `' . esc_sql( $table ) . '` WHERE account_id = %d ORDER BY id ASC',
+				$account_id
+			)
+		);
+
+		return is_array( $rows ) ? $rows : array();
 	}
 
 	/**
@@ -265,7 +497,32 @@ class ESF_YouTube_Feed_Repository {
 		$settings  = isset( $data['settings'] ) && is_array( $data['settings'] )
 			? self::merge_settings_with_defaults( $data['settings'] )
 			: self::get_default_settings();
-		$status    = isset( $data['status'] ) ? (string) $data['status'] : 'active';
+
+		// Seed Multifeed source list with the primary account (Instagram / Facebook parity).
+		// $account_id is validated as > 0 above.
+		if ( ! isset( $settings['feed'] ) || ! is_array( $settings['feed'] ) ) {
+			$settings['feed'] = array();
+		}
+		$existing_ids = isset( $settings['feed']['account_ids'] ) && is_array( $settings['feed']['account_ids'] )
+			? $settings['feed']['account_ids']
+			: array();
+		$normalized   = array();
+		foreach ( $existing_ids as $id ) {
+			$id = (int) $id;
+			if ( $id > 0 && ! in_array( $id, $normalized, true ) ) {
+				$normalized[] = $id;
+			}
+		}
+		if ( empty( $normalized ) ) {
+			$settings['feed']['account_ids'] = array( $account_id );
+		} elseif ( ! in_array( $account_id, $normalized, true ) ) {
+			array_unshift( $normalized, $account_id );
+			$settings['feed']['account_ids'] = $normalized;
+		} else {
+			$settings['feed']['account_ids'] = $normalized;
+		}
+
+		$status = isset( $data['status'] ) ? (string) $data['status'] : 'active';
 		if ( ! in_array( $status, self::$allowed_statuses, true ) ) {
 			$status = 'active';
 		}
@@ -322,8 +579,10 @@ class ESF_YouTube_Feed_Repository {
 			return false;
 		}
 
-		$fields = array();
-		$format = array();
+		$fields             = array();
+		$format             = array();
+		$account_id_updated = false;
+		$new_account_id     = 0;
 
 		if ( array_key_exists( 'name', $data ) ) {
 			$name = trim( (string) $data['name'] );
@@ -338,6 +597,8 @@ class ESF_YouTube_Feed_Repository {
 			if ( $account_id > 0 ) {
 				$fields['account_id'] = $account_id;
 				$format[]             = '%d';
+				$account_id_updated   = true;
+				$new_account_id       = $account_id;
 			}
 		}
 
@@ -386,6 +647,17 @@ class ESF_YouTube_Feed_Repository {
 			$format,
 			array( '%d' )
 		);
+
+		if ( false !== $updated && $account_id_updated && class_exists( 'ESF_Feed_Disconnected_Cache' ) && class_exists( 'ESF_YouTube_Account_Repository' ) ) {
+			$account = ESF_YouTube_Account_Repository::get_instance()->get_by_id( $new_account_id );
+			if ( $account ) {
+				ESF_Feed_Disconnected_Cache::handle_feed_source_reconnected(
+					'youtube',
+					$feed_id,
+					$new_account_id
+				);
+			}
+		}
 
 		return ( false !== $updated );
 	}

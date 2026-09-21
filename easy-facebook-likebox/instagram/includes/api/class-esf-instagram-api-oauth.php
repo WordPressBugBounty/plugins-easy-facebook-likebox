@@ -112,6 +112,73 @@ class ESF_Instagram_API_OAuth {
 				),
 			)
 		);
+
+		register_rest_route(
+			'esf/v1',
+			'/instagram/oauth/manual',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( __CLASS__, 'stage_manual_token' ),
+				'permission_callback' => array( __CLASS__, 'write_permissions_check' ),
+				'args'                => array(
+					'access_token' => array(
+						'description' => __( 'Instagram user or Facebook user access token.', 'easy-facebook-likebox' ),
+						'type'        => 'string',
+						'required'    => true,
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Permission callback for write routes (nonce required).
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return bool
+	 */
+	public static function write_permissions_check( $request ) {
+		if ( ! self::permissions_check( $request ) ) {
+			return false;
+		}
+		$nonce = $request instanceof WP_REST_Request ? $request->get_header( 'X-WP-Nonce' ) : '';
+		return $nonce && wp_verify_nonce( $nonce, 'wp_rest' );
+	}
+
+	/**
+	 * POST /esf/v1/instagram/oauth/manual — validate pasted token and connect or stage pick session.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function stage_manual_token( WP_REST_Request $request ) {
+		$token = $request->get_param( 'access_token' );
+		if ( ! is_string( $token ) || '' === trim( $token ) ) {
+			return new WP_Error(
+				'esf_ig_invalid_token',
+				__( 'Enter a valid Instagram or Facebook access token.', 'easy-facebook-likebox' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( ! class_exists( 'ESF_Instagram_Manual_Oauth_Service' ) ) {
+			return new WP_Error(
+				'esf_ig_manual_unavailable',
+				__( 'Manual token setup is not available.', 'easy-facebook-likebox' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		$result = ESF_Instagram_Manual_Oauth_Service::submit_manual_access_token(
+			get_current_user_id(),
+			$token
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( $result );
 	}
 
 	/**
@@ -136,7 +203,7 @@ class ESF_Instagram_API_OAuth {
 	 * @return WP_REST_Response
 	 */
 	public static function get_oauth_url( $request ) {
-		$raw = $request instanceof WP_REST_Request
+		$raw  = $request instanceof WP_REST_Request
 			? (string) $request->get_param( 'type' )
 			: '';
 		$type = esf_instagram_normalize_auth_flow_type( $raw );

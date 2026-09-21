@@ -159,38 +159,40 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
         $slug = $this->get_layout_settings_slug();
         $path = 'layout.' . $slug . '.';
         $vars = array();
+        $prefix = '--esf-' . $this->module;
         $bg = $this->resolve_split_setting_color( $path, 'bg_color', array('content_bg_color', 'card_bg_color') );
         if ( '' !== $bg ) {
-            $vars['--esf-ig-split-bg'] = $bg;
+            $vars[$prefix . '-split-bg'] = $bg;
         }
         $footer_bg = $this->resolve_split_setting_color( $path, 'footer_bg_color' );
         if ( '' !== $footer_bg ) {
-            $vars['--esf-ig-split-footer-bg'] = $footer_bg;
+            $vars[$prefix . '-split-footer-bg'] = $footer_bg;
         }
         $text = $this->resolve_split_setting_color( $path, 'text_color' );
         if ( '' !== $text ) {
-            $vars['--esf-ig-split-text'] = $text;
+            $vars[$prefix . '-split-text'] = $text;
         }
         $accent = $this->resolve_split_setting_color( $path, 'accent_color', array('caption_link_color') );
         if ( '' !== $accent ) {
-            $vars['--esf-ig-primary'] = $accent;
+            $vars[$prefix . '-primary'] = $accent;
         }
         // Legacy overrides when older feeds customized derived colors directly.
         $muted = $this->resolve_split_setting_color( $path, 'muted_text_color' );
         if ( '' !== $muted ) {
-            $vars['--esf-ig-split-muted'] = $muted;
+            $vars[$prefix . '-split-muted'] = $muted;
         }
         $border = $this->resolve_split_setting_color( $path, 'border_color' );
         if ( '' !== $border ) {
-            $vars['--esf-ig-split-border'] = $border;
+            $vars[$prefix . '-split-border'] = $border;
         }
         $link = $this->resolve_split_setting_color( $path, 'caption_link_color' );
         if ( '' !== $link ) {
-            $vars['--esf-ig-split-link'] = $link;
+            $vars[$prefix . '-split-link'] = $link;
         }
         $content_bg = $this->resolve_split_setting_color( $path, 'content_bg_color' );
-        if ( '' !== $content_bg && (!isset( $vars['--esf-ig-split-bg'] ) || $content_bg !== $vars['--esf-ig-split-bg']) ) {
-            $vars['--esf-ig-split-content-bg'] = $content_bg;
+        $bg_key = $prefix . '-split-bg';
+        if ( '' !== $content_bg && (!isset( $vars[$bg_key] ) || $content_bg !== $vars[$bg_key]) ) {
+            $vars[$prefix . '-split-content-bg'] = $content_bg;
         }
         return $vars;
     }
@@ -228,11 +230,12 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
      * @return array<string,string>
      */
     protected function get_split_theme_var_map() : array {
+        $prefix = '--esf-' . $this->module;
         return array(
-            'bg_color'        => '--esf-ig-split-bg',
-            'footer_bg_color' => '--esf-ig-split-footer-bg',
-            'text_color'      => '--esf-ig-split-text',
-            'accent_color'    => '--esf-ig-primary',
+            'bg_color'        => $prefix . '-split-bg',
+            'footer_bg_color' => $prefix . '-split-footer-bg',
+            'text_color'      => $prefix . '-split-text',
+            'accent_color'    => $prefix . '-primary',
         );
     }
 
@@ -248,12 +251,12 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
         $stories_row = $chrome['stories_row'];
         $stories_attr = $chrome['stories_attr'];
         $settings_slug = $this->get_layout_settings_slug();
-        $gap = $this->get_default_gap();
-        $card_radius = $this->get_default_card_radius();
-        $card_shadow = false;
+        // Gap + corner radius are free geometry (matches AbstractStackedLayout /
+        // Facebook Half Width Free panel). Card shadow toggle + color are Pro.
+        $gap = (int) $this->setting( 'layout.' . $settings_slug . '.gap', $this->get_default_gap() );
+        $card_radius = (int) $this->setting( 'layout.' . $settings_slug . '.card_border_radius', $this->get_default_card_radius() );
+        $card_shadow = $this->get_default_card_shadow();
         if ( $this->has_pro_plan() ) {
-            $gap = (int) $this->setting( 'layout.' . $settings_slug . '.gap', $this->get_default_gap() );
-            $card_radius = (int) $this->setting( 'layout.' . $settings_slug . '.card_border_radius', $this->get_default_card_radius() );
             $card_shadow = (bool) $this->setting( 'layout.' . $settings_slug . '.card_shadow', $this->get_default_card_shadow() );
         }
         $gap = max( 0, min( 100, $gap ) );
@@ -261,9 +264,12 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
         $shell = $this->build_split_shell_attributes( $gap, $card_radius, $card_shadow );
         $state = $this->get_display_state();
         if ( empty( $state['posts'] ) ) {
+            $empty_message = trim( (string) $this->setting( 'feed.empty_message', '' ) );
             $error_message = trim( (string) $this->setting( 'feed.media_error_message', '' ) );
-            if ( '' !== $error_message ) {
-                $empty = sprintf( '<div class="esf-%1$s-feed__empty esf-%1$s-feed__empty--error"><p class="esf-%1$s-feed__empty-text">%2$s</p></div>', esc_attr( $this->module ), esc_html( $error_message ) );
+            if ( '' !== $empty_message ) {
+                $empty = $this->render_empty_state( $empty_message );
+            } elseif ( '' !== $error_message ) {
+                $empty = $this->render_media_error_state( $error_message );
             } else {
                 $empty = $this->render_empty_state( __( 'No posts to display yet.', 'easy-facebook-likebox' ) );
             }
@@ -285,14 +291,14 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
             $cards .= $this->render_split_cell( $post );
         }
         $load_more = '';
-        // This entire code block will be removed from the free version.
         if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
             if ( $this->can_render_load_more() && method_exists( $this, 'render_split_load_more__premium_only' ) ) {
                 $load_more = $this->render_split_load_more__premium_only( count( $state['posts'] ), __( 'Load more', 'easy-facebook-likebox' ), __( 'Load more posts', 'easy-facebook-likebox' ) );
             }
         }
+        $footer = $this->compose_feed_footer( $load_more );
         return sprintf(
-            '<div class="%1$s"%2$s style="%3$s">%4$s%5$s<div class="%6$s esf-instagram-feed__items-inner">%7$s</div>%8$s</div>',
+            '<div class="%1$s"%2$s style="%3$s">%4$s%5$s<div class="%6$s %7$s">%8$s</div>%9$s</div>',
             esc_attr( $shell['class'] ),
             $stories_attr,
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -302,10 +308,26 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
             $stories_row,
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             esc_attr( $this->get_inner_class() ),
+            esc_attr( 'esf-' . $this->module . '-feed__items-inner' ),
             $cards,
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            $load_more
+            $footer
         );
+    }
+
+    /**
+     * Wrap or extend the Load More markup with module-specific footer CTAs.
+     *
+     * Modules override this (e.g. Instagram footer follow button). Default
+     * returns the Load More HTML unchanged.
+     *
+     * @since 6.9.0
+     *
+     * @param string $load_more_html Escaped Load More markup (may be empty).
+     * @return string
+     */
+    protected function compose_feed_footer( string $load_more_html ) : string {
+        return $load_more_html;
     }
 
     /**
@@ -330,6 +352,24 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
     }
 
     /**
+     * Resolve the pagination mode for Load More.
+     *
+     * `button` (default) or `infinite` (auto-fetch on scroll). Requires an
+     * active Pro plan; sites without one are always forced back to `button`.
+     *
+     * @since 6.16.0
+     *
+     * @param array<string,mixed> $feed_cfg Feed-level settings.
+     * @return string `button` or `infinite`.
+     */
+    protected function resolve_load_more_mode( array $feed_cfg ) : string {
+        if ( !$this->has_pro_plan() ) {
+            return 'button';
+        }
+        return ( isset( $feed_cfg['load_more_mode'] ) && 'infinite' === $feed_cfg['load_more_mode'] ? 'infinite' : 'button' );
+    }
+
+    /**
      * Build wrapper class + CSS variables.
      *
      * @since 6.9.0
@@ -341,7 +381,12 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
      */
     protected function build_split_shell_attributes( int $gap, int $card_radius, bool $card_shadow ) : array {
         $class = $this->get_shell_class() . ' esf-' . $this->module . '-feed__split';
-        $parts = array('--esf-split-gap:' . $gap . 'px', '--esf-split-card-radius:' . $card_radius . 'px');
+        $ratio = $this->resolve_split_media_aspect_ratio();
+        $parts = array('--esf-split-gap:' . $gap . 'px', '--esf-split-card-radius:' . $card_radius . 'px', '--esf-split-media-ratio:' . $this->split_media_aspect_ratio_to_css( $ratio ));
+        $ratio_mod = $this->get_split_media_ratio_modifier_class( $ratio );
+        if ( '' !== $ratio_mod ) {
+            $class .= ' ' . $ratio_mod;
+        }
         foreach ( $this->get_shell_geometry_style_vars() as $var => $value ) {
             $parts[] = $var . ':' . $value;
         }
@@ -361,6 +406,65 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
             'class' => $class,
             'style' => $style,
         );
+    }
+
+    /**
+     * Resolve split media aspect ratio from `layout.{slug}.media_aspect_ratio`.
+     *
+     * Shared by every Half Width / split layout so the control stays generic.
+     *
+     * @since 6.15.0
+     * @return string `auto`, `16:9`, `1:1`, `4:5`, `3:4`, or `9:16`.
+     */
+    protected function resolve_split_media_aspect_ratio() : string {
+        $raw = (string) $this->setting( 'layout.' . $this->get_layout_settings_slug() . '.media_aspect_ratio', '1:1' );
+        $allowed = array(
+            'auto',
+            '16:9',
+            '1:1',
+            '4:5',
+            '3:4',
+            '9:16'
+        );
+        return ( in_array( $raw, $allowed, true ) ? $raw : '1:1' );
+    }
+
+    /**
+     * Map a split media aspect setting to a CSS ratio value.
+     *
+     * @since 6.15.0
+     *
+     * @param string $ratio Aspect ratio slug.
+     * @return string CSS ratio (e.g. `1 / 1`) or `auto`.
+     */
+    protected function split_media_aspect_ratio_to_css( string $ratio ) : string {
+        switch ( $ratio ) {
+            case 'auto':
+                return 'auto';
+            case '16:9':
+                return '16 / 9';
+            case '4:5':
+                return '4 / 5';
+            case '3:4':
+                return '3 / 4';
+            case '9:16':
+                return '9 / 16';
+            case '1:1':
+            default:
+                return '1 / 1';
+        }
+    }
+
+    /**
+     * Optional BEM modifier when media uses original (no-crop) sizing.
+     *
+     * @since 6.15.0
+     *
+     * @param string $ratio Resolved aspect ratio slug.
+     * @return string
+     */
+    protected function get_split_media_ratio_modifier_class( string $ratio ) : string {
+        return ( 'auto' === $ratio ? 'esf-' . $this->module . '-feed__split--media-auto' : '' );
     }
 
     /**
@@ -437,13 +541,16 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
         $see_more = ( function_exists( 'esf_get_translated_string' ) ? __( esf_get_translated_string( 'see_more' ), 'easy-facebook-likebox' ) : __( 'See more', 'easy-facebook-likebox' ) );
         $see_less = ( function_exists( 'esf_get_translated_string' ) ? __( esf_get_translated_string( 'see_less' ), 'easy-facebook-likebox' ) : __( 'See less', 'easy-facebook-likebox' ) );
         $share = ( function_exists( 'esf_get_translated_string' ) ? __( esf_get_translated_string( 'share' ), 'easy-facebook-likebox' ) : __( 'Share', 'easy-facebook-likebox' ) );
+        $post_cfg = $this->get_settings();
+        $post_cfg = ( isset( $post_cfg['post'] ) && is_array( $post_cfg['post'] ) ? $post_cfg['post'] : array() );
         return array(
             'show_header'    => (bool) $this->setting( 'layout.' . $this->get_layout_settings_slug() . '.show_post_header', true ),
             'show_time'      => (bool) $this->setting( 'layout.' . $this->get_layout_settings_slug() . '.show_post_time', true ),
-            'show_caption'   => !isset( $this->get_settings()['post']['show_caption'] ) || (bool) $this->setting( 'post.show_caption', true ),
+            'show_caption'   => !array_key_exists( 'show_caption', $post_cfg ) || (bool) $this->setting( 'post.show_caption', true ),
             'caption_words'  => $caption_words,
-            'show_likes'     => !isset( $this->get_settings()['post']['show_likes'] ) || (bool) $this->setting( 'post.show_likes', true ),
-            'show_comments'  => !isset( $this->get_settings()['post']['show_comments'] ) || (bool) $this->setting( 'post.show_comments', true ),
+            'show_likes'     => !array_key_exists( 'show_likes', $post_cfg ) || (bool) $this->setting( 'post.show_likes', true ),
+            'show_comments'  => !array_key_exists( 'show_comments', $post_cfg ) || (bool) $this->setting( 'post.show_comments', true ),
+            'show_shares'    => !array_key_exists( 'show_shares', $post_cfg ) || (bool) $this->setting( 'post.show_shares', true ),
             'show_share'     => (bool) $this->setting( 'layout.' . $this->get_layout_settings_slug() . '.show_share', true ),
             'new_tab'        => (bool) $this->setting( 'feed.links_new_tab', true ),
             'see_more_label' => $see_more,
@@ -459,7 +566,7 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
                 'show_hover_plus'      => (bool) $this->setting( 'feed.hover_overlay', true ) && (bool) $this->setting( 'feed.show_hover_plus', true ),
                 'show_media_type_icon' => (bool) $this->setting( 'feed.show_media_type_icon', true ),
                 'use_collage'          => (bool) $this->setting( 'feed.show_media_collage', true ),
-                'prefer_preview'       => true,
+                'prefer_preview'       => false,
                 'show_hover_likes'     => false,
                 'show_hover_comments'  => false,
             ),

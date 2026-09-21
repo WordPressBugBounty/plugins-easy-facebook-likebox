@@ -14,6 +14,7 @@
  */
 namespace EasySocialFeed\Instagram\Layouts\Layouts;
 
+use EasySocialFeed\Instagram\Layouts\InstagramFooterSupport;
 use EasySocialFeed\Instagram\Layouts\InstagramLayoutDimensionsSupport;
 use EasySocialFeed\Instagram\Layouts\InstagramHeaderSupport;
 use EasySocialFeed\Instagram\Layouts\InstagramPopupSupport;
@@ -36,6 +37,7 @@ abstract class AbstractTileLayout extends AbstractLayout implements RendersTiles
     use InstagramLayoutDimensionsSupport;
     use InstagramPopupSupport;
     use InstagramHeaderSupport;
+    use InstagramFooterSupport;
     use InstagramShoppableSupport;
     /**
      * Layout settings slug under `settings.layout.{slug}` (e.g. `grid`, `row`).
@@ -185,6 +187,7 @@ abstract class AbstractTileLayout extends AbstractLayout implements RendersTiles
                 }
             }
         }
+        $footer = $this->compose_instagram_feed_footer( $load_more );
         return sprintf(
             '<div class="%1$s"%2$s style="%3$s">%4$s%5$s<div class="%6$s esf-instagram-feed__items-inner">%7$s</div>%8$s</div>',
             esc_attr( $shell['class'] ),
@@ -198,7 +201,7 @@ abstract class AbstractTileLayout extends AbstractLayout implements RendersTiles
             esc_attr( $this->get_inner_class() ),
             $tiles,
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Primitive returns escaped markup.
-            $load_more
+            $footer
         );
     }
 
@@ -350,7 +353,7 @@ abstract class AbstractTileLayout extends AbstractLayout implements RendersTiles
             'show_overlay'         => $hover_overlay,
             'show_hover_plus'      => $hover_overlay && (bool) $this->setting( 'feed.show_hover_plus', true ),
             'show_media_type_icon' => (bool) $this->setting( 'feed.show_media_type_icon', true ),
-            'use_collage'          => (bool) $this->setting( 'feed.show_media_collage', true ),
+            'use_collage'          => (bool) $this->setting( 'feed.show_media_collage', false ),
             'prefer_preview'       => true,
             'show_hover_likes'     => false,
             'show_hover_comments'  => false,

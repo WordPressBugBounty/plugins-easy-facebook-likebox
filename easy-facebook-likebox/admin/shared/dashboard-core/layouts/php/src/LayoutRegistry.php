@@ -69,6 +69,62 @@ final class LayoutRegistry {
 		self::$instances = array();
 	}
 
+	/**
+	 * Find a layout_css asset array by handle across module registries.
+	 *
+	 * @param string $handle           Stylesheet handle.
+	 * @param string $preferred_module Optional module slug to search first.
+	 * @return array{handle:string,src:string,deps:array<int,string>,ver?:string}|null
+	 */
+	public static function find_layout_css_by_handle( string $handle, string $preferred_module = '' ): ?array {
+		$handle = sanitize_key( $handle );
+		if ( '' === $handle ) {
+			return null;
+		}
+
+		$preferred_module = sanitize_key( $preferred_module );
+		if ( '' !== $preferred_module && isset( self::$instances[ $preferred_module ] ) ) {
+			$found = self::$instances[ $preferred_module ]->resolve_layout_css_by_handle( $handle );
+			if ( null !== $found ) {
+				return $found;
+			}
+		}
+
+		foreach ( self::$instances as $registry ) {
+			if ( '' !== $preferred_module && $registry->get_module() === $preferred_module ) {
+				continue;
+			}
+			$found = $registry->resolve_layout_css_by_handle( $handle );
+			if ( null !== $found ) {
+				return $found;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Find a layout_css asset array by handle within this module registry.
+	 *
+	 * @param string $handle Stylesheet handle.
+	 * @return array{handle:string,src:string,deps:array<int,string>,ver?:string}|null
+	 */
+	public function resolve_layout_css_by_handle( string $handle ): ?array {
+		$handle = sanitize_key( $handle );
+		if ( '' === $handle ) {
+			return null;
+		}
+
+		foreach ( $this->layouts as $definition ) {
+			$css = $definition->get_assets()->get_layout_css();
+			if ( null !== $css && isset( $css['handle'] ) && $handle === sanitize_key( (string) $css['handle'] ) ) {
+				return $css;
+			}
+		}
+
+		return null;
+	}
+
 	public function get_module(): string {
 		return $this->module;
 	}

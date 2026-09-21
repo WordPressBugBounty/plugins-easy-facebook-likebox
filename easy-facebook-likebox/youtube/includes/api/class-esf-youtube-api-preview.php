@@ -32,7 +32,7 @@ class ESF_YouTube_API_Preview {
 	 */
 	public static function register_routes() {
 		$args = array(
-			'id'       => array(
+			'id'         => array(
 				'description'       => __( 'Feed ID.', 'easy-facebook-likebox' ),
 				'type'              => 'integer',
 				'required'          => true,
@@ -40,11 +40,30 @@ class ESF_YouTube_API_Preview {
 					return is_numeric( $param ) && (int) $param > 0;
 				},
 			),
-			'settings' => array(
+			'settings'   => array(
 				'description'       => __( 'Optional settings override for live preview (prefer POST body).', 'easy-facebook-likebox' ),
 				'required'          => false,
 				'validate_callback' => array( __CLASS__, 'validate_settings_param' ),
 				'sanitize_callback' => array( __CLASS__, 'sanitize_settings_param' ),
+			),
+			'feed_type'  => array(
+				'description'       => __( 'Optional feed type override for live preview.', 'easy-facebook-likebox' ),
+				'type'              => 'string',
+				'required'          => false,
+				'enum'              => array( 'channel', 'playlist', 'search' ),
+				'sanitize_callback' => 'sanitize_key',
+			),
+			'source_id'  => array(
+				'description'       => __( 'Optional source id / search query override for live preview.', 'easy-facebook-likebox' ),
+				'type'              => 'string',
+				'required'          => false,
+				'sanitize_callback' => 'sanitize_text_field',
+			),
+			'account_id' => array(
+				'description'       => __( 'Optional account id override for live preview.', 'easy-facebook-likebox' ),
+				'type'              => 'integer',
+				'required'          => false,
+				'sanitize_callback' => 'absint',
 			),
 		);
 
@@ -128,6 +147,19 @@ class ESF_YouTube_API_Preview {
 			$settings_override = array();
 		}
 
+		$feed_overrides = array();
+		$feed_type      = sanitize_key( (string) $request->get_param( 'feed_type' ) );
+		if ( in_array( $feed_type, array( 'channel', 'playlist', 'search' ), true ) ) {
+			$feed_overrides['feed_type'] = $feed_type;
+		}
+		if ( null !== $request->get_param( 'source_id' ) ) {
+			$feed_overrides['source_id'] = (string) $request->get_param( 'source_id' );
+		}
+		$account_id = (int) $request->get_param( 'account_id' );
+		if ( $account_id > 0 ) {
+			$feed_overrides['account_id'] = $account_id;
+		}
+
 		if ( ! class_exists( 'ESF_YouTube_Frontend' ) ) {
 			return new WP_Error(
 				'preview_unavailable',
@@ -138,7 +170,7 @@ class ESF_YouTube_API_Preview {
 		$frontend = ESF_YouTube_Frontend::get_instance();
 		$renderer = $frontend->get_renderer();
 
-		$html = $renderer->render( $feed_id, $settings_override, false );
+		$html = $renderer->render( $feed_id, $settings_override, false, $feed_overrides );
 		if ( '' === $html ) {
 			return new WP_Error(
 				'preview_failed',
@@ -159,14 +191,87 @@ class ESF_YouTube_API_Preview {
 
 		$css_url        = $renderer->get_base_css_url();
 		$layout_css_url = $renderer->get_layout_css_url( $layout_type );
+		$js_url         = method_exists( $renderer, 'get_layout_js_url' )
+			? $renderer->get_layout_js_url( $layout_type )
+			: null;
 
-		return rest_ensure_response(
-			array(
-				'html'           => $html,
-				'css_url'        => $css_url,
-				'layout_css_url' => $layout_css_url,
-				'js_url'         => null,
-			)
+		$js_urls = array();
+		if ( 'masonry' === $layout_type && function_exists( 'esf_get_masonry_pack_script_url' ) ) {
+			$pack_url = esf_get_masonry_pack_script_url();
+			if ( '' !== $pack_url ) {
+				$js_urls[] = $pack_url;
+			}
+		}
+		if ( is_string( $js_url ) && '' !== $js_url ) {
+			$js_urls[] = $js_url;
+		}
+
+		$payload = array(
+			'html'           => $html,
+			'css_url'        => $css_url,
+			'layout_css_url' => $layout_css_url,
+			'js_url'         => '' !== $js_url ? $js_url : null,
+			'js_urls'        => $js_urls,
 		);
+
+		$layout_css_urls = array();
+		if (
+			function_exists( 'esf_is_feed_entrance_animation_enabled' )
+			&& esf_is_feed_entrance_animation_enabled()
+			&& function_exists( 'esf_get_feed_reveal_css_url' )
+		) {
+			$reveal_css = esf_get_feed_reveal_css_url();
+			if ( '' !== $reveal_css ) {
+				$layout_css_urls[] = $reveal_css;
+			}
+		}
+		if ( is_string( $layout_css_url ) && '' !== $layout_css_url ) {
+			$layout_css_urls[] = $layout_css_url;
+		}
+		if ( count( $layout_css_urls ) > 1 ) {
+			$payload['layout_css_urls'] = $layout_css_urls;
+		}
+
+		if ( method_exists( $renderer, 'get_last_search_total_results' ) ) {
+			$search_total = $renderer->get_last_search_total_results();
+			if ( null !== $search_total ) {
+				$payload['search_total_results'] = (int) $search_total;
+			}
+		}
+
+		if ( $feed_row && class_exists( 'ESF_YouTube_Renderer' ) ) {
+			$saved                      = json_decode( $feed_row->settings, true );
+			$merged                     = ESF_YouTube_Feed_Repository::merge_settings_with_defaults( is_array( $saved ) ? $saved : array() );
+			$merged                     = array_merge( $merged, $settings_override );
+			$override_account_id        = isset( $feed_overrides['account_id'] ) ? (int) $feed_overrides['account_id'] : 0;
+			$account_id                 = $override_account_id > 0 ? $override_account_id : (int) $feed_row->account_id;
+			$feed_type                  = isset( $feed_overrides['feed_type'] ) ? (string) $feed_overrides['feed_type'] : (string) $feed_row->feed_type;
+			$source_id                  = array_key_exists( 'source_id', $feed_overrides )
+				? (string) $feed_overrides['source_id']
+				: (string) $feed_row->source_id;
+			$probe                      = (object) array(
+				'id'         => (int) $feed_row->id,
+				'account_id' => $account_id,
+				'feed_type'  => $feed_type,
+				'source_id'  => $source_id,
+				'settings'   => $merged,
+			);
+			$payload['has_local_cache'] = ESF_YouTube_Renderer::feed_has_videos_cache( $probe );
+
+			$account_row  = $account_id > 0 && class_exists( 'ESF_YouTube_Account_Repository' )
+				? ESF_YouTube_Account_Repository::get_instance()->get_by_id( $account_id )
+				: null;
+			$disconnected = class_exists( 'ESF_Feed_Disconnected_Cache' )
+				? ESF_Feed_Disconnected_Cache::account_source_is_disconnected( $feed_row, $account_row )
+				: ( $account_id > 0 && null === $account_row );
+			if ( $disconnected && ! empty( $payload['has_local_cache'] ) && class_exists( 'ESF_Feed_Disconnected_Cache' ) ) {
+				$cache_pinned      = ! empty( $merged['feed']['cache_pinned'] );
+				$payload['notice'] = array(
+					'message' => ESF_Feed_Disconnected_Cache::get_notice_message( $cache_pinned ),
+				);
+			}
+		}
+
+		return rest_ensure_response( $payload );
 	}
 }

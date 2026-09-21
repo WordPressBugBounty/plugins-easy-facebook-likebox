@@ -100,14 +100,29 @@ class ESF_Feed_Name {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param object $account        Account row selected for the feed.
-	 * @param string $fallback_label Fallback label when username is empty.
+	 * @param object $account         Account row selected for the feed.
+	 * @param string $fallback_label  Fallback label when username is empty.
+	 * @param string $username_field  Account property to read (`username`, `vanity_name`, …).
 	 * @return string
 	 */
-	public static function build_username_feed_name( $account, $fallback_label ) {
+	public static function build_username_feed_name( $account, $fallback_label, $username_field = 'username' ) {
 		$username = '';
-		if ( is_object( $account ) && isset( $account->username ) ) {
-			$username = ltrim( sanitize_text_field( (string) $account->username ), '@' );
+		$field    = sanitize_key( (string) $username_field );
+		if ( '' === $field ) {
+			$field = 'username';
+		}
+
+		if ( is_object( $account ) ) {
+			if ( isset( $account->{$field} ) ) {
+				$username = ltrim( sanitize_text_field( (string) $account->{$field} ), '@' );
+			}
+			// Some networks use vanity_name; fall back when callers omit username_field.
+			if ( '' === $username && 'username' === $field && isset( $account->vanity_name ) ) {
+				$username = ltrim( sanitize_text_field( (string) $account->vanity_name ), '@' );
+			}
+			if ( '' === $username && isset( $account->username ) ) {
+				$username = ltrim( sanitize_text_field( (string) $account->username ), '@' );
+			}
 		}
 
 		if ( '' === $username ) {
@@ -118,6 +133,37 @@ class ESF_Feed_Name {
 			/* translators: %s: account username */
 			__( '@%s Feed', 'easy-facebook-likebox' ),
 			$username
+		);
+	}
+
+	/**
+	 * Build the default feed name from a Facebook Page row.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param object $page            Connected Page row.
+	 * @param string $fallback_label  Label when page name is missing.
+	 * @return string
+	 */
+	public static function build_page_name_feed_name( $page, $fallback_label ) {
+		$name = '';
+		if ( is_object( $page ) ) {
+			if ( isset( $page->page_name ) ) {
+				$name = sanitize_text_field( (string) $page->page_name );
+			}
+			if ( '' === $name && isset( $page->display_name ) ) {
+				$name = sanitize_text_field( (string) $page->display_name );
+			}
+		}
+
+		if ( '' === $name ) {
+			return (string) $fallback_label;
+		}
+
+		return sprintf(
+			/* translators: %s: Facebook Page name */
+			__( '%s Feed', 'easy-facebook-likebox' ),
+			$name
 		);
 	}
 
@@ -136,6 +182,12 @@ class ESF_Feed_Name {
 	 * @return string
 	 */
 	public static function build_auto_feed_name_for_source( $account, $feed_type, $source_id, array $config ) {
+		if ( isset( $config['name_builder'] ) && is_callable( $config['name_builder'] ) ) {
+			return sanitize_text_field(
+				(string) call_user_func( $config['name_builder'], $account, $feed_type, $source_id, $config )
+			);
+		}
+
 		$hashtag_type = isset( $config['hashtag_feed_type'] ) ? sanitize_key( (string) $config['hashtag_feed_type'] ) : 'hashtag';
 		$feed_type    = sanitize_key( (string) $feed_type );
 
@@ -159,6 +211,10 @@ class ESF_Feed_Name {
 			? (string) $config['account_fallback']
 			: __( 'Feed', 'easy-facebook-likebox' );
 
-		return self::build_username_feed_name( $account, $fallback );
+		$username_field = isset( $config['username_field'] )
+			? sanitize_key( (string) $config['username_field'] )
+			: 'username';
+
+		return self::build_username_feed_name( $account, $fallback, $username_field );
 	}
 }

@@ -61,15 +61,20 @@ class ESF_Twitter_Token_Manager {
 	public function auto_refresh_expiring_tokens() {
 		global $wpdb;
 
+		if ( class_exists( 'ESF_Twitter_DB_Installer' ) ) {
+			ESF_Twitter_DB_Installer::maybe_add_auth_source_column();
+		}
+
 		$table         = $wpdb->prefix . 'esf_twitter_accounts';
 		$table_escaped = esc_sql( $table );
 		$buffer_time   = gmdate( 'Y-m-d H:i:s', time() + 600 ); // 10-minute buffer.
 
 		$expiring = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(
-				"SELECT id, refresh_token, display_name FROM `{$table_escaped}` WHERE account_type = %s AND status = %s AND token_expires_at <= %s AND refresh_token IS NOT NULL AND refresh_token != '' LIMIT 50", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT id, refresh_token, display_name FROM `{$table_escaped}` WHERE account_type = %s AND status = %s AND auth_source = %s AND token_expires_at <= %s AND refresh_token IS NOT NULL AND refresh_token != '' LIMIT 50", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				'connected',
 				'active',
+				'oauth',
 				$buffer_time
 			)
 		);
@@ -86,7 +91,9 @@ class ESF_Twitter_Token_Manager {
 
 			if ( is_wp_error( $token_data ) ) {
 				$repository->update_status( (int) $account->id, 'expired' );
-				$this->maybe_send_expiry_notification( (int) $account->id );
+				if ( class_exists( 'ESF_Twitter_Token_Notifications' ) ) {
+					ESF_Twitter_Token_Notifications::maybe_notify_reconnect_required( (int) $account->id );
+				}
 				continue;
 			}
 
@@ -158,43 +165,5 @@ class ESF_Twitter_Token_Manager {
 	 */
 	public function unschedule_cron() {
 		esf_cron_unschedule_recurring_job( self::CRON_HOOK );
-	}
-
-	/**
-	 * Optionally notify the site admin when a token cannot be refreshed.
-	 *
-	 * @since 6.7.6
-	 * @param int $account_id Account ID.
-	 * @return void
-	 */
-	private function maybe_send_expiry_notification( $account_id ) {
-		$settings = get_option( 'esf_twitter_settings', array() );
-		if ( empty( $settings['notify_token_expiry'] ) ) {
-			return;
-		}
-
-		$repository = ESF_Twitter_Account_Repository::get_instance();
-		$account    = $repository->get_by_id( $account_id );
-		if ( ! $account ) {
-			return;
-		}
-
-		$admin_email = get_option( 'admin_email' );
-		$subject     = sprintf(
-			/* translators: %s: site name */
-			__( '[%s] X Account Token Expired', 'easy-facebook-likebox' ),
-			get_bloginfo( 'name' )
-		);
-		$message = sprintf(
-			/* translators: 1: username, 2: admin URL */
-			__(
-				"The X access token for @%1\$s has expired and could not be refreshed automatically.\n\nPlease reconnect the account at:\n%2\$s\n\nThis is an automated message from Easy Social Feed.",
-				'easy-facebook-likebox'
-			),
-			$account->username,
-			admin_url( 'admin.php?page=esf-twitter' )
-		);
-
-		wp_mail( $admin_email, $subject, $message );
 	}
 }

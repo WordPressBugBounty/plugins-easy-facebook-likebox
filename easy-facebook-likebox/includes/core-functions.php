@@ -22,10 +22,97 @@ if ( !function_exists( 'esf_get_pro_promo_offer' ) ) {
 
 }
 /**
+ * Freemius plan slug currently active for this install.
+ *
+ * Prefers Combo when present. Returns empty string for free / no premium.
+ *
+ * @since 6.9.2
+ * @return string Plan slug (e.g. `facebook_premium`, `combo_premium`) or ''.
+ */
+if ( !function_exists( 'esf_get_active_plan_slug' ) ) {
+    function esf_get_active_plan_slug() {
+        if ( !function_exists( 'efl_fs' ) ) {
+            return '';
+        }
+        $fs = efl_fs();
+        if ( !is_object( $fs ) || !method_exists( $fs, 'can_use_premium_code__premium_only' ) ) {
+            return '';
+        }
+        return '';
+        if ( !method_exists( $fs, 'is_plan' ) ) {
+            return '';
+        }
+        // Combo first so multi-module installs resolve to one clear slug.
+        $candidates = array(
+            'combo_premium',
+            'facebook_premium',
+            'instagram_premium',
+            'youtube_premium',
+            'x_premium',
+            'tiktok_premium'
+        );
+        foreach ( $candidates as $slug ) {
+            if ( $fs->is_plan( $slug, true ) ) {
+                return $slug;
+            }
+        }
+        return '';
+    }
+
+}
+/**
+ * Whether the user needs Combo to unlock Pro for a given module.
+ *
+ * True when they already own a *different* single-module plan (not Combo)
+ * and do not have Pro for `$module`.
+ *
+ * @since 6.9.2
+ * @param string $module Module slug (`facebook`, `instagram`, …).
+ * @return bool
+ */
+if ( !function_exists( 'esf_needs_combo_upgrade_for_module' ) ) {
+    function esf_needs_combo_upgrade_for_module(  $module  ) {
+        $module = sanitize_key( (string) $module );
+        $owned = esf_get_active_plan_slug();
+        if ( '' === $owned || 'combo_premium' === $owned ) {
+            return false;
+        }
+        $module_plan_map = array(
+            'facebook'  => 'facebook_premium',
+            'instagram' => 'instagram_premium',
+            'youtube'   => 'youtube_premium',
+            'twitter'   => 'x_premium',
+            'tiktok'    => 'tiktok_premium',
+        );
+        if ( !isset( $module_plan_map[$module] ) ) {
+            return false;
+        }
+        // Already on this module's single plan.
+        if ( $owned === $module_plan_map[$module] ) {
+            return false;
+        }
+        $has_helpers = array(
+            'facebook'  => 'esf_facebook_has_facebook_plan',
+            'instagram' => 'esf_instagram_has_instagram_plan',
+            'youtube'   => 'esf_youtube_has_youtube_plan',
+            'twitter'   => 'esf_twitter_has_twitter_plan',
+            'tiktok'    => 'esf_tiktok_has_tiktok_plan',
+        );
+        $helper = ( isset( $has_helpers[$module] ) ? $has_helpers[$module] : '' );
+        if ( '' !== $helper && function_exists( $helper ) && call_user_func( $helper ) ) {
+            return false;
+        }
+        return true;
+    }
+
+}
+/**
  * Canonical Pro upgrade / pricing URL for all CTAs.
  *
  * Pass a module context so UTM `utm_content` tracks where the CTA came from.
- * Supported contexts: `instagram`, `facebook`, `youtube`, `twitter`, `general`.
+ * Supported contexts: `instagram`, `facebook`, `youtube`, `twitter`, `tiktok`, `addons`, `general`.
+ * When a paid plan is active, appends `current_plan` so the pricing site can
+ * emphasize Combo for multi-module unlocks.
  *
  * @since 6.9.1
  * @param string $context Module or surface context (default `general`).
@@ -38,17 +125,24 @@ if ( !function_exists( 'esf_get_upgrade_url' ) ) {
             'facebook',
             'youtube',
             'twitter',
+            'tiktok',
+            'addons',
             'general'
         );
         $context = sanitize_key( (string) $context );
         if ( !in_array( $context, $allowed, true ) ) {
             $context = 'general';
         }
-        return add_query_arg( array(
+        $args = array(
             'utm_source'  => 'easy_social_feed',
             'utm_medium'  => 'wordpress_plugin_install',
             'utm_content' => $context,
-        ), 'https://easysocialfeed.com/pricing/' );
+        );
+        $current_plan = ( function_exists( 'esf_get_active_plan_slug' ) ? esf_get_active_plan_slug() : '' );
+        if ( is_string( $current_plan ) && '' !== $current_plan ) {
+            $args['current_plan'] = sanitize_key( $current_plan );
+        }
+        return add_query_arg( $args, 'https://easysocialfeed.com/pricing/' );
     }
 
 }
@@ -65,6 +159,121 @@ if ( function_exists( 'efl_fs' ) && !function_exists( 'esf_filter_freemius_prici
     }
 
     efl_fs()->add_filter( 'pricing_url', 'esf_filter_freemius_pricing_url' );
+}
+/**
+ * Pricing page URL for the Add-Ons section (`#add-ons`).
+ *
+ * @deprecated 6.10.0 Multifeed is now included in Pro; addons tab removed.
+ * @since 6.9.2
+ * @return string
+ */
+if ( !function_exists( 'esf_get_addons_url' ) ) {
+    function esf_get_addons_url() {
+        // Redirect to Pro pricing since Multifeed (the only addon) is now native.
+        return ( function_exists( 'esf_get_upgrade_url' ) ? esf_get_upgrade_url( 'combo_premium' ) : 'https://easysocialfeed.com/pricing/' );
+    }
+
+}
+/**
+ * Freemius Add-Ons admin page slug (menu slug + `-addons`).
+ *
+ * @deprecated 6.10.0 Addons tab removed; Multifeed is now native in Pro.
+ * @since 6.9.2
+ * @return string
+ */
+if ( !function_exists( 'esf_get_freemius_addons_page_slug' ) ) {
+    function esf_get_freemius_addons_page_slug() {
+        return 'easy-social-feed-addons';
+    }
+
+}
+/**
+ * Hide Freemius’s built-in Add-Ons page from the admin menu.
+ *
+ * Multifeed (the only addon) is now included in Pro plans as of 6.10.0.
+ * The external "Add-Ons" menu link has been removed; Freemius's built-in
+ * page remains hidden for consistency.
+ *
+ * @deprecated 6.10.0 Addons tab removed.
+ * @since 6.9.2
+ *
+ * @param bool   $is_visible Whether the submenu item is visible.
+ * @param string $id         Submenu item id.
+ * @return bool
+ */
+if ( !function_exists( 'esf_hide_freemius_addons_submenu' ) ) {
+    function esf_hide_freemius_addons_submenu(  $is_visible, $id  ) {
+        if ( 'addons' === $id ) {
+            return false;
+        }
+        return $is_visible;
+    }
+
+}
+/**
+ * Register Add-Ons as an external Freemius submenu link that opens in a new tab.
+ *
+ * @deprecated 6.10.0 Addons menu removed; Multifeed is now native in Pro.
+ * @since 6.9.2
+ * @return void
+ */
+if ( !function_exists( 'esf_register_freemius_addons_external_link' ) ) {
+    function esf_register_freemius_addons_external_link() {
+        // No longer register the addons menu item.
+        // Multifeed (the only addon) is now included in Pro plans.
+        return;
+    }
+
+}
+if ( function_exists( 'efl_fs' ) ) {
+    $esf_fs = efl_fs();
+    if ( is_object( $esf_fs ) && method_exists( $esf_fs, 'add_filter' ) ) {
+        $esf_fs->add_filter(
+            'is_submenu_visible',
+            'esf_hide_freemius_addons_submenu',
+            10,
+            2
+        );
+    }
+}
+if ( function_exists( 'add_action' ) ) {
+    // Before Freemius `_prepare_admin_menu` (priority 999999999) so the link is embedded with other FS items.
+    add_action( 'admin_menu', 'esf_register_freemius_addons_external_link', 1 );
+}
+/**
+ * Redirect direct hits to the Freemius Add-Ons admin page to pricing.
+ *
+ * @deprecated 6.10.0 Addons menu removed; redirects to Pro pricing.
+ * @since 6.9.2
+ * @return void
+ */
+if ( !function_exists( 'esf_redirect_freemius_addons_page' ) ) {
+    function esf_redirect_freemius_addons_page() {
+        if ( !is_admin() ) {
+            return;
+        }
+        if ( empty( $_GET['page'] ) ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            return;
+        }
+        $page = sanitize_key( wp_unslash( $_GET['page'] ) );
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if ( esf_get_freemius_addons_page_slug() !== $page ) {
+            return;
+        }
+        if ( !current_user_can( 'manage_options' ) ) {
+            return;
+        }
+        // Redirect to Pro pricing (Multifeed is now native).
+        $redirect_url = ( function_exists( 'esf_get_upgrade_url' ) ? esf_get_upgrade_url( 'combo_premium' ) : 'https://easysocialfeed.com/pricing/' );
+        wp_redirect( $redirect_url );
+        // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
+        exit;
+    }
+
+    if ( function_exists( 'add_action' ) ) {
+        add_action( 'admin_init', 'esf_redirect_freemius_addons_page' );
+    }
 }
 /**
  * Check if elementor is active and in preview mode
@@ -178,6 +387,7 @@ if ( !function_exists( 'esf_hashtags_to_links' ) ) {
             'youtube'   => 'https://www.youtube.com/results?search_query={hash}',
             'facebook'  => 'https://www.facebook.com/hashtag/{tag}',
             'twitter'   => 'https://x.com/hashtag/{tag}',
+            'tiktok'    => 'https://www.tiktok.com/tag/{tag}',
         );
         $template = ( '' !== (string) $args['url_template'] ? (string) $args['url_template'] : $templates[$platform] ?? '' );
         if ( '' === $template ) {
@@ -201,7 +411,72 @@ if ( !function_exists( 'esf_hashtags_to_links' ) ) {
 
 }
 /**
- * Format social caption/description text into safe HTML with URLs and hashtags linked.
+ * Convert @handles in text into profile links for a social platform.
+ *
+ * Skips email-style `user@domain` and `@` already inside a path (`youtube.com/@x`).
+ *
+ * @since 6.16.0
+ *
+ * @param string $text     Text that may contain @handles.
+ * @param string $platform Platform slug (instagram, youtube, twitter, tiktok, facebook).
+ * @param array  $args     {
+ *     @type string $url_template Override URL with `{handle}` placeholder.
+ *     @type string $class        Optional CSS class on the anchor element.
+ *     @type bool   $new_tab      Open links in a new tab. Default true.
+ *     @type string $rel          rel attribute when $new_tab is true. Default `noopener noreferrer`.
+ * }
+ * @return string Text with mentions wrapped in anchor tags.
+ */
+if ( !function_exists( 'esf_mentions_to_links' ) ) {
+    function esf_mentions_to_links(  $text, $platform = 'instagram', array $args = array()  ) {
+        if ( !is_string( $text ) || '' === trim( $text ) ) {
+            return $text;
+        }
+        $platform = ( function_exists( 'sanitize_key' ) ? sanitize_key( (string) $platform ) : strtolower( (string) $platform ) );
+        if ( 'x' === $platform ) {
+            $platform = 'twitter';
+        }
+        $defaults = array(
+            'url_template' => '',
+            'class'        => '',
+            'new_tab'      => true,
+            'rel'          => 'noopener noreferrer',
+        );
+        $args = ( function_exists( 'wp_parse_args' ) ? wp_parse_args( $args, $defaults ) : array_merge( $defaults, $args ) );
+        $templates = array(
+            'instagram' => 'https://www.instagram.com/{handle}/',
+            'youtube'   => 'https://www.youtube.com/@{handle}',
+            'twitter'   => 'https://x.com/{handle}',
+            'tiktok'    => 'https://www.tiktok.com/@{handle}',
+            'facebook'  => 'https://www.facebook.com/{handle}',
+        );
+        $template = ( '' !== (string) $args['url_template'] ? (string) $args['url_template'] : $templates[$platform] ?? '' );
+        if ( '' === $template ) {
+            return $text;
+        }
+        $class_attr = ( '' !== (string) $args['class'] ? ' class="' . esc_attr( (string) $args['class'] ) . '"' : '' );
+        $target_attr = ( !empty( $args['new_tab'] ) ? ' target="_blank"' : '' );
+        $rel_attr = ( !empty( $args['new_tab'] ) && '' !== (string) $args['rel'] ? ' rel="' . esc_attr( (string) $args['rel'] ) . '"' : '' );
+        return preg_replace_callback( '/(?<![A-Za-z0-9._\\/])@([A-Za-z0-9._-]{1,30})/', static function ( $matches ) use(
+            $template,
+            $class_attr,
+            $target_attr,
+            $rel_attr
+        ) {
+            $raw = $matches[1];
+            $handle = rtrim( $raw, '.' );
+            if ( '' === $handle ) {
+                return $matches[0];
+            }
+            $suffix = ( strlen( $raw ) > strlen( $handle ) ? substr( $raw, strlen( $handle ) ) : '' );
+            $url = str_replace( '{handle}', rawurlencode( $handle ), $template );
+            return '<a href="' . esc_url( $url ) . '"' . $class_attr . $target_attr . $rel_attr . '>@' . esc_html( $handle ) . '</a>' . $suffix;
+        }, $text );
+    }
+
+}
+/**
+ * Format social caption/description text into safe HTML with URLs, hashtags, and mentions linked.
  *
  * @since 6.9.0
  *
@@ -211,6 +486,7 @@ if ( !function_exists( 'esf_hashtags_to_links' ) ) {
  *     @type array  $protocols       Protocols for {@see esf_convert_to_hyperlinks()}. Default http, https, mail.
  *     @type array  $link_attributes Anchor attributes for auto-linked URLs.
  *     @type array  $hashtag_args    Extra args for {@see esf_hashtags_to_links()}.
+ *     @type array  $mention_args    Extra args for {@see esf_mentions_to_links()}.
  *     @type bool   $line_breaks     Run nl2br(). Default true.
  *     @type bool   $paragraphs      Run wpautop(). Default true.
  * }
@@ -235,6 +511,7 @@ if ( !function_exists( 'esf_format_caption_html' ) ) {
                 'rel'    => 'noopener noreferrer',
             ),
             'hashtag_args'    => array(),
+            'mention_args'    => array(),
             'line_breaks'     => true,
             'paragraphs'      => true,
         );
@@ -246,6 +523,9 @@ if ( !function_exists( 'esf_format_caption_html' ) ) {
             $html = make_clickable( $html );
         }
         $html = esf_hashtags_to_links( $html, $platform, $args['hashtag_args'] );
+        if ( function_exists( 'esf_mentions_to_links' ) ) {
+            $html = esf_mentions_to_links( $html, $platform, $args['mention_args'] );
+        }
         if ( !empty( $args['line_breaks'] ) ) {
             $html = nl2br( $html );
         }
@@ -283,7 +563,13 @@ if ( !function_exists( 'esf_module_uses_account_media_folders' ) ) {
      */
     function esf_module_uses_account_media_folders(  $module  ) {
         $module = sanitize_key( (string) $module );
-        $modules = apply_filters( 'esf_local_media_account_folder_modules', array('instagram', 'youtube', 'twitter') );
+        $modules = apply_filters( 'esf_local_media_account_folder_modules', array(
+            'facebook',
+            'instagram',
+            'youtube',
+            'twitter',
+            'tiktok'
+        ) );
         return is_array( $modules ) && in_array( $module, array_map( 'sanitize_key', $modules ), true );
     }
 
@@ -567,9 +853,223 @@ if ( !function_exists( 'esf_local_media_url' ) ) {
     }
 
 }
+if ( !function_exists( 'esf_get_local_media_module_slugs' ) ) {
+    /**
+     * Module slugs that participate in local media downloads.
+     *
+     * @since 6.9.6
+     * @return array<int,string>
+     */
+    function esf_get_local_media_module_slugs() {
+        return array(
+            'facebook',
+            'instagram',
+            'youtube',
+            'twitter',
+            'tiktok'
+        );
+    }
+
+}
+if ( !function_exists( 'esf_default_download_media_locally_map' ) ) {
+    /**
+     * Default per-module map: downloads enabled for every module.
+     *
+     * @since 6.9.6
+     * @return array<string,bool>
+     */
+    function esf_default_download_media_locally_map() {
+        $map = array();
+        foreach ( esf_get_local_media_module_slugs() as $slug ) {
+            $map[$slug] = true;
+        }
+        return $map;
+    }
+
+}
+if ( !function_exists( 'esf_normalize_download_media_locally_map' ) ) {
+    /**
+     * Sanitize a per-module download-media map (unknown keys dropped; missing keys default on).
+     *
+     * @since 6.9.6
+     *
+     * @param mixed $map Raw map from settings or REST.
+     * @return array<string,bool>
+     */
+    function esf_normalize_download_media_locally_map(  $map  ) {
+        $normalized = esf_default_download_media_locally_map();
+        if ( !is_array( $map ) ) {
+            return $normalized;
+        }
+        foreach ( $normalized as $slug => $default ) {
+            if ( array_key_exists( $slug, $map ) ) {
+                $normalized[$slug] = (bool) $map[$slug];
+            }
+        }
+        return $normalized;
+    }
+
+}
+if ( !function_exists( 'esf_is_local_media_download_enabled' ) ) {
+    /**
+     * Whether new local media downloads are enabled for a module (settings only).
+     *
+     * Existing files on disk are still served when present; this only gates new downloads.
+     *
+     * @since 6.9.6
+     *
+     * @param string $module Module slug (facebook, instagram, youtube, …).
+     * @return bool
+     */
+    function esf_is_local_media_download_enabled(  $module = 'facebook'  ) {
+        $module = ( function_exists( 'sanitize_key' ) ? sanitize_key( (string) $module ) : strtolower( (string) preg_replace( '/[^a-z0-9_\\-]/i', '', (string) $module ) ) );
+        if ( '' === $module ) {
+            $module = 'facebook';
+        }
+        $map = esf_default_download_media_locally_map();
+        if ( class_exists( 'ESF_Settings' ) ) {
+            $settings = ESF_Settings::get();
+            if ( isset( $settings['general']['download_media_locally'] ) ) {
+                $map = esf_normalize_download_media_locally_map( $settings['general']['download_media_locally'] );
+            }
+        } else {
+            $settings = get_option( 'esf_settings', array() );
+            if ( is_array( $settings ) && isset( $settings['general']['download_media_locally'] ) ) {
+                $map = esf_normalize_download_media_locally_map( $settings['general']['download_media_locally'] );
+            }
+        }
+        if ( !array_key_exists( $module, $map ) ) {
+            return true;
+        }
+        return !empty( $map[$module] );
+    }
+
+}
+if ( !function_exists( 'esf_should_serve_media_locally' ) ) {
+    /**
+     * Whether ESF may download remote media into uploads for this request.
+     *
+     * Honours General → “Download images locally” per module, then
+     * `esf_should_serve_media_locally` for programmatic overrides.
+     *
+     * @since 6.9.6
+     *
+     * @param string      $module     Module slug.
+     * @param mixed       $id         Media cache key (optional context for filters).
+     * @param string|null $url        Remote URL (optional context for filters).
+     * @param int         $account_id Internal account id (optional context for filters).
+     * @return bool
+     */
+    function esf_should_serve_media_locally(
+        $module = 'facebook',
+        $id = null,
+        $url = null,
+        $account_id = 0
+    ) {
+        $enabled = esf_is_local_media_download_enabled( $module );
+        /**
+         * Filter whether Easy Social Feed may download remote media into uploads.
+         *
+         * Return false to skip the download for this call. Existing local files
+         * are still returned by {@see esf_serve_media_locally()} when present.
+         *
+         * @since 6.9.6
+         *
+         * @param bool        $enabled    Whether downloads are enabled for the module.
+         * @param string      $module     Module slug.
+         * @param mixed       $id         Media cache key.
+         * @param string|null $url        Remote image URL.
+         * @param int         $account_id Internal account id.
+         */
+        return (bool) apply_filters(
+            'esf_should_serve_media_locally',
+            $enabled,
+            $module,
+            $id,
+            $url,
+            $account_id
+        );
+    }
+
+}
+if ( !function_exists( 'esf_local_media_max_download_bytes' ) ) {
+    /**
+     * Maximum bytes to accept when downloading remote media into uploads.
+     *
+     * Guards against oversized CDN/video URLs exhausting PHP memory. Requests
+     * stream to disk and abort once this cap is reached.
+     *
+     * @since 6.14.1
+     *
+     * @param string      $module     Module slug.
+     * @param mixed       $id         Media cache key.
+     * @param string|null $url        Remote URL.
+     * @param int         $account_id Internal account id.
+     * @return int
+     */
+    function esf_local_media_max_download_bytes(
+        $module = 'facebook',
+        $id = null,
+        $url = null,
+        $account_id = 0
+    ) {
+        $default = 8388608;
+        // 8 MB.
+        /**
+         * Filter the local-media download size cap.
+         *
+         * @since 6.14.1
+         *
+         * @param int         $default    Default cap in bytes.
+         * @param string      $module     Module slug.
+         * @param mixed       $id         Media cache key.
+         * @param string|null $url        Remote URL.
+         * @param int         $account_id Internal account id.
+         */
+        $max = (int) apply_filters(
+            'esf_local_media_max_download_bytes',
+            $default,
+            $module,
+            $id,
+            $url,
+            $account_id
+        );
+        return ( $max > 0 ? $max : $default );
+    }
+
+}
+if ( !function_exists( 'esf_delete_local_media_file' ) ) {
+    /**
+     * Delete a local media file path (partial downloads included).
+     *
+     * @since 6.14.1
+     *
+     * @param string $file Absolute filesystem path.
+     * @return void
+     */
+    function esf_delete_local_media_file(  $file  ) {
+        $file = ( is_string( $file ) ? $file : '' );
+        if ( '' === $file || !file_exists( $file ) ) {
+            return;
+        }
+        if ( function_exists( 'wp_delete_file' ) ) {
+            wp_delete_file( $file );
+            return;
+        }
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Fallback when wp_delete_file() is unavailable (unit tests).
+        unlink( $file );
+    }
+
+}
 if ( !function_exists( 'esf_serve_media_locally' ) ) {
     /**
      * Download remote media into uploads/esf-{module} and return its local URL.
+     *
+     * When downloads are disabled for the module (settings or filter), existing
+     * local files are still returned; new downloads are skipped (returns false).
+     *
+     * Downloads stream to disk and are capped so a single oversized CDN/video
+     * URL cannot exhaust PHP memory (Requests buffers the body otherwise).
      *
      * @since 6.4.4
      *
@@ -597,6 +1097,14 @@ if ( !function_exists( 'esf_serve_media_locally' ) ) {
         if ( '' !== $existing ) {
             return $existing;
         }
+        if ( !esf_should_serve_media_locally(
+            $module,
+            $id,
+            $url,
+            $account_id
+        ) ) {
+            return false;
+        }
         $account_id = esf_normalize_local_media_account_id( $account_id );
         $file = esf_local_media_file_path(
             $id,
@@ -617,16 +1125,64 @@ if ( !function_exists( 'esf_serve_media_locally' ) ) {
         if ( !wp_mkdir_p( $directory ) ) {
             return false;
         }
-        $response = wp_remote_get( $url );
+        $max_bytes = ( function_exists( 'esf_local_media_max_download_bytes' ) ? esf_local_media_max_download_bytes(
+            $module,
+            $id,
+            $url,
+            $account_id
+        ) : 8388608 );
+        $headers = array(
+            'User-Agent' => 'Mozilla/5.0 (compatible; EasySocialFeed/' . (( defined( 'FTA_VERSION' ) ? FTA_VERSION : '1.0' )) . '; +https://easysocialfeed.com)',
+            'Accept'     => 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+        );
+        /**
+         * Filter HTTP headers used when downloading remote media to disk.
+         *
+         * @since 6.14.1
+         *
+         * @param array       $headers    Request headers.
+         * @param string      $module     Module slug.
+         * @param mixed       $id         Media cache key.
+         * @param string      $url        Remote URL.
+         * @param int         $account_id Internal account id.
+         */
+        $headers = (array) apply_filters(
+            'esf_local_media_download_headers',
+            $headers,
+            $module,
+            $id,
+            $url,
+            $account_id
+        );
+        $response = wp_remote_get( $url, array(
+            'timeout'             => 30,
+            'redirection'         => 5,
+            'stream'              => true,
+            'filename'            => $file,
+            'limit_response_size' => $max_bytes,
+            'headers'             => $headers,
+        ) );
         if ( is_wp_error( $response ) ) {
+            esf_delete_local_media_file( $file );
             return false;
         }
-        $image_data = wp_remote_retrieve_body( $response );
-        if ( '' === $image_data ) {
+        $code = (int) wp_remote_retrieve_response_code( $response );
+        if ( $code < 200 || $code >= 300 ) {
+            esf_delete_local_media_file( $file );
             return false;
         }
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Same pattern as legacy helper; uploads dir is writable.
-        if ( false === file_put_contents( $file, $image_data ) ) {
+        if ( !file_exists( $file ) ) {
+            return false;
+        }
+        $file_size = (int) filesize( $file );
+        if ( $file_size <= 0 ) {
+            esf_delete_local_media_file( $file );
+            return false;
+        }
+        $content_length = (int) wp_remote_retrieve_header( $response, 'content-length' );
+        $looks_truncated = $content_length > $max_bytes || $file_size >= $max_bytes && ($content_length <= 0 || $content_length > $file_size);
+        if ( $looks_truncated ) {
+            esf_delete_local_media_file( $file );
             return false;
         }
         return esf_local_media_url(
@@ -638,7 +1194,95 @@ if ( !function_exists( 'esf_serve_media_locally' ) ) {
     }
 
 }
-if ( !function_exists( 'esf_ensure_local_media_variant__premium_only' ) ) {
+if ( !function_exists( 'esf_ensure_local_media_variant' ) ) {
+    /**
+     * Create (or return) a max-width JPEG variant from an existing full-size local file.
+     *
+     * Used for feed/grid thumbnails while the full-size file powers lightbox/popup views.
+     *
+     * @since 6.9.0
+     *
+     * @param mixed  $id         Media identifier (same key as full-size file).
+     * @param string $module     Module slug.
+     * @param int    $max_width  Target max width in pixels.
+     * @param int    $account_id Optional internal account id.
+     * @return false|string Local variant URL, or false when unavailable.
+     */
+    function esf_ensure_local_media_variant(
+        $id,
+        $module = 'facebook',
+        $max_width = 0,
+        $account_id = 0
+    ) {
+        $max_width = (int) $max_width;
+        if ( $max_width <= 0 ) {
+            return false;
+        }
+        $existing = esf_local_media_url(
+            $id,
+            $module,
+            $max_width,
+            $account_id
+        );
+        if ( '' !== $existing ) {
+            return $existing;
+        }
+        $write_account_id = esf_normalize_local_media_account_id( $account_id );
+        $source = '';
+        $source_account_id = 0;
+        foreach ( esf_local_media_resolve_account_ids( $module, $account_id ) as $resolved_account_id ) {
+            $candidate = esf_local_media_file_path(
+                $id,
+                $module,
+                0,
+                $resolved_account_id
+            );
+            if ( '' !== $candidate && file_exists( $candidate ) ) {
+                $source = $candidate;
+                $source_account_id = $resolved_account_id;
+                break;
+            }
+        }
+        if ( '' === $source ) {
+            return false;
+        }
+        $dest_account_id = $write_account_id;
+        if ( $dest_account_id <= 0 || !esf_module_uses_account_media_folders( $module ) ) {
+            $dest_account_id = $source_account_id;
+        }
+        $dest = esf_local_media_file_path(
+            $id,
+            $module,
+            $max_width,
+            $dest_account_id
+        );
+        if ( '' === $dest ) {
+            return false;
+        }
+        $dest_dir = dirname( $dest );
+        if ( !wp_mkdir_p( $dest_dir ) ) {
+            return false;
+        }
+        if ( !function_exists( 'wp_get_image_editor' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+        }
+        $editor = wp_get_image_editor( $source );
+        if ( is_wp_error( $editor ) ) {
+            return false;
+        }
+        $editor->resize( $max_width, null, false );
+        $saved = $editor->save( $dest, 'image/jpeg' );
+        if ( is_wp_error( $saved ) ) {
+            return false;
+        }
+        return esf_local_media_url(
+            $id,
+            $module,
+            $max_width,
+            $dest_account_id
+        );
+    }
+
 }
 if ( !function_exists( 'esf_serve_media_locally_sized' ) ) {
     /**
@@ -646,7 +1290,7 @@ if ( !function_exists( 'esf_serve_media_locally_sized' ) ) {
      *
      * When $max_width is 0, behaves like esf_serve_media_locally(). When $max_width
      * is set, downloads the full image first, then creates/returns a variant via
-     * esf_ensure_local_media_variant__premium_only() when that function exists.
+     * esf_ensure_local_media_variant().
      *
      * @since 6.9.0
      *
@@ -677,8 +1321,8 @@ if ( !function_exists( 'esf_serve_media_locally_sized' ) ) {
         if ( $max_width <= 0 ) {
             return $full_url;
         }
-        if ( function_exists( 'esf_ensure_local_media_variant__premium_only' ) ) {
-            $variant = esf_ensure_local_media_variant__premium_only(
+        if ( function_exists( 'esf_ensure_local_media_variant' ) ) {
+            $variant = esf_ensure_local_media_variant(
                 $id,
                 $module,
                 $max_width,
@@ -1237,6 +1881,99 @@ if ( !function_exists( 'esf_missing_feed_get_queue' ) ) {
 
 }
 /**
+ * Enqueue shared missing-feed admin recovery assets on the public frontend.
+ *
+ * @since 6.11.0
+ *
+ * @param array<int, string> $shortcode_prefixes Shortcode opening tags to scan in singular post content (e.g. `[esf_twitter_feed`).
+ * @return void
+ */
+if ( !function_exists( 'esf_enqueue_missing_feed_admin_assets' ) ) {
+    function esf_enqueue_missing_feed_admin_assets(  array $shortcode_prefixes  ) {
+        $should_enqueue = false;
+        if ( function_exists( 'esf_missing_feed_get_queue' ) && !empty( esf_missing_feed_get_queue() ) ) {
+            $should_enqueue = true;
+        }
+        if ( !$should_enqueue && function_exists( 'is_singular' ) && is_singular() ) {
+            $post = get_post();
+            if ( $post instanceof WP_Post ) {
+                $content = (string) $post->post_content;
+                foreach ( $shortcode_prefixes as $prefix ) {
+                    $prefix = (string) $prefix;
+                    if ( '' !== $prefix && false !== strpos( $content, $prefix ) ) {
+                        $should_enqueue = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if ( !$should_enqueue ) {
+            return;
+        }
+        $script_path = FTA_PLUGIN_DIR . 'admin/shared/frontend/js/esf-missing-feed-admin.js';
+        if ( !file_exists( $script_path ) ) {
+            return;
+        }
+        $style_path = FTA_PLUGIN_DIR . 'admin/shared/frontend/css/esf-missing-feed.css';
+        if ( file_exists( $style_path ) && !wp_style_is( 'esf-missing-feed', 'enqueued' ) ) {
+            wp_enqueue_style(
+                'esf-missing-feed',
+                FTA_PLUGIN_URL . 'admin/shared/frontend/css/esf-missing-feed.css',
+                array(),
+                (string) filemtime( $style_path )
+            );
+        }
+        if ( wp_script_is( 'esf-missing-feed-admin', 'enqueued' ) ) {
+            return;
+        }
+        wp_enqueue_script(
+            'esf-missing-feed-admin',
+            FTA_PLUGIN_URL . 'admin/shared/frontend/js/esf-missing-feed-admin.js',
+            array(),
+            (string) filemtime( $script_path ),
+            true
+        );
+        wp_localize_script( 'esf-missing-feed-admin', 'esfMissingFeedAdmin', array(
+            'restUrl'              => rest_url( 'esf/v1' ),
+            'nonce'                => wp_create_nonce( 'wp_rest' ),
+            'loadingText'          => __( 'Loading…', 'easy-facebook-likebox' ),
+            'titleText'            => __( 'Feed not found', 'easy-facebook-likebox' ),
+            'adminIntroText'       => __( 'This shortcode points to a feed that was deleted. Choose another feed to preview or update this page.', 'easy-facebook-likebox' ),
+            'legacyIntroText'      => __( 'This legacy Instagram shortcode needs updating after migration. Choose a feed to preview, then save the new shortcode to this page.', 'easy-facebook-likebox' ),
+            'legacyTitleText'      => __( 'Legacy Instagram shortcode', 'easy-facebook-likebox' ),
+            'selectFeedText'       => __( 'Select a feed', 'easy-facebook-likebox' ),
+            'previewText'          => __( 'Preview feed', 'easy-facebook-likebox' ),
+            'saveText'             => __( 'Save to this page', 'easy-facebook-likebox' ),
+            'savedText'            => __( 'Shortcode updated. Reloading…', 'easy-facebook-likebox' ),
+            'copyShortcodeText'    => __( 'Copy shortcode', 'easy-facebook-likebox' ),
+            'copiedText'           => __( 'Copied!', 'easy-facebook-likebox' ),
+            'dashboardText'        => __( 'Open dashboard', 'easy-facebook-likebox' ),
+            'noFeedsText'          => __( 'No feeds available. Create one in the dashboard first.', 'easy-facebook-likebox' ),
+            'noPostText'           => __( 'This shortcode is not inside editable page content. Copy the new shortcode and paste it where needed.', 'easy-facebook-likebox' ),
+            'previewErrorText'     => __( 'Could not load feed preview.', 'easy-facebook-likebox' ),
+            'saveErrorText'        => __( 'Could not update the shortcode on this page.', 'easy-facebook-likebox' ),
+            'replaceShortcodePath' => '/missing-feed/replace-shortcode',
+        ) );
+    }
+
+}
+/**
+ * Enqueue shared disconnected-feed pin-cache admin JS on the public frontend.
+ *
+ * No-op unless a disconnected feed rendered the pin button this request.
+ *
+ * @since 6.7.9
+ * @return void
+ */
+if ( !function_exists( 'esf_enqueue_disconnected_cache_admin_assets' ) ) {
+    function esf_enqueue_disconnected_cache_admin_assets() {
+        if ( class_exists( 'ESF_Feed_Disconnected_Cache' ) ) {
+            ESF_Feed_Disconnected_Cache::maybe_enqueue_frontend_pin_script();
+        }
+    }
+
+}
+/**
  * Derive SEO-friendly image alt text for social feed media.
  *
  * Thin wrapper around the shared SEO helper for procedural module code.
@@ -1316,7 +2053,7 @@ if ( !function_exists( 'esf_get_site_administrator_emails' ) ) {
  */
 if ( !function_exists( 'esf_get_site_administrator_email_options' ) ) {
     function esf_get_site_administrator_email_options() {
-        $default_email = strtolower( sanitize_email( (string) get_option( 'admin_email' ) ) );
+        $suggested = ( function_exists( 'esf_resolve_default_notify_email' ) ? esf_resolve_default_notify_email( true ) : strtolower( sanitize_email( (string) get_option( 'admin_email' ) ) ) );
         $options = array();
         $seen = array();
         if ( function_exists( 'get_users' ) ) {
@@ -1339,19 +2076,180 @@ if ( !function_exists( 'esf_get_site_administrator_email_options' ) ) {
                     $options[] = array(
                         'email'      => $email,
                         'label'      => $label,
-                        'is_default' => $email === $default_email,
+                        'is_default' => '' !== $suggested && $email === $suggested,
                     );
                 }
             }
         }
-        if ( empty( $options ) && '' !== $default_email && is_email( $default_email ) ) {
+        if ( empty( $options ) && '' !== $suggested && is_email( $suggested ) ) {
             $options[] = array(
-                'email'      => $default_email,
-                'label'      => $default_email,
+                'email'      => $suggested,
+                'label'      => $suggested,
                 'is_default' => true,
             );
         }
         return $options;
+    }
+
+}
+/**
+ * Sanitize reconnect-alert recipient emails against site administrators.
+ *
+ * @since 6.9.0
+ * @param mixed $emails Raw email list.
+ * @return string[]
+ */
+if ( !function_exists( 'esf_sanitize_notify_emails' ) ) {
+    function esf_sanitize_notify_emails(  $emails  ) {
+        if ( !is_array( $emails ) ) {
+            return array();
+        }
+        $allowed = ( function_exists( 'esf_get_site_administrator_emails' ) ? esf_get_site_administrator_emails() : array() );
+        if ( empty( $allowed ) ) {
+            $fallback = sanitize_email( (string) get_option( 'admin_email' ) );
+            if ( '' !== $fallback && is_email( $fallback ) ) {
+                $allowed = array(strtolower( $fallback ));
+            }
+        }
+        $allowed_lookup = array_fill_keys( array_map( 'strtolower', $allowed ), true );
+        $out = array();
+        foreach ( $emails as $email ) {
+            $email = strtolower( sanitize_email( (string) $email ) );
+            if ( '' !== $email && is_email( $email ) && isset( $allowed_lookup[$email] ) ) {
+                $out[] = $email;
+            }
+        }
+        return array_values( array_unique( $out ) );
+    }
+
+}
+if ( !function_exists( 'esf_resolve_default_notify_email' ) ) {
+    /**
+     * Pick one administrator email for reconnect alerts.
+     *
+     * Prefers the logged-in administrator (e.g. installer activating the plugin), then
+     * the site `admin_email` option.
+     *
+     * @since 6.9.0
+     * @param bool $prefer_current_user When true, use wp_get_current_user() when they can manage_options.
+     * @return string Lowercase email or empty string.
+     */
+    function esf_resolve_default_notify_email(  $prefer_current_user = true  ) {
+        $normalize = static function ( $email ) {
+            $email = strtolower( sanitize_email( (string) $email ) );
+            return ( '' !== $email && is_email( $email ) ? $email : '' );
+        };
+        if ( $prefer_current_user && function_exists( 'wp_get_current_user' ) ) {
+            $user = wp_get_current_user();
+            if ( $user instanceof WP_User && $user->exists() && user_can( $user, 'manage_options' ) ) {
+                $current = $normalize( $user->user_email );
+                if ( '' !== $current ) {
+                    return $current;
+                }
+            }
+        }
+        return $normalize( (string) get_option( 'admin_email' ) );
+    }
+
+}
+/**
+ * Default reconnect-notification recipients (single administrator).
+ *
+ * @since 6.9.0
+ * @return string[]
+ */
+if ( !function_exists( 'esf_default_notify_emails' ) ) {
+    function esf_default_notify_emails() {
+        $email = esf_resolve_default_notify_email( true );
+        return ( '' !== $email ? array($email) : array() );
+    }
+
+}
+if ( !function_exists( 'esf_get_module_settings_option_key' ) ) {
+    /**
+     * Map a module slug to its per-module settings option key.
+     *
+     * @since 6.9.0
+     * @param string $module_slug Module slug.
+     * @return string Option key or empty string when unsupported.
+     */
+    function esf_get_module_settings_option_key(  $module_slug  ) {
+        $module_slug = sanitize_key( (string) $module_slug );
+        $map = array(
+            'facebook'  => 'esf_facebook_settings',
+            'instagram' => 'esf_instagram_settings',
+            'youtube'   => 'esf_youtube_settings',
+            'twitter'   => 'esf_twitter_settings',
+            'tiktok'    => 'esf_tiktok_settings',
+        );
+        return ( isset( $map[$module_slug] ) ? $map[$module_slug] : '' );
+    }
+
+}
+if ( !function_exists( 'esf_seed_module_reconnect_alert_settings' ) ) {
+    /**
+     * Seed reconnect-alert defaults when a module is activated.
+     *
+     * Persists the activator (or site admin_email) before Settings is opened. Does not
+     * overwrite recipients the site owner already configured.
+     *
+     * @since 6.9.0
+     * @param string $module_slug Module slug.
+     * @return bool Whether settings were updated.
+     */
+    function esf_seed_module_reconnect_alert_settings(  $module_slug  ) {
+        $option_key = esf_get_module_settings_option_key( $module_slug );
+        if ( '' === $option_key ) {
+            return false;
+        }
+        $settings = get_option( $option_key, array() );
+        if ( !is_array( $settings ) ) {
+            $settings = array();
+        }
+        $existing = ( isset( $settings['notify_token_reconnect_emails'] ) && is_array( $settings['notify_token_reconnect_emails'] ) ? array_values( array_filter( $settings['notify_token_reconnect_emails'] ) ) : array() );
+        if ( !empty( $existing ) ) {
+            return false;
+        }
+        if ( array_key_exists( 'notify_token_reconnect', $settings ) && empty( $settings['notify_token_reconnect'] ) ) {
+            return false;
+        }
+        $emails = esf_default_notify_emails();
+        if ( empty( $emails ) ) {
+            return false;
+        }
+        $settings['notify_token_reconnect'] = true;
+        $settings['notify_token_reconnect_emails'] = $emails;
+        return (bool) update_option( $option_key, $settings );
+    }
+
+}
+if ( !function_exists( 'esf_seed_activated_module_reconnect_alerts' ) ) {
+    /**
+     * Seed reconnect-alert defaults for every activated module.
+     *
+     * @since 6.9.0
+     * @param array<string,mixed>|null $legacy_settings Optional `fta_settings` payload.
+     * @return void
+     */
+    function esf_seed_activated_module_reconnect_alerts(  $legacy_settings = null  ) {
+        $slugs = ( class_exists( 'ESF_Settings' ) ? ESF_Settings::MODULE_SLUGS : array(
+            'facebook',
+            'instagram',
+            'youtube',
+            'twitter',
+            'tiktok'
+        ) );
+        foreach ( $slugs as $slug ) {
+            $status = 'activated';
+            if ( is_array( $legacy_settings ) && isset( $legacy_settings['plugins'][$slug]['status'] ) && in_array( (string) $legacy_settings['plugins'][$slug]['status'], array('activated', 'deactivated'), true ) ) {
+                $status = (string) $legacy_settings['plugins'][$slug]['status'];
+            } elseif ( class_exists( 'ESF_Settings' ) ) {
+                $status = ESF_Settings::get_module_status( $slug );
+            }
+            if ( 'activated' === $status ) {
+                esf_seed_module_reconnect_alert_settings( $slug );
+            }
+        }
     }
 
 }
@@ -1408,6 +2306,177 @@ if ( !function_exists( 'esf_dbdelta' ) ) {
 
 }
 /**
+ * Whether a DB table has a given column.
+ *
+ * @since 6.7.9
+ * @param string $table  Full table name (with prefix).
+ * @param string $column Column name.
+ * @return bool
+ */
+if ( !function_exists( 'esf_db_table_has_column' ) ) {
+    function esf_db_table_has_column(  $table, $column  ) {
+        global $wpdb;
+        $table = (string) $table;
+        $column = (string) $column;
+        if ( '' === $table || '' === $column ) {
+            return false;
+        }
+        $table_escaped = esc_sql( $table );
+        $found = $wpdb->get_results( 
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+            $wpdb->prepare( 
+                "SHOW COLUMNS FROM `{$table_escaped}` LIKE %s",
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                $column
+             )
+         );
+        return !empty( $found );
+    }
+
+}
+/**
+ * Add a column to an existing table when missing (idempotent).
+ *
+ * Prefer this over relying on dbDelta alone for critical token-manager columns.
+ *
+ * @since 6.7.9
+ * @param string $table      Full table name (with prefix).
+ * @param string $column     Column name.
+ * @param string $definition Column definition without the name (e.g. "enum('oauth','manual') NOT NULL DEFAULT 'oauth'").
+ * @param string $after      Optional existing column to place this after.
+ * @return bool True when the column exists after the call.
+ */
+if ( !function_exists( 'esf_db_maybe_add_column' ) ) {
+    function esf_db_maybe_add_column(
+        $table,
+        $column,
+        $definition,
+        $after = ''
+    ) {
+        global $wpdb;
+        $table = (string) $table;
+        $column = preg_replace( '/[^a-z0-9_]/i', '', (string) $column );
+        $definition = trim( (string) $definition );
+        $after = preg_replace( '/[^a-z0-9_]/i', '', (string) $after );
+        if ( '' === $table || '' === $column || '' === $definition ) {
+            return false;
+        }
+        if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+            return false;
+        }
+        if ( esf_db_table_has_column( $table, $column ) ) {
+            return true;
+        }
+        $table_escaped = esc_sql( $table );
+        $sql = "ALTER TABLE `{$table_escaped}` ADD COLUMN `{$column}` {$definition}";
+        if ( '' !== $after && esf_db_table_has_column( $table, $after ) ) {
+            $sql .= " AFTER `{$after}`";
+        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.NotPrepared
+        $wpdb->query( $sql );
+        return esf_db_table_has_column( $table, $column );
+    }
+
+}
+/**
+ * Absolute path to a shared Pro vendor asset (FancyBox, Owl, controls).
+ *
+ * These files live in `frontend/assets/premium/` so Freemius strips the
+ * whole directory from free zips via `@fs_premium_only`.
+ *
+ * @since 6.7.10
+ * @param string $filename File name only, e.g. `jquery.fancybox.min.js`.
+ * @return string Absolute path, or empty when plugin constants are missing.
+ */
+function esf_premium_vendor_path(  $filename  ) {
+    if ( !defined( 'FTA_PLUGIN_DIR' ) ) {
+        return '';
+    }
+    $filename = basename( (string) $filename );
+    if ( '' === $filename ) {
+        return '';
+    }
+    return FTA_PLUGIN_DIR . 'frontend/assets/premium/' . $filename;
+}
+
+/**
+ * Plugin URL for a shared Pro vendor asset.
+ *
+ * @since 6.7.10
+ * @param string $filename File name only.
+ * @return string URL, or empty when plugin constants are missing.
+ */
+function esf_premium_vendor_url(  $filename  ) {
+    if ( !defined( 'FTA_PLUGIN_URL' ) ) {
+        return '';
+    }
+    $filename = basename( (string) $filename );
+    if ( '' === $filename ) {
+        return '';
+    }
+    return FTA_PLUGIN_URL . 'frontend/assets/premium/' . $filename;
+}
+
+/**
+ * Locate a plugin file that may use the Freemius `__premium_only` suffix.
+ *
+ * Checks `name__premium_only.ext` first, then `name.ext`, so callers can keep
+ * using the logical basename (e.g. `carousel`) after a Pro file is renamed.
+ *
+ * @since 6.7.10
+ * @param string $dir      Directory containing the file.
+ * @param string $basename Name without extension.
+ * @param string $ext      Extension without a leading dot.
+ * @return string Absolute path, or empty when neither candidate exists.
+ */
+function esf_locate_premium_only_file(  $dir, $basename, $ext  ) {
+    $dir = (string) $dir;
+    $basename = (string) $basename;
+    $ext = ltrim( (string) $ext, '.' );
+    if ( '' === $dir || '' === $basename || '' === $ext ) {
+        return '';
+    }
+    $dir = rtrim( $dir, '/\\' ) . '/';
+    $candidates = array($dir . $basename . '__premium_only.' . $ext, $dir . $basename . '.' . $ext);
+    foreach ( $candidates as $path ) {
+        if ( file_exists( $path ) ) {
+            return $path;
+        }
+    }
+    return '';
+}
+
+/**
+ * Locate a plugin asset and return both filesystem path and URL.
+ *
+ * @since 6.7.10
+ * @param string $dir      Directory containing the file.
+ * @param string $url      URL for that directory (trailing slash optional).
+ * @param string $basename Name without extension.
+ * @param string $ext      Extension without a leading dot.
+ * @return array{path:string,url:string}
+ */
+function esf_locate_premium_only_asset(
+    $dir,
+    $url,
+    $basename,
+    $ext
+) {
+    $path = esf_locate_premium_only_file( $dir, $basename, $ext );
+    if ( '' === $path ) {
+        return array(
+            'path' => '',
+            'url'  => '',
+        );
+    }
+    return array(
+        'path' => $path,
+        'url'  => rtrim( (string) $url, '/\\' ) . '/' . basename( $path ),
+    );
+}
+
+/**
  * Enqueue shared FancyBox control CSS (theme/button resets) after FancyBox.
  *
  * Call immediately after enqueueing `jquery.fancybox.min` style so toolbar
@@ -1418,16 +2487,14 @@ if ( !function_exists( 'esf_dbdelta' ) ) {
  */
 if ( !function_exists( 'esf_enqueue_fancybox_controls_style' ) ) {
     function esf_enqueue_fancybox_controls_style() {
-        if ( !defined( 'FTA_PLUGIN_DIR' ) || !defined( 'FTA_PLUGIN_URL' ) ) {
-            return;
-        }
-        $path = FTA_PLUGIN_DIR . 'frontend/assets/css/esf-fancybox-controls.css';
-        if ( !file_exists( $path ) ) {
+        $path = esf_premium_vendor_path( 'esf-fancybox-controls.css' );
+        $url = esf_premium_vendor_url( 'esf-fancybox-controls.css' );
+        if ( '' === $path || '' === $url || !file_exists( $path ) ) {
             return;
         }
         wp_enqueue_style(
             'esf-fancybox-controls',
-            FTA_PLUGIN_URL . 'frontend/assets/css/esf-fancybox-controls.css',
+            $url,
             array('jquery.fancybox.min'),
             (string) filemtime( $path )
         );
@@ -1467,6 +2534,68 @@ if ( !function_exists( 'esf_resolve_render_payload_override' ) ) {
         $result['items'] = $payload;
         $result['short_circuited'] = !empty( $payload );
         return $result;
+    }
+
+}
+/**
+ * Whether the active DB connection charset supports 4-byte UTF-8 (emoji).
+ *
+ * @since 6.9.2
+ * @return bool
+ */
+if ( !function_exists( 'esf_db_supports_utf8mb4' ) ) {
+    function esf_db_supports_utf8mb4() {
+        global $wpdb;
+        $charset = ( isset( $wpdb ) && isset( $wpdb->charset ) ? strtolower( (string) $wpdb->charset ) : '' );
+        return '' !== $charset && false !== strpos( $charset, 'utf8mb4' );
+    }
+
+}
+/**
+ * Make text/array/object values safe to persist on non-utf8mb4 databases.
+ *
+ * On utf8mb4 connections this is a no-op. On utf8 (3-byte) connections it
+ * strips 4-byte UTF-8 characters (emoji / supplementary planes) so
+ * {@see update_option()} and custom table writes do not fail with invalid
+ * `option_value` / column data. Prefer stripping over {@see wp_encode_emoji()}
+ * because admin/frontend often pass stored strings through {@see esc_html()}.
+ *
+ * @since 6.9.2
+ *
+ * @param mixed $value Scalar, array, or object to sanitize recursively.
+ * @return mixed
+ */
+if ( !function_exists( 'esf_db_safe_text' ) ) {
+    function esf_db_safe_text(  $value  ) {
+        if ( esf_db_supports_utf8mb4() ) {
+            return $value;
+        }
+        if ( is_array( $value ) ) {
+            foreach ( $value as $key => $item ) {
+                $value[$key] = esf_db_safe_text( $item );
+            }
+            return $value;
+        }
+        if ( is_object( $value ) ) {
+            foreach ( get_object_vars( $value ) as $key => $item ) {
+                $value->{$key} = esf_db_safe_text( $item );
+            }
+            return $value;
+        }
+        if ( !is_string( $value ) || '' === $value ) {
+            return $value;
+        }
+        $clean = preg_replace( '/[\\x{10000}-\\x{10FFFF}]/u', '', $value );
+        if ( !is_string( $clean ) ) {
+            $clean = '';
+        }
+        if ( function_exists( 'wp_check_invalid_utf8' ) ) {
+            $checked = wp_check_invalid_utf8( $clean, true );
+            if ( is_string( $checked ) ) {
+                $clean = $checked;
+            }
+        }
+        return $clean;
     }
 
 }

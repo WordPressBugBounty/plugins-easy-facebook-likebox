@@ -222,9 +222,11 @@ if ( !class_exists( 'Easy_Facebook_Likebox_Admin' ) ) {
             esf_check_ajax_referer();
             $access_token = sanitize_text_field( $_POST['access_token'] );
             $approved_pages = array();
+            $efbl_all_pages_html = '';
             $FTA = new Feed_Them_All();
             $fta_settings = $FTA->fta_get_settings();
-            $fta_api_url = 'https://graph.facebook.com/v16.0/me/accounts?fields=access_token,username,id,name,fan_count,category,about&access_token=' . $access_token;
+            // Omit Graph `about` — emoji / 4-byte UTF-8 in that field breaks utf8 option writes.
+            $fta_api_url = 'https://graph.facebook.com/v16.0/me/accounts?fields=access_token,username,id,name,fan_count,category&access_token=' . $access_token;
             $args = array(
                 'timeout'   => 150,
                 'sslverify' => false,
@@ -238,67 +240,87 @@ if ( !class_exists( 'Easy_Facebook_Likebox_Admin' ) ) {
             }
             if ( is_array( $fta_pages ) && !is_wp_error( $fta_pages ) ) {
                 $fb_pages = json_decode( $fta_pages['body'] );
-                if ( $fb_pages->data ) {
+                if ( !empty( $fb_pages->data ) ) {
                     $title = __( 'Approved Pages', 'easy-facebook-likebox' );
                     $efbl_all_pages_html = '<ul class="collection with-header"> <li class="collection-header"><h5>' . $title . '</h5> 
 		        <a href="#fta-remove-at" class="esf-modal-trigger fta-remove-at-btn tooltipped" data-position="left" data-delay="50" data-tooltip="' . __( 'Delete Access Token', 'easy-facebook-likebox' ) . '"><span class="dashicons dashicons-trash"></span></a></li>';
                     foreach ( $fb_pages->data as $efbl_page ) {
-                        $page_logo_trasneint_name = 'esf_logo_' . $efbl_page->id;
+                        if ( empty( $efbl_page->id ) ) {
+                            continue;
+                        }
+                        $page_id = (string) $efbl_page->id;
+                        $page_logo_trasneint_name = 'esf_logo_' . $page_id;
                         $auth_img_src = get_transient( $page_logo_trasneint_name );
                         if ( !$auth_img_src || '' == $auth_img_src ) {
-                            $auth_img_src = 'https://graph.facebook.com/' . $efbl_page->id . '/picture?type=large&redirect=0&access_token=' . $access_token;
+                            $auth_img_src = 'https://graph.facebook.com/' . $page_id . '/picture?type=large&redirect=0&access_token=' . $access_token;
                             $auth_img_src = wp_remote_get( $auth_img_src, $args );
                             if ( is_array( $auth_img_src ) && !is_wp_error( $auth_img_src ) ) {
                                 $auth_img_src = json_decode( $auth_img_src['body'] );
                                 if ( isset( $auth_img_src->data->url ) && !empty( $auth_img_src->data->url ) ) {
                                     $auth_img_src = $auth_img_src->data->url;
-                                    //                                      $local_img    = esf_serve_media_locally( $efbl_page->id, $auth_img_src );
-                                    //
-                                    //                                      if ( $local_img ) {
-                                    //                                          $auth_img_src = $local_img;
-                                    //                                      }
                                     set_transient( $page_logo_trasneint_name, $auth_img_src, 30 * 60 * 60 * 24 );
                                 }
                             }
                         }
-                        if ( isset( $efbl_page->username ) ) {
+                        if ( isset( $efbl_page->username ) && '' !== (string) $efbl_page->username ) {
                             $efbl_username = $efbl_page->username;
                             $efbl_username_label = __( 'Username:', 'easy-facebook-likebox' );
                         } else {
-                            $efbl_username = $efbl_page->id;
+                            $efbl_username = $page_id;
                             $efbl_username_label = __( 'ID:', 'easy-facebook-likebox' );
                         }
+                        $page_name = ( isset( $efbl_page->name ) ? (string) $efbl_page->name : '' );
+                        $page_category = ( isset( $efbl_page->category ) ? (string) $efbl_page->category : '' );
+                        $page_token = ( isset( $efbl_page->access_token ) ? (string) $efbl_page->access_token : '' );
+                        $page_username = ( isset( $efbl_page->username ) ? (string) $efbl_page->username : '' );
+                        $fan_count = ( isset( $efbl_page->fan_count ) ? (int) $efbl_page->fan_count : 0 );
                         $efbl_all_pages_html .= sprintf(
-                            '<li class="collection-item avatar li-' . $efbl_page->id . '">
-		                <a href="https://www.facebook.com/' . $efbl_page->id . '" target="_blank">
+                            '<li class="collection-item avatar li-' . esc_attr( $page_id ) . '">
+		                <a href="https://www.facebook.com/' . rawurlencode( $page_id ) . '" target="_blank">
 		                <img src="%2$s" alt="" class="circle">
 		                </a>   
 		                <div class="esf-bio-wrap">       
 		                <span class="title">%1$s</span>
 		                <p>%3$s <br> %5$s %4$s <span class="dashicons dashicons-admin-page efbl_copy_id tooltipped" data-position="right" data-clipboard-text="%4$s" data-delay="100" data-tooltip="%6$s"></span></p>
 		                </div></li>',
-                            $efbl_page->name,
-                            $auth_img_src,
-                            $efbl_page->category,
-                            $efbl_username,
-                            $efbl_username_label,
-                            __( 'Copy', 'easy-facebook-likebox' )
+                            esc_html( $page_name ),
+                            esc_url( ( is_string( $auth_img_src ) ? $auth_img_src : '' ) ),
+                            esc_html( $page_category ),
+                            esc_html( (string) $efbl_username ),
+                            esc_html( $efbl_username_label ),
+                            esc_attr__( 'Copy', 'easy-facebook-likebox' )
                         );
-                        $efbl_page = (array) $efbl_page;
-                        $approved_pages[$efbl_page['id']] = $efbl_page;
+                        // Curated fields only — never dump full Graph page objects (e.g. about + emoji).
+                        $approved_pages[$page_id] = array(
+                            'id'           => $page_id,
+                            'name'         => $page_name,
+                            'username'     => $page_username,
+                            'access_token' => $page_token,
+                            'category'     => $page_category,
+                            'fan_count'    => $fan_count,
+                        );
                     }
                     $efbl_all_pages_html .= '</ul>';
                 }
             }
+            if ( function_exists( 'esf_db_safe_text' ) ) {
+                $approved_pages = esf_db_safe_text( $approved_pages );
+            }
             $fta_self_url = 'https://graph.facebook.com/me?fields=id,name&access_token=' . $access_token;
             $fta_self_data = json_decode( jws_fetchUrl( $fta_self_url, $args ) );
-            $user_id = $fta_self_data->id;
+            if ( function_exists( 'esf_db_safe_text' ) ) {
+                $fta_self_data = esf_db_safe_text( $fta_self_data );
+            }
             $fta_settings['plugins']['facebook']['approved_pages'] = $approved_pages;
             $fta_settings['plugins']['facebook']['access_token'] = $access_token;
             $fta_settings['plugins']['facebook']['type'] = 'page';
             $fta_settings['plugins']['facebook']['author'] = $fta_self_data;
             $efbl_saved = update_option( 'fta_settings', $fta_settings );
-            if ( isset( $efbl_saved ) ) {
+            $persisted = get_option( 'fta_settings', array() );
+            $token_ok = isset( $persisted['plugins']['facebook']['access_token'] ) && (string) $persisted['plugins']['facebook']['access_token'] === (string) $access_token;
+            $pages_ok = isset( $persisted['plugins']['facebook']['approved_pages'] ) && is_array( $persisted['plugins']['facebook']['approved_pages'] ) && count( $persisted['plugins']['facebook']['approved_pages'] ) === count( $approved_pages );
+            // update_option() returns false when the value is unchanged; isset() is always true.
+            if ( $efbl_saved || $token_ok && $pages_ok ) {
                 wp_send_json_success( array(__( 'Successfully Authenticated!', 'easy-facebook-likebox' ), $efbl_all_pages_html) );
             } else {
                 wp_send_json_error( __( 'Something went wrong! Refresh the page and try again', 'easy-facebook-likebox' ) );

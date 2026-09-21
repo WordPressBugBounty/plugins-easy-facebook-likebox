@@ -1,22 +1,22 @@
 === Easy Social Feed - Social Photos Gallery and Post Feed for WordPress ===
 Contributors: DaNish Ali, maltathemes, sjaved, freemius
-Tags: Instagram feed, Facebook feed, YouTube feed, X feed, Social media feed, Instagram photos, Instagram gallery, Facebook posts, YouTube videos, YouTube gallery, Twitter feed, Twitter timeline
+Tags: Instagram feed, Facebook feed, YouTube feed, X feed, TikTok feed
 Requires at least: 3.3
-Tested up to: 7.0
-Stable tag: 6.7.8
+Tested up to: 7.1
+Stable tag: 6.7.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Display Instagram, Facebook, YouTube & X/Twitter feeds with photos, videos, reels, events & galleries. SEO/AEO friendly, fast & easy to set up.
+Display Instagram, Facebook, YouTube, X & TikTok feeds with photos, videos, reels, events & galleries. SEO/AEO friendly, fast & easy to set up.
 
 == Description ==
 
-Easy Social Feed helps you display your latest **Instagram photos and videos, Facebook page posts and events, YouTube videos, and X/Twitter timeline posts** on your website. It is responsive, **SEO, AEO and GEO friendly**, easy to set up and offers live preview customization for appearance and layout.
+Easy Social Feed helps you display your latest **Instagram photos and videos, Facebook page posts and events, YouTube videos, X/Twitter timeline posts, and TikTok videos** on your website. It is responsive, **SEO, AEO and GEO friendly**, easy to set up and offers live preview customization for appearance and layout.
 
 
 Connect your account using the latest secure oAuth login and get a shortcode auto-generated. No app review required. Manual access token support is also available for Personal or Business accounts.
 
-You can enable only the module you need (Facebook, Instagram, YouTube or X/Twitter) so unrelated code is not loaded, improving performance.
+You can enable only the module you need (Facebook, Instagram, YouTube, X/Twitter or TikTok) so unrelated code is not loaded, improving performance.
 
 After connecting your account, **simply copy and paste the shortcode, or use a block or widget**, to embed your feed anywhere on your site.
 
@@ -134,6 +134,25 @@ Display an X (Twitter) feed on your site with a clean, responsive design and liv
 - Pro: **Popup / Lightbox** for tweet media with gallery and video support
 - Pro: Multiple accounts
 
+## TikTok Feed
+
+Display videos from your TikTok account in a clean, responsive feed with live customization. Connect with secure OAuth, create a feed, and embed it anywhere with shortcode (block and widget support included).
+
+### Features
+- Secure TikTok Login Kit OAuth connection
+- Accounts dashboard to manage connected accounts (reconnect/refresh and disconnect)
+- Create feeds and embed each feed using a unique shortcode
+- Feed editor with Connect, Customize and Embed panels and a live preview workflow
+- Responsive **Grid** layout with control over columns and spacing
+- Header controls for profile branding and key account details
+- Local cover images so thumbnails stay reliable when CDN links expire
+- Smart caching with configurable refresh duration for faster loading and fewer external requests
+- Per-feed Custom CSS with helper selectors for advanced styling
+- Pro: **Row** layout (more layouts coming)
+- Pro: **Load More** and infinite scroll to show more videos without reloading
+- Pro: **Popup / Lightbox** to watch videos without leaving your site
+- Pro: **Multifeed** to combine videos from multiple TikTok accounts in one feed
+
 ## Facebook Page Plugin (Like Box)
 Embed the Facebook Page Plugin to display page likes, faces, timeline or events using shortcode and widget.
 
@@ -157,9 +176,6 @@ Embed the Facebook Page Plugin to display page likes, faces, timeline or events 
 - Configurable feed refresh intervals
 - AI translation autofill on the Translation tab (Pro) to translate and fill feed labels into your selected language with one click  
 - **SEO, AEO & GEO optimized** - Server-rendered feeds with semantic markup and JSON-LD structured data (Instagram, YouTube & X/Twitter) for search engines and AI crawlers  
-
-## TikTok Support (Separate Plugin)
-Looking to embed TikTok videos and galleries on your site? Check out our sister plugin: **[Easy TikTok Feed](https://wordpress.org/plugins/easy-tiktok-feed/)** the easiest way to display TikTok content on WordPress.  
 
 ---
 
@@ -199,7 +215,7 @@ Whether you search for an **“Instagram GDPR feed”**, **“Facebook GDPR feed
 
 1. Upload the plugin folder to `/wp-content/plugins/`  
 2. Activate the plugin via the WordPress Plugins page  
-3. Go to Easy Social Feed > Facebook / Instagram / YouTube / X-Twitter to connect your account  
+3. Go to Easy Social Feed > Facebook / Instagram / YouTube / X-Twitter / TikTok to connect your account  
 4. Copy the generated shortcode and paste into posts, pages, CPT or anywhere in PHP templates
 
 ---
@@ -355,6 +371,23 @@ Use the shortcode generator to select your preferred post types.
 
 == Changelog ==
 
+= 6.7.10 =
+* Fixed: WordPress.org package was missing required shared frontend files, which caused a fatal error on install.
+
+= 6.7.9 =
+* Added: TikTok Feed module — connect your account, create feeds (Grid; Row & popup lightbox in Pro), and embed with shortcode.
+* Added: Modern Facebook Feed module with a new dashboard (accounts, feeds, live preview) and a migration path from the legacy module.
+* Added: Visual moderation (Pro) for Facebook, YouTube, and X/Twitter feeds to show or hide posts.
+* Added: Row layout for YouTube and X/Twitter feeds.
+* Added: Carousel layout support across modern feed modules.
+* Added: Multifeed (Pro) for Facebook, Instagram, YouTube, and X/Twitter — combine multiple accounts in one feed.
+* Added: YouTube lightbox comments.
+* Added: Reconnect alert emails when a social account token expires or disconnects (enabled by default; disable under each module’s Settings).
+* Added: GDPR zero-third-party mode and improved feed caching.
+* Improved: Instagram legacy-to-modern migration guidance, follow button, and display panels.
+* Added: Load More infinite Scroll (Pro).
+* Fixed: Minor issues.
+
 = 6.7.8 =
 * Fixed: Critical error when editing the Instagram feed widget in Customizer with the modern Instagram module.
 * Improved: lightbox controls theme compatibility.
@@ -432,6 +465,8 @@ https://easysocialfeed.com/changelog
 
 == Upgrade Notice ==
 
-= 6.7.8 =
-Update to this version to avoid a fatal error when using the Instagram widget with the modern Instagram module.
+= 6.7.10 =
+Fixes a fatal error in the WordPress.org package caused by missing shared frontend files. Recommended for all users.
 
+= 6.7.9 =
+Major update: TikTok module, modern Facebook, Multifeed & moderation (Pro), new layouts for YouTube/X, and many UX/stability fixes. Recommended for all users.

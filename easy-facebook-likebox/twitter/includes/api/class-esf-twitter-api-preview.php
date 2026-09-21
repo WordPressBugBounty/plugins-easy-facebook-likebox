@@ -146,27 +146,49 @@ class ESF_Twitter_API_Preview {
 			);
 		}
 
-		$renderer = new ESF_Twitter_Renderer();
-
-		$html = $renderer->render( $feed_id, $settings_override, false, $account_id );
-		if ( '' === $html ) {
-			return new WP_Error(
-				'preview_failed',
-				__( 'Could not generate preview.', 'easy-facebook-likebox' ),
-				array( 'status' => 400 )
-			);
-		}
-
 		$feed_repo           = ESF_Twitter_Feed_Repository::get_instance();
 		$feed_row            = $feed_repo->get_by_id( $feed_id );
 		$resolved_account_id = $account_id > 0
 			? $account_id
 			: ( $feed_row && ! empty( $feed_row->account_id ) ? (int) $feed_row->account_id : 0 );
 		$has_local_cache     = false;
-		if ( $resolved_account_id > 0 ) {
-			$cache_key        = 'esf_tw_tweets_' . $feed_id . '_' . $resolved_account_id;
-			$cached_tweet_set = ESF_Twitter_Cache::get( $cache_key );
-			$has_local_cache  = is_array( $cached_tweet_set );
+		$notice              = null;
+		if ( $feed_row && class_exists( 'ESF_Twitter_Renderer' ) ) {
+			$saved           = json_decode( $feed_row->settings, true );
+			$merged          = ESF_Twitter_Feed_Repository::merge_settings_with_defaults( is_array( $saved ) ? $saved : array() );
+			$merged          = array_merge( $merged, $settings_override );
+			$probe           = (object) array(
+				'id'         => (int) $feed_row->id,
+				'account_id' => $resolved_account_id,
+				'feed_type'  => isset( $feed_row->feed_type ) ? (string) $feed_row->feed_type : 'timeline',
+				'source_id'  => isset( $feed_row->source_id ) ? (string) $feed_row->source_id : '',
+				'settings'   => $merged,
+			);
+			$has_local_cache = ESF_Twitter_Renderer::feed_has_posts_cache( $probe );
+
+			$account_row  = $resolved_account_id > 0 && class_exists( 'ESF_Twitter_Account_Repository' )
+				? ESF_Twitter_Account_Repository::get_instance()->get_by_id( $resolved_account_id )
+				: null;
+			$disconnected = class_exists( 'ESF_Feed_Disconnected_Cache' )
+				? ESF_Feed_Disconnected_Cache::account_source_is_disconnected( $feed_row, $account_row )
+				: ( $resolved_account_id > 0 && null === $account_row );
+			if ( $disconnected && $has_local_cache && class_exists( 'ESF_Feed_Disconnected_Cache' ) ) {
+				$cache_pinned = ! empty( $merged['feed']['cache_pinned'] );
+				$notice       = array(
+					'message' => ESF_Feed_Disconnected_Cache::get_notice_message( $cache_pinned ),
+				);
+			}
+		}
+
+		$renderer = new ESF_Twitter_Renderer();
+
+		$html = $renderer->render( $feed_id, $settings_override, false, $account_id, 'preview' );
+		if ( '' === $html ) {
+			return new WP_Error(
+				'preview_failed',
+				__( 'Could not generate preview.', 'easy-facebook-likebox' ),
+				array( 'status' => 400 )
+			);
 		}
 
 		$layout_type = 'timeline';
@@ -179,14 +201,46 @@ class ESF_Twitter_API_Preview {
 
 		$css_url        = $renderer->get_base_css_url();
 		$layout_css_url = $renderer->get_layout_css_url( $layout_type );
+		$js_url         = method_exists( $renderer, 'get_layout_js_url' )
+			? $renderer->get_layout_js_url( $layout_type )
+			: null;
+
+		$js_urls = array();
+		if ( 'masonry' === $layout_type && function_exists( 'esf_get_masonry_pack_script_url' ) ) {
+			$pack_url = esf_get_masonry_pack_script_url();
+			if ( '' !== $pack_url ) {
+				$js_urls[] = $pack_url;
+			}
+		}
+		if ( $js_url ) {
+			$js_urls[] = $js_url;
+		}
+
+		$layout_css_urls = array();
+		if (
+			function_exists( 'esf_is_feed_entrance_animation_enabled' )
+			&& esf_is_feed_entrance_animation_enabled()
+			&& function_exists( 'esf_get_feed_reveal_css_url' )
+		) {
+			$reveal_css = esf_get_feed_reveal_css_url();
+			if ( '' !== $reveal_css ) {
+				$layout_css_urls[] = $reveal_css;
+			}
+		}
+		if ( $layout_css_url ) {
+			$layout_css_urls[] = $layout_css_url;
+		}
 
 		return rest_ensure_response(
 			array(
 				'html'            => $html,
 				'css_url'         => $css_url,
 				'layout_css_url'  => $layout_css_url,
+				'layout_css_urls' => $layout_css_urls,
 				'has_local_cache' => $has_local_cache,
-				'js_url'          => null,
+				'js_url'          => $js_url ? $js_url : null,
+				'js_urls'         => $js_urls,
+				'notice'          => $notice,
 			)
 		);
 	}

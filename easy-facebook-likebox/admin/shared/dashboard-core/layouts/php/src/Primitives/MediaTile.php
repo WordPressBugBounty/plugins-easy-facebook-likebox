@@ -36,12 +36,17 @@ final class MediaTile {
 	 *                                      - show_hover_plus (bool, default false): centered "+" on hover.
 	 *                                      - show_hover_likes (bool, default false): likes count on hover overlay.
 	 *                                      - show_hover_comments (bool, default false): comments count on hover overlay.
+	 *                                      - include_zero_hover_stats (bool, default false): still emit likes/comments
+	 *                                        hover markup when the metric is 0 (Facebook Grid media_only parity).
 	 *                                      - likes_count (int, default 0): likes metric for hover overlay.
 	 *                                      - comments_count (int, default 0): comments metric for hover overlay.
 	 *                                      - show_media_type_icon (bool, default true): show video/carousel icon.
+	 *                                      - force_carousel_icon (bool, default false): show album badge even when extra_count is 0.
+	 *                                      - show_hover_play (bool, default false): centered play button on hover (videos).
 	 *                                      - prefer_preview (bool, default false): use preview_url for tile img when set.
 	 *                                      - popup_trigger (bool, default false): mark tile as opening a lightbox.
 	 *                                      - variation_seed (string, default ''): stable seed for CSS poster variation.
+	 *                                      - duration_label (string, default ''): optional duration badge (e.g. 3:45).
 	 * @return string Tile HTML, or empty string when no media.
 	 */
 	public static function render(
@@ -59,17 +64,20 @@ final class MediaTile {
 		$module = sanitize_key( $module );
 
 		$defaults = array(
-			'new_tab'              => true,
-			'show_overlay'         => true,
-			'show_hover_plus'      => false,
-			'show_hover_likes'     => false,
-			'show_hover_comments'  => false,
-			'likes_count'          => 0,
-			'comments_count'       => 0,
-			'show_media_type_icon' => true,
-			'prefer_preview'       => false,
-			'popup_trigger'        => false,
-			'shoppable_label'      => '',
+			'new_tab'                  => true,
+			'show_overlay'             => true,
+			'show_hover_plus'          => false,
+			'show_hover_likes'         => false,
+			'show_hover_comments'      => false,
+			'include_zero_hover_stats' => false,
+			'likes_count'              => 0,
+			'comments_count'           => 0,
+			'show_media_type_icon'     => true,
+			'show_hover_play'          => false,
+			'prefer_preview'           => false,
+			'popup_trigger'            => false,
+			'shoppable_label'          => '',
+			'duration_label'           => '',
 		);
 		$options  = array_replace( $defaults, $options );
 
@@ -77,8 +85,9 @@ final class MediaTile {
 		$show_hover_comments = (bool) $options['show_hover_comments'];
 		$likes_count         = (int) $options['likes_count'];
 		$comments_count      = (int) $options['comments_count'];
-		$show_likes_stat     = $show_hover_likes && $likes_count > 0;
-		$show_comments_stat  = $show_hover_comments && $comments_count > 0;
+		$include_zero        = ! empty( $options['include_zero_hover_stats'] );
+		$show_likes_stat     = $show_hover_likes && ( $likes_count > 0 || $include_zero );
+		$show_comments_stat  = $show_hover_comments && ( $comments_count > 0 || $include_zero );
 		$has_hover_content   = (bool) $options['show_overlay']
 			&& (
 				(bool) $options['show_hover_plus']
@@ -99,11 +108,18 @@ final class MediaTile {
 
 		$is_video       = $primary->is_video();
 		$is_no_poster   = $primary->has_placeholder_poster();
-		$is_carousel    = $extra_count > 0;
+		$is_carousel    = $extra_count > 0 || ! empty( $options['force_carousel_icon'] );
 		$variation_seed = isset( $options['variation_seed'] ) ? (string) $options['variation_seed'] : '';
 
 		if ( $is_no_poster ) {
-			if ( ! $is_video || '' === $primary->get_video_url() ) {
+			// Placeholder video tiles need a playable target: raw MP4 or FB embed URL
+			// (live stream / mixed-media videos often only have video_embed_url).
+			$has_playable = '' !== $primary->get_video_url()
+				|| (
+					method_exists( $primary, 'get_video_embed_url' )
+					&& '' !== $primary->get_video_embed_url()
+				);
+			if ( ! $is_video || ! $has_playable ) {
 				return '';
 			}
 		} elseif ( '' === $image_url ) {
@@ -131,23 +147,37 @@ final class MediaTile {
 			$tile_class .= " esf-{$module}-feed__tile--hover-stats";
 		}
 
-		$show_type_icon = (bool) $options['show_media_type_icon'];
+		$show_type_icon  = (bool) $options['show_media_type_icon'];
 		$show_video_icon = $show_type_icon && $is_video && ! $is_no_poster;
-		$overlay        = '';
+		$show_hover_play = (bool) $options['show_overlay']
+			&& (bool) $options['show_hover_play']
+			&& $is_video
+			&& ! $is_no_poster;
+		if ( $show_hover_play ) {
+			$tile_class .= " esf-{$module}-feed__tile--hover-play";
+		}
+
+		// Hover overlay holds plus / engagement stats only. Media-type badges stay
+		// always-visible in the corner (Instagram / Facebook grid parity) so video
+		// and album posts are recognizable without hovering.
+		$overlay = '';
 		if ( $has_hover_content ) {
 			$overlay = self::render_hover_overlay(
 				$module,
-				$show_video_icon,
-				$is_carousel && $show_type_icon,
 				(bool) $options['show_hover_plus'],
 				$show_likes_stat,
 				$show_comments_stat,
 				$likes_count,
 				$comments_count
 			);
-		} elseif ( $show_type_icon && ( ( $is_video && ! $is_no_poster ) || $is_carousel ) ) {
-			$overlay = self::render_corner_overlay( $module, $is_video, $is_carousel );
 		}
+
+		$type_overlay = '';
+		if ( $show_type_icon && ! $show_hover_play && ( $show_video_icon || $is_carousel ) ) {
+			$type_overlay = self::render_corner_overlay( $module, $show_video_icon, $is_carousel );
+		}
+
+		$hover_play = $show_hover_play ? self::render_hover_play( $module ) : '';
 
 		$popup_attr = '';
 		if ( ! empty( $options['popup_trigger'] ) ) {
@@ -194,6 +224,16 @@ final class MediaTile {
 			);
 		}
 
+		$duration_badge = '';
+		$duration_label = isset( $options['duration_label'] ) ? trim( (string) $options['duration_label'] ) : '';
+		if ( '' !== $duration_label ) {
+			$duration_badge = sprintf(
+				'<span class="esf-%1$s-feed__tile-duration">%2$s</span>',
+				esc_attr( $module ),
+				esc_html( $duration_label )
+			);
+		}
+
 		$media_markup = '';
 		if ( $is_no_poster ) {
 			$media_markup = self::render_no_poster_surface(
@@ -201,37 +241,67 @@ final class MediaTile {
 				self::no_poster_variation_index( $variation_seed )
 			);
 		} else {
+			$prepared = class_exists( '\ESF_GDPR_Integrations' )
+				? \ESF_GDPR_Integrations::prepare_img_src( $image_url, $module )
+				: array(
+					'src'           => $image_url,
+					'class'         => '',
+					'attrs'         => '',
+					'is_restricted' => false,
+				);
+			$img_class = "esf-{$module}-feed__tile-img";
+			if ( ! empty( $prepared['class'] ) ) {
+				$img_class .= ' ' . $prepared['class'];
+			}
 			$media_markup = sprintf(
-				'<img class="esf-%1$s-feed__tile-img" src="%2$s" alt="%3$s" loading="lazy"%4$s />',
-				esc_attr( $module ),
-				esc_url( $image_url ),
+				'<img class="%1$s" src="%2$s" alt="%3$s" loading="lazy"%4$s%5$s />',
+				esc_attr( $img_class ),
+				esc_url( $prepared['src'] ),
 				esc_attr( $img_alt ),
-				$dimension_attrs // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Integer dimensions.
+				$dimension_attrs, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Integer dimensions.
+				isset( $prepared['attrs'] ) ? $prepared['attrs'] : '' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in prepare_img_src.
 			);
 		}
 
 		return $open_tag
 			. $media_markup
+			. $type_overlay
 			. $overlay
+			. $hover_play
 			. $shoppable_badge
+			. $duration_badge
 			. $close_tag;
 	}
 
 	/**
+	 * Centered play button shown on hover (YouTube-style video tiles).
+	 *
+	 * @param string $module Module slug.
+	 * @return string
+	 */
+	private static function render_hover_play( string $module ): string {
+		return sprintf(
+			'<span class="esf-%1$s-feed__tile-hover-play" aria-hidden="true">'
+			. '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'
+			. '</span>',
+			esc_attr( $module )
+		);
+	}
+
+	/**
 	 * Render hover overlay with optional "+" and engagement stats.
+	 *
+	 * Media-type badges are rendered separately via {@see render_corner_overlay()}
+	 * so they remain visible without hover.
 	 */
 	private static function render_hover_overlay(
 		string $module,
-		bool $is_video,
-		bool $is_carousel,
 		bool $show_plus,
 		bool $show_likes,
 		bool $show_comments,
 		int $likes_count,
 		int $comments_count
 	): string {
-		$icons = self::render_type_icons_markup( $module, $is_video, $is_carousel );
-
 		$inner = '';
 		if ( $show_plus ) {
 			$inner .= sprintf(
@@ -251,20 +321,16 @@ final class MediaTile {
 			$inner .= $stats;
 		}
 
-		if ( '' !== $inner ) {
-			$inner = sprintf(
-				'<span class="esf-%1$s-feed__tile-hover-overlay-inner" aria-hidden="true">%2$s</span>',
-				esc_attr( $module ),
-				$inner // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built from escaped fragments.
-			);
+		if ( '' === $inner ) {
+			return '';
 		}
 
 		return sprintf(
-			'<span class="esf-%1$s-feed__tile-hover-overlay" aria-hidden="true">%2$s%3$s'
+			'<span class="esf-%1$s-feed__tile-hover-overlay" aria-hidden="true">'
+			. '<span class="esf-%1$s-feed__tile-hover-overlay-inner" aria-hidden="true">%2$s</span>'
 			. '</span>',
 			esc_attr( $module ),
-			$inner, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built from escaped fragments.
-			$icons // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static inline SVG markup.
+			$inner // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built from escaped fragments.
 		);
 	}
 
@@ -280,7 +346,8 @@ final class MediaTile {
 	): string {
 		$items = '';
 
-		if ( $show_likes && $likes_count > 0 ) {
+		// Caller decides visibility (including zero-count policy per module).
+		if ( $show_likes ) {
 			$items .= sprintf(
 				'<span class="esf-%1$s-feed__tile-hover-stat esf-%1$s-feed__tile-hover-stat--likes" data-hover-stat="likes" aria-hidden="true">%2$s<span class="esf-%1$s-feed__tile-hover-stat-count">%3$s</span></span>',
 				esc_attr( $module ),
@@ -289,7 +356,7 @@ final class MediaTile {
 			);
 		}
 
-		if ( $show_comments && $comments_count > 0 ) {
+		if ( $show_comments ) {
 			$items .= sprintf(
 				'<span class="esf-%1$s-feed__tile-hover-stat esf-%1$s-feed__tile-hover-stat--comments" data-hover-stat="comments" aria-hidden="true">%2$s<span class="esf-%1$s-feed__tile-hover-stat-count">%3$s</span></span>',
 				esc_attr( $module ),

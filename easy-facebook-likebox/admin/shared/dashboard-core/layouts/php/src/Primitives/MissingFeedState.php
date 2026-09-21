@@ -34,6 +34,8 @@ final class MissingFeedState {
 		'instagram' => 'This Instagram feed is currently unavailable.',
 		'twitter'   => 'This social feed is currently unavailable.',
 		'youtube'   => 'This YouTube feed is currently unavailable.',
+		'facebook'  => 'This Facebook feed is currently unavailable.',
+		'tiktok'    => 'This TikTok feed is currently unavailable.',
 	);
 
 	/**

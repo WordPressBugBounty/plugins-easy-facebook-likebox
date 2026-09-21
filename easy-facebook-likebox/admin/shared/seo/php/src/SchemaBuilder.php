@@ -35,6 +35,80 @@ final class SchemaBuilder {
 	 * @return array<string,mixed>|array<int,array<string,mixed>>
 	 */
 	public static function for_instagram_posts( array $posts, ?AccountSummary $account, string $feed_name ): array {
+		return self::for_layout_posts( $posts, $account, $feed_name );
+	}
+
+	/**
+	 * Build ItemList + SocialMediaPosting schema for Facebook Page posts.
+	 *
+	 * Same PostItem shape as Instagram (shared layouts framework).
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param PostItem[]          $posts     Mapped posts.
+	 * @param AccountSummary|null $account   Feed Page summary.
+	 * @param string              $feed_name Feed display name.
+	 * @return array<string,mixed>|array<int,array<string,mixed>>
+	 */
+	public static function for_facebook_posts( array $posts, ?AccountSummary $account, string $feed_name ): array {
+		return self::for_layout_posts( $posts, $account, $feed_name );
+	}
+
+	/**
+	 * Build ItemList + SocialMediaPosting schema for Twitter/X posts.
+	 *
+	 * Shared-renderer modules pass PostItem[] (not raw tweet rows).
+	 *
+	 * @since 6.15.0
+	 *
+	 * @param PostItem[]          $posts     Mapped posts.
+	 * @param AccountSummary|null $account   Feed account.
+	 * @param string              $feed_name Feed display name.
+	 * @return array<string,mixed>|array<int,array<string,mixed>>
+	 */
+	public static function for_twitter_posts( array $posts, ?AccountSummary $account, string $feed_name ): array {
+		return self::for_layout_posts( $posts, $account, $feed_name );
+	}
+
+	/**
+	 * Build ItemList + VideoObject schema for TikTok videos.
+	 *
+	 * @since 6.15.0
+	 *
+	 * @param PostItem[]          $posts     Mapped posts.
+	 * @param AccountSummary|null $account   Feed account.
+	 * @param string              $feed_name Feed display name.
+	 * @return array<string,mixed>|array<int,array<string,mixed>>
+	 */
+	public static function for_tiktok_posts( array $posts, ?AccountSummary $account, string $feed_name ): array {
+		return self::for_video_posts( $posts, $account, $feed_name );
+	}
+
+	/**
+	 * Build ItemList + VideoObject schema for YouTube videos (PostItem path).
+	 *
+	 * @since 6.15.0
+	 *
+	 * @param PostItem[]          $posts     Mapped posts.
+	 * @param AccountSummary|null $account   Feed account.
+	 * @param string              $feed_name Feed display name.
+	 * @return array<string,mixed>|array<int,array<string,mixed>>
+	 */
+	public static function for_youtube_posts( array $posts, ?AccountSummary $account, string $feed_name ): array {
+		return self::for_video_posts( $posts, $account, $feed_name );
+	}
+
+	/**
+	 * Shared ItemList + SocialMediaPosting builder for PostItem-based modules.
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param PostItem[]          $posts     Mapped posts.
+	 * @param AccountSummary|null $account   Feed account.
+	 * @param string              $feed_name Feed display name.
+	 * @return array<string,mixed>|array<int,array<string,mixed>>
+	 */
+	private static function for_layout_posts( array $posts, ?AccountSummary $account, string $feed_name ): array {
 		$list_items = array();
 		$postings   = array();
 
@@ -55,7 +129,7 @@ final class SchemaBuilder {
 			);
 
 			$caption = trim( \wp_strip_all_tags( (string) $post->get_text_html() ) );
-			$images  = self::instagram_post_images( $post );
+			$images  = self::layout_post_images( $post );
 			$author  = self::person_from_account( $account );
 
 			$posting = array(
@@ -80,6 +154,129 @@ final class SchemaBuilder {
 		}
 
 		return self::wrap_item_list( $feed_name, $list_items, $postings, $account );
+	}
+
+	/**
+	 * Shared ItemList + VideoObject builder for video modules (YouTube, TikTok).
+	 *
+	 * @since 6.15.0
+	 *
+	 * @param PostItem[]          $posts     Mapped posts.
+	 * @param AccountSummary|null $account   Feed account.
+	 * @param string              $feed_name Feed display name.
+	 * @return array<string,mixed>|array<int,array<string,mixed>>
+	 */
+	private static function for_video_posts( array $posts, ?AccountSummary $account, string $feed_name ): array {
+		$list_items = array();
+		$videos     = array();
+
+		foreach ( $posts as $index => $post ) {
+			if ( ! $post instanceof PostItem ) {
+				continue;
+			}
+
+			$permalink = \esc_url_raw( $post->get_permalink() );
+			if ( '' === $permalink ) {
+				continue;
+			}
+
+			$list_items[] = array(
+				'@type'    => 'ListItem',
+				'position' => $index + 1,
+				'url'      => $permalink,
+			);
+
+			$extras = $post->get_extras();
+			$title  = isset( $extras['title'] ) ? trim( (string) $extras['title'] ) : '';
+			$caption = trim( \wp_strip_all_tags( (string) $post->get_text_html() ) );
+			if ( '' === $title ) {
+				$title = '' !== $caption ? \wp_trim_words( $caption, 20, '…' ) : $permalink;
+			}
+
+			$images = self::layout_post_images( $post );
+			$author = self::person_from_account( $account );
+			if ( null === $author ) {
+				$author = self::person_from_account( $post->get_author() );
+			}
+
+			$video_obj = array(
+				'@type' => 'VideoObject',
+				'@id'   => $permalink . '#video',
+				'url'   => $permalink,
+				'name'  => $title,
+			);
+
+			if ( '' !== $caption && $caption !== $title ) {
+				$video_obj['description'] = \wp_trim_words( $caption, 40, '…' );
+			} elseif ( '' !== $caption ) {
+				$video_obj['description'] = \wp_trim_words( $caption, 40, '…' );
+			}
+
+			if ( ! empty( $images ) ) {
+				$video_obj['thumbnailUrl'] = $images;
+			}
+
+			$published = SeoHelper::normalize_datetime_iso( (string) $post->get_created_at() );
+			if ( '' !== $published ) {
+				$video_obj['uploadDate'] = $published;
+			}
+
+			$duration = self::video_duration_iso( $extras );
+			if ( '' !== $duration ) {
+				$video_obj['duration'] = $duration;
+			}
+
+			if ( null !== $author ) {
+				$video_obj['author'] = $author;
+			}
+
+			$videos[] = $video_obj;
+		}
+
+		return self::wrap_item_list( $feed_name, $list_items, $videos, $account );
+	}
+
+	/**
+	 * Normalize extras into an ISO-8601 duration (`PT#H#M#S`).
+	 *
+	 * Accepts YouTube ISO strings (`PT1M2S`) or integer seconds (TikTok).
+	 *
+	 * @param array<string,mixed> $extras Extra payload.
+	 * @return string
+	 */
+	private static function video_duration_iso( array $extras ): string {
+		$raw = isset( $extras['duration'] ) ? (string) $extras['duration'] : '';
+		if ( '' === $raw ) {
+			return '';
+		}
+
+		if ( 0 === strpos( $raw, 'PT' ) ) {
+			return $raw;
+		}
+
+		if ( ! ctype_digit( $raw ) ) {
+			return '';
+		}
+
+		$seconds = (int) $raw;
+		if ( $seconds <= 0 ) {
+			return '';
+		}
+
+		$hours   = (int) floor( $seconds / 3600 );
+		$minutes = (int) floor( ( $seconds % 3600 ) / 60 );
+		$secs    = $seconds % 60;
+
+		$iso = 'PT';
+		if ( $hours > 0 ) {
+			$iso .= $hours . 'H';
+		}
+		if ( $minutes > 0 || $hours > 0 ) {
+			$iso .= $minutes . 'M';
+		}
+		$iso .= $secs . 'S';
+
+		return $iso;
 	}
 
 	/**
@@ -359,10 +556,12 @@ final class SchemaBuilder {
 	}
 
 	/**
-	 * @param PostItem $post Instagram post.
+	 * Collect display image URLs from a layout PostItem (Instagram / shared layouts).
+	 *
+	 * @param PostItem $post Post value object.
 	 * @return array<int,string>
 	 */
-	private static function instagram_post_images( PostItem $post ): array {
+	private static function layout_post_images( PostItem $post ): array {
 		$urls = array();
 
 		foreach ( $post->get_media() as $media ) {

@@ -134,15 +134,19 @@ class ESF_Instagram_API_Settings {
 		if ( array_key_exists( 'notify_token_reconnect', $body ) ) {
 			$current['notify_token_reconnect'] = (bool) $body['notify_token_reconnect'];
 		}
-		if ( array_key_exists( 'notify_token_reconnect_emails', $body ) ) {
-			$current['notify_token_reconnect_emails'] = esf_instagram_sanitize_notify_emails( $body['notify_token_reconnect_emails'] );
+		if ( array_key_exists( 'notify_token_reconnect_emails', $body ) && function_exists( 'esf_sanitize_notify_emails' ) ) {
+			$current['notify_token_reconnect_emails'] = esf_sanitize_notify_emails( $body['notify_token_reconnect_emails'] );
 		}
 
-		if ( ! empty( $current['notify_token_reconnect'] ) && empty( $current['notify_token_reconnect_emails'] ) ) {
-			$current['notify_token_reconnect_emails'] = esf_instagram_default_notify_emails();
+		if ( ! empty( $current['notify_token_reconnect'] ) && empty( $current['notify_token_reconnect_emails'] ) && function_exists( 'esf_default_notify_emails' ) ) {
+			$current['notify_token_reconnect_emails'] = esf_default_notify_emails();
 		}
 
 		update_option( 'esf_instagram_settings', $current );
+
+		if ( class_exists( 'ESF_Instagram_Main' ) && method_exists( 'ESF_Instagram_Main', 'reschedule_feed_cache_refresh' ) ) {
+			ESF_Instagram_Main::get_instance()->reschedule_feed_cache_refresh();
+		}
 
 		return rest_ensure_response( self::format_settings_response( self::normalize_saved_settings( $current ) ) );
 	}
@@ -176,7 +180,7 @@ class ESF_Instagram_API_Settings {
 	 * @return array<string, mixed>
 	 */
 	private static function normalize_saved_settings( array $saved ) {
-		$settings = esf_instagram_normalize_settings( $saved );
+		$settings                   = esf_instagram_normalize_settings( $saved );
 		$settings['cache_duration'] = self::sanitize_cache_duration( (int) $settings['cache_duration'] );
 
 		return $settings;

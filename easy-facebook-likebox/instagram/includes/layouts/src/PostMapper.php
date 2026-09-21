@@ -44,8 +44,8 @@ final class PostMapper {
 			return null;
 		}
 
-		$media_type = strtoupper( isset( $node['media_type'] ) ? (string) $node['media_type'] : 'IMAGE' );
-		$caption    = isset( $node['caption'] ) ? (string) $node['caption'] : '';
+		$media_type  = strtoupper( isset( $node['media_type'] ) ? (string) $node['media_type'] : 'IMAGE' );
+		$caption     = isset( $node['caption'] ) ? (string) $node['caption'] : '';
 		$author_name = $account instanceof AccountSummary ? $account->get_name() : '';
 
 		return new Post(

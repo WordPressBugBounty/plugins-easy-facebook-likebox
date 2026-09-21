@@ -32,6 +32,14 @@ class ESF_YouTube_API_Service {
 	const API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
 
 	/**
+	 * Maximum comments/replies accepted per YouTube page request.
+	 *
+	 * @since 6.7.9
+	 * @var int
+	 */
+	const MAX_COMMENTS_PAGE = 50;
+
+	/**
 	 * Get YouTube API language (hl) from ESF feed language setting.
 	 *
 	 * Uses the feed language selected on ESF Settings (General tab) so that
@@ -374,14 +382,17 @@ class ESF_YouTube_API_Service {
 	 *
 	 * @since 6.7.5
 	 *
-	 * @param string $token Access token or refresh token to revoke.
+	 * @param string   $token         Access token or refresh token to revoke.
+	 * @param int|null $timeout_secs  Optional HTTP timeout (1–30 seconds). Default 10.
 	 *
 	 * @return bool True if revoke succeeded (200) or token was already invalid (400), false on failure.
 	 */
-	public function revoke_token( $token ) {
+	public function revoke_token( $token, $timeout_secs = 10 ) {
 		if ( empty( $token ) || ! is_string( $token ) ) {
 			return false;
 		}
+
+		$timeout_secs = max( 1, min( 30, (int) $timeout_secs ) );
 
 		$url = add_query_arg(
 			array( 'token' => $token ),
@@ -391,7 +402,7 @@ class ESF_YouTube_API_Service {
 		$response = wp_remote_post(
 			$url,
 			array(
-				'timeout' => 10,
+				'timeout' => $timeout_secs,
 				'headers' => array( 'Content-Type' => 'application/x-www-form-urlencoded' ),
 			)
 		);
@@ -461,6 +472,93 @@ class ESF_YouTube_API_Service {
 	}
 
 	/**
+	 * List playlists owned by the authenticated channel (for Connect picker).
+	 *
+	 * @since 6.7.6
+	 *
+	 * @param string $access_token Access token.
+	 * @param int    $max_results  Max playlists (1–50). Default 50.
+	 * @return array|WP_Error List of { id, title, description, item_count, thumbnail }.
+	 */
+	public function list_channel_playlists( $access_token, $max_results = 50 ) {
+		if ( empty( $access_token ) ) {
+			return new WP_Error( 'invalid_token', __( 'Access token is required.', 'easy-facebook-likebox' ) );
+		}
+
+		$max_results = max( 1, min( 50, (int) $max_results ) );
+
+		$query_args = array(
+			'part'       => 'snippet,contentDetails',
+			'mine'       => 'true',
+			'maxResults' => $max_results,
+		);
+		$hl         = self::get_hl_for_request();
+		if ( '' !== $hl ) {
+			$query_args['hl'] = $hl;
+		}
+		$url = add_query_arg( $query_args, self::API_BASE_URL . '/playlists' );
+
+		$response = wp_remote_get(
+			$url,
+			array(
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $access_token,
+					'Accept'        => 'application/json',
+				),
+				'timeout' => 15,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error( 'api_request_failed', $response->get_error_message() );
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = wp_remote_retrieve_body( $response );
+		$data = json_decode( $body, true );
+
+		if ( 200 !== $code ) {
+			$msg = isset( $data['error']['message'] ) ? (string) $data['error']['message'] : __( 'Unknown API error', 'easy-facebook-likebox' );
+			return new WP_Error( 'youtube_api_error', $msg, array( 'status' => $code ) );
+		}
+
+		$items = isset( $data['items'] ) && is_array( $data['items'] ) ? $data['items'] : array();
+		$out   = array();
+
+		foreach ( $items as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			$id = isset( $item['id'] ) ? (string) $item['id'] : '';
+			if ( '' === $id ) {
+				continue;
+			}
+
+			$snippet = isset( $item['snippet'] ) && is_array( $item['snippet'] ) ? $item['snippet'] : array();
+			$details = isset( $item['contentDetails'] ) && is_array( $item['contentDetails'] ) ? $item['contentDetails'] : array();
+			$thumbs  = isset( $snippet['thumbnails'] ) && is_array( $snippet['thumbnails'] ) ? $snippet['thumbnails'] : array();
+
+			$thumbnail = '';
+			foreach ( array( 'medium', 'default', 'high' ) as $size ) {
+				if ( ! empty( $thumbs[ $size ]['url'] ) ) {
+					$thumbnail = (string) $thumbs[ $size ]['url'];
+					break;
+				}
+			}
+
+			$out[] = array(
+				'id'          => $id,
+				'title'       => isset( $snippet['title'] ) ? (string) $snippet['title'] : '',
+				'description' => isset( $snippet['description'] ) ? (string) $snippet['description'] : '',
+				'item_count'  => isset( $details['itemCount'] ) ? (int) $details['itemCount'] : 0,
+				'thumbnail'   => $thumbnail,
+			);
+		}
+
+		return $out;
+	}
+
+	/**
 	 * Fetch videos from a playlist (normalized for feed display).
 	 *
 	 * @since 6.7.5
@@ -520,40 +618,29 @@ class ESF_YouTube_API_Service {
 		}
 
 		$video_ids = array_column( $videos, 'video_id' );
-		$stats_map = $this->fetch_videos_statistics( $access_token, $video_ids );
-
-		foreach ( $videos as $i => $v ) {
-			$video_id = isset( $v['video_id'] ) ? $v['video_id'] : '';
-			if ( '' === $video_id || ! isset( $stats_map[ $video_id ] ) || ! is_array( $stats_map[ $video_id ] ) ) {
-				continue;
-			}
-
-			$stats = $stats_map[ $video_id ];
-
-			$videos[ $i ]['view_count']    = isset( $stats['view_count'] ) ? (int) $stats['view_count'] : 0;
-			$videos[ $i ]['like_count']    = isset( $stats['like_count'] ) ? (int) $stats['like_count'] : 0;
-			$videos[ $i ]['comment_count'] = isset( $stats['comment_count'] ) ? (int) $stats['comment_count'] : 0;
-		}
-
-		return $videos;
+		return $this->apply_videos_statistics( $access_token, $videos, $video_ids );
 	}
 
 	/**
 	 * Fetch videos from search (normalized for feed display).
 	 *
+	 * When $channel_id is provided, results are limited to that channel.
+	 *
 	 * @since 6.7.5
 	 *
 	 * @param string $access_token Access token.
-	 * @param string $query       Search query.
-	 * @param int    $max_results Max number of videos (1–50). Default 12.
-	 * @return array|WP_Error Array of normalized video items on success, WP_Error on failure.
+	 * @param string $query        Search query.
+	 * @param int    $max_results  Max number of videos (1–50). Default 12.
+	 * @param string $channel_id   Optional. Restrict search to this channel ID.
+	 * @return array{items:array,total_results:int}|WP_Error Envelope on success, WP_Error on failure.
 	 */
-	public function fetch_search_videos( $access_token, $query, $max_results = 12 ) {
+	public function fetch_search_videos( $access_token, $query, $max_results = 12, $channel_id = '' ) {
 		if ( empty( $access_token ) || '' === trim( $query ) ) {
 			return new WP_Error( 'invalid_args', __( 'Access token and search query are required.', 'easy-facebook-likebox' ) );
 		}
 
 		$max_results = max( 1, min( 50, (int) $max_results ) );
+		$channel_id  = sanitize_text_field( (string) $channel_id );
 
 		$query_args = array(
 			'part'       => 'snippet',
@@ -561,7 +648,10 @@ class ESF_YouTube_API_Service {
 			'q'          => $query,
 			'maxResults' => $max_results,
 		);
-		$hl         = self::get_hl_for_request();
+		if ( '' !== $channel_id ) {
+			$query_args['channelId'] = $channel_id;
+		}
+		$hl = self::get_hl_for_request();
 		if ( '' !== $hl ) {
 			$query_args['hl'] = $hl;
 		}
@@ -591,8 +681,11 @@ class ESF_YouTube_API_Service {
 			return new WP_Error( 'youtube_api_error', $msg, array( 'status' => $code ) );
 		}
 
-		$items     = isset( $data['items'] ) && is_array( $data['items'] ) ? $data['items'] : array();
-		$video_ids = array();
+		$items         = isset( $data['items'] ) && is_array( $data['items'] ) ? $data['items'] : array();
+		$total_results = isset( $data['pageInfo']['totalResults'] )
+			? max( 0, (int) $data['pageInfo']['totalResults'] )
+			: 0;
+		$video_ids     = array();
 		foreach ( $items as $item ) {
 			if ( ! empty( $item['id']['videoId'] ) ) {
 				$video_ids[] = $item['id']['videoId'];
@@ -600,7 +693,10 @@ class ESF_YouTube_API_Service {
 		}
 
 		if ( empty( $video_ids ) ) {
-			return array();
+			return array(
+				'items'         => array(),
+				'total_results' => $total_results,
+			);
 		}
 
 		$videos = $this->fetch_videos_details( $access_token, $video_ids );
@@ -608,9 +704,58 @@ class ESF_YouTube_API_Service {
 			return $videos;
 		}
 
+		$video_ids = array_column( $videos, 'video_id' );
+		$videos    = $this->apply_videos_statistics( $access_token, $videos, $video_ids );
+		if ( is_wp_error( $videos ) ) {
+			return $videos;
+		}
+
+		return array(
+			'items'         => is_array( $videos ) ? $videos : array(),
+			'total_results' => $total_results > 0 ? $total_results : count( (array) $videos ),
+		);
+	}
+
+	/**
+	 * Attach statistics and duration onto normalized video items.
+	 *
+	 * Used after playlist/search fetch and to backfill older caches that lack duration.
+	 *
+	 * @since 6.7.5
+	 *
+	 * @param string   $access_token Access token.
+	 * @param array    $videos       Normalized video items.
+	 * @param string[] $video_ids    Optional explicit IDs; derived from $videos when empty.
+	 * @return array Videos with stats/duration merged in.
+	 */
+	public function apply_videos_statistics( $access_token, array $videos, $video_ids = null ) {
+		if ( empty( $videos ) ) {
+			return $videos;
+		}
+
+		if ( ! is_array( $video_ids ) || empty( $video_ids ) ) {
+			$video_ids = array();
+			foreach ( $videos as $video ) {
+				if ( ! is_array( $video ) ) {
+					continue;
+				}
+				$id = isset( $video['video_id'] ) ? (string) $video['video_id'] : ( isset( $video['id'] ) ? (string) $video['id'] : '' );
+				if ( '' !== $id ) {
+					$video_ids[] = $id;
+				}
+			}
+		}
+
 		$stats_map = $this->fetch_videos_statistics( $access_token, $video_ids );
+		if ( empty( $stats_map ) ) {
+			return $videos;
+		}
+
 		foreach ( $videos as $i => $v ) {
-			$video_id = isset( $v['video_id'] ) ? $v['video_id'] : '';
+			if ( ! is_array( $v ) ) {
+				continue;
+			}
+			$video_id = isset( $v['video_id'] ) ? (string) $v['video_id'] : ( isset( $v['id'] ) ? (string) $v['id'] : '' );
 			if ( '' === $video_id || ! isset( $stats_map[ $video_id ] ) || ! is_array( $stats_map[ $video_id ] ) ) {
 				continue;
 			}
@@ -620,6 +765,10 @@ class ESF_YouTube_API_Service {
 			$videos[ $i ]['view_count']    = isset( $stats['view_count'] ) ? (int) $stats['view_count'] : 0;
 			$videos[ $i ]['like_count']    = isset( $stats['like_count'] ) ? (int) $stats['like_count'] : 0;
 			$videos[ $i ]['comment_count'] = isset( $stats['comment_count'] ) ? (int) $stats['comment_count'] : 0;
+			if ( ! empty( $stats['duration'] ) ) {
+				$videos[ $i ]['duration']           = (string) $stats['duration'];
+				$videos[ $i ]['duration_formatted'] = isset( $stats['duration_formatted'] ) ? (string) $stats['duration_formatted'] : '';
+			}
 		}
 
 		return $videos;
@@ -649,6 +798,8 @@ class ESF_YouTube_API_Service {
 				'description'   => isset( $snippet['description'] ) ? $snippet['description'] : '',
 				'thumbnail_url' => $thumb,
 				'published_at'  => isset( $snippet['publishedAt'] ) ? $snippet['publishedAt'] : '',
+				'channel_id'    => isset( $snippet['channelId'] ) ? (string) $snippet['channelId'] : '',
+				'channel_title' => isset( $snippet['channelTitle'] ) ? (string) $snippet['channelTitle'] : '',
 				'view_count'    => 0,
 			);
 		}
@@ -656,13 +807,13 @@ class ESF_YouTube_API_Service {
 	}
 
 	/**
-	 * Fetch video statistics (view count) for given video IDs.
+	 * Fetch video statistics and duration for given video IDs.
 	 *
 	 * @since 6.7.5
 	 *
 	 * @param string   $access_token Access token.
 	 * @param string[] $video_ids    Video IDs (max 50).
-	 * @return array Map of video_id => view_count.
+	 * @return array Map of video_id => stats (view/like/comment counts + duration).
 	 */
 	private function fetch_videos_statistics( $access_token, $video_ids ) {
 		if ( empty( $video_ids ) ) {
@@ -671,7 +822,7 @@ class ESF_YouTube_API_Service {
 
 		$ids        = array_slice( array_unique( array_filter( $video_ids ) ), 0, 50 );
 		$query_args = array(
-			'part' => 'statistics',
+			'part' => 'statistics,contentDetails',
 			'id'   => implode( ',', $ids ),
 		);
 		$hl         = self::get_hl_for_request();
@@ -706,16 +857,55 @@ class ESF_YouTube_API_Service {
 				continue;
 			}
 
-			$stats = isset( $item['statistics'] ) && is_array( $item['statistics'] ) ? $item['statistics'] : array();
+			$stats           = isset( $item['statistics'] ) && is_array( $item['statistics'] ) ? $item['statistics'] : array();
+			$content_details = isset( $item['contentDetails'] ) && is_array( $item['contentDetails'] ) ? $item['contentDetails'] : array();
+			$duration        = isset( $content_details['duration'] ) ? (string) $content_details['duration'] : '';
 
-			$out[ $vid ] = array(
+			$row = array(
 				'view_count'    => isset( $stats['viewCount'] ) ? (int) $stats['viewCount'] : 0,
 				'like_count'    => isset( $stats['likeCount'] ) ? (int) $stats['likeCount'] : 0,
 				'comment_count' => isset( $stats['commentCount'] ) ? (int) $stats['commentCount'] : 0,
 			);
+
+			if ( '' !== $duration ) {
+				$row['duration']           = $duration;
+				$row['duration_formatted'] = self::format_iso_duration( $duration );
+			}
+
+			$out[ $vid ] = $row;
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Format an ISO 8601 duration (e.g. PT1H2M10S) for display.
+	 *
+	 * @since 6.7.5
+	 * @param string $duration ISO 8601 duration.
+	 * @return string
+	 */
+	private static function format_iso_duration( $duration ) {
+		$duration = (string) $duration;
+		if ( '' === $duration ) {
+			return '';
+		}
+
+		try {
+			$interval = new DateInterval( $duration );
+		} catch ( Exception $e ) {
+			return '';
+		}
+
+		$hours   = (int) $interval->h + ( (int) $interval->d * 24 );
+		$minutes = (int) $interval->i;
+		$seconds = (int) $interval->s;
+
+		if ( $hours > 0 ) {
+			return $hours . ':' . str_pad( (string) $minutes, 2, '0', STR_PAD_LEFT ) . ':' . str_pad( (string) $seconds, 2, '0', STR_PAD_LEFT );
+		}
+
+		return $minutes . ':' . str_pad( (string) $seconds, 2, '0', STR_PAD_LEFT );
 	}
 
 	/**
@@ -773,9 +963,274 @@ class ESF_YouTube_API_Service {
 				'description'   => isset( $snippet['description'] ) ? $snippet['description'] : '',
 				'thumbnail_url' => $thumb,
 				'published_at'  => isset( $snippet['publishedAt'] ) ? $snippet['publishedAt'] : '',
+				'channel_id'    => isset( $snippet['channelId'] ) ? (string) $snippet['channelId'] : '',
+				'channel_title' => isset( $snippet['channelTitle'] ) ? (string) $snippet['channelTitle'] : '',
 				'view_count'    => 0,
 			);
 		}
 		return $videos;
+	}
+
+	/**
+	 * Sanitize a YouTube video ID for URLs and cache keys.
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param string $video_id Raw video ID.
+	 * @return string
+	 */
+	public function sanitize_video_id( $video_id ) {
+		$video_id = preg_replace( '/[^a-zA-Z0-9_-]/', '', (string) $video_id );
+		return substr( (string) $video_id, 0, 64 );
+	}
+
+	/**
+	 * Sanitize a YouTube comment ID for URLs and cache keys.
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param string $comment_id Raw comment ID.
+	 * @return string
+	 */
+	public function sanitize_comment_id( $comment_id ) {
+		$comment_id = preg_replace( '/[^a-zA-Z0-9_-]/', '', (string) $comment_id );
+		return substr( (string) $comment_id, 0, 128 );
+	}
+
+	/**
+	 * Fetch top-level comment threads for a video.
+	 *
+	 * Uses commentThreads.list. OAuth tokens must include
+	 * `https://www.googleapis.com/auth/youtube.force-ssl` (youtube.readonly is
+	 * not accepted by Google for this endpoint). Callers cache + paginate via
+	 * pageToken; never call the live API from unit tests.
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param string $access_token OAuth access token.
+	 * @param string $video_id     YouTube video ID.
+	 * @param int    $max_results  Page size (1–50).
+	 * @param string $page_token   Optional nextPageToken from a prior response.
+	 * @return array|WP_Error { data: array<int,array>, pagination: array{cursor:string} }
+	 */
+	public function fetch_video_comments( $access_token, $video_id, $max_results = 20, $page_token = '' ) {
+		$access_token = is_string( $access_token ) ? trim( $access_token ) : '';
+		if ( '' === $access_token ) {
+			return new WP_Error(
+				'missing_access_token',
+				__( 'No access token is stored for this YouTube account. Please reconnect.', 'easy-facebook-likebox' )
+			);
+		}
+
+		$video_id = $this->sanitize_video_id( $video_id );
+		if ( '' === $video_id ) {
+			return new WP_Error(
+				'invalid_video_id',
+				__( 'Invalid YouTube video ID.', 'easy-facebook-likebox' )
+			);
+		}
+
+		$max_results = max( 1, min( self::MAX_COMMENTS_PAGE, (int) $max_results ) );
+		$query_args  = array(
+			'part'       => 'snippet,replies',
+			'videoId'    => $video_id,
+			'maxResults' => $max_results,
+			'order'      => 'relevance',
+			'textFormat' => 'plainText',
+		);
+		$page_token  = sanitize_text_field( (string) $page_token );
+		if ( '' !== $page_token ) {
+			$query_args['pageToken'] = $page_token;
+		}
+
+		$url = add_query_arg( $query_args, self::API_BASE_URL . '/commentThreads' );
+
+		/**
+		 * Filter the YouTube commentThreads request URL.
+		 *
+		 * @since 6.7.9
+		 *
+		 * @param string $url          Final URL.
+		 * @param string $video_id     Video ID.
+		 * @param int    $max_results  Page size.
+		 * @param string $page_token   Page token.
+		 */
+		$url = (string) apply_filters( 'esf_youtube_comments_request_url', $url, $video_id, $max_results, $page_token );
+
+		return $this->dispatch_comments_request( $access_token, $url );
+	}
+
+	/**
+	 * Fetch replies for a top-level comment.
+	 *
+	 * Uses comments.list with parentId = top-level comment id.
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param string $access_token OAuth access token.
+	 * @param string $comment_id   Parent (top-level) comment ID.
+	 * @param int    $max_results  Page size (1–50).
+	 * @param string $page_token   Optional nextPageToken.
+	 * @return array|WP_Error { data: array<int,array>, pagination: array{cursor:string} }
+	 */
+	public function fetch_comment_replies( $access_token, $comment_id, $max_results = 10, $page_token = '' ) {
+		$access_token = is_string( $access_token ) ? trim( $access_token ) : '';
+		if ( '' === $access_token ) {
+			return new WP_Error(
+				'missing_access_token',
+				__( 'No access token is stored for this YouTube account. Please reconnect.', 'easy-facebook-likebox' )
+			);
+		}
+
+		$comment_id = $this->sanitize_comment_id( $comment_id );
+		if ( '' === $comment_id ) {
+			return new WP_Error(
+				'invalid_comment_id',
+				__( 'Invalid YouTube comment ID.', 'easy-facebook-likebox' )
+			);
+		}
+
+		$max_results = max( 1, min( self::MAX_COMMENTS_PAGE, (int) $max_results ) );
+		$query_args  = array(
+			'part'       => 'snippet',
+			'parentId'   => $comment_id,
+			'maxResults' => $max_results,
+			'textFormat' => 'plainText',
+		);
+		$page_token  = sanitize_text_field( (string) $page_token );
+		if ( '' !== $page_token ) {
+			$query_args['pageToken'] = $page_token;
+		}
+
+		$url = add_query_arg( $query_args, self::API_BASE_URL . '/comments' );
+
+		/**
+		 * Filter the YouTube comments.list (replies) request URL.
+		 *
+		 * @since 6.7.9
+		 *
+		 * @param string $url          Final URL.
+		 * @param string $comment_id   Parent comment ID.
+		 * @param int    $max_results  Page size.
+		 * @param string $page_token   Page token.
+		 */
+		$url = (string) apply_filters( 'esf_youtube_comment_replies_request_url', $url, $comment_id, $max_results, $page_token );
+
+		return $this->dispatch_comments_request( $access_token, $url );
+	}
+
+	/**
+	 * Issue an authenticated comments/commentThreads GET and normalize the page.
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param string $access_token Bearer token.
+	 * @param string $url          Final request URL.
+	 * @return array|WP_Error
+	 */
+	private function dispatch_comments_request( $access_token, $url ) {
+		$response = wp_remote_get(
+			$url,
+			array(
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $access_token,
+					'Accept'        => 'application/json',
+					'User-Agent'    => 'EasySocialFeed-YouTube/' . ( defined( 'FTA_VERSION' ) ? FTA_VERSION : '1.0' ),
+				),
+				'timeout' => 15,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		$body = (string) wp_remote_retrieve_body( $response );
+		$data = json_decode( $body, true );
+
+		if ( ! is_array( $data ) ) {
+			return new WP_Error(
+				'invalid_json',
+				__( 'YouTube returned a malformed comments response.', 'easy-facebook-likebox' ),
+				array( 'status' => $code )
+			);
+		}
+
+		if ( isset( $data['error'] ) && is_array( $data['error'] ) ) {
+			$error_message = isset( $data['error']['message'] )
+				? (string) $data['error']['message']
+				: __( 'YouTube API error.', 'easy-facebook-likebox' );
+			$reason        = '';
+			if ( isset( $data['error']['errors'][0]['reason'] ) ) {
+				$reason = (string) $data['error']['errors'][0]['reason'];
+			}
+
+			// Comments disabled / private — treat as empty page, not a hard failure.
+			if ( in_array( $reason, array( 'commentsDisabled', 'videoNotFound' ), true )
+				|| false !== stripos( $error_message, 'disabled comments' )
+				|| false !== stripos( $error_message, 'comments are turned off' )
+			) {
+				return array(
+					'data'       => array(),
+					'pagination' => array( 'cursor' => '' ),
+				);
+			}
+
+			// Token lacks youtube.force-ssl — bridge must request it and the
+			// account must reconnect. Do not soft-empty this as "no comments".
+			if (
+				'insufficientPermissions' === $reason
+				|| false !== stripos( $error_message, 'insufficient authentication scopes' )
+				|| false !== stripos( $error_message, 'insufficient permission' )
+			) {
+				return new WP_Error(
+					'youtube_insufficient_scopes',
+					__( 'This YouTube account needs to be reconnected with comment access. Disconnect and connect the channel again from the YouTube Accounts tab.', 'easy-facebook-likebox' ),
+					array(
+						'status'          => 403,
+						'detail'          => $data['error'],
+						'reason'          => $reason,
+						'needs_reconnect' => true,
+					)
+				);
+			}
+
+			return new WP_Error(
+				'youtube_api_error',
+				sprintf(
+					/* translators: %s: Error message from YouTube API. */
+					__( 'YouTube API error: %s', 'easy-facebook-likebox' ),
+					$error_message
+				),
+				array(
+					'status' => $code,
+					'detail' => $data['error'],
+					'reason' => $reason,
+				)
+			);
+		}
+
+		if ( $code >= 400 ) {
+			return new WP_Error(
+				'youtube_http_error',
+				sprintf(
+					/* translators: %d: HTTP status code. */
+					__( 'YouTube comments request failed with status %d.', 'easy-facebook-likebox' ),
+					$code
+				),
+				array( 'status' => $code )
+			);
+		}
+
+		$items  = isset( $data['items'] ) && is_array( $data['items'] ) ? array_values( $data['items'] ) : array();
+		$cursor = isset( $data['nextPageToken'] ) ? sanitize_text_field( (string) $data['nextPageToken'] ) : '';
+
+		return array(
+			'data'       => $items,
+			'pagination' => array(
+				'cursor' => $cursor,
+			),
+		);
 	}
 }

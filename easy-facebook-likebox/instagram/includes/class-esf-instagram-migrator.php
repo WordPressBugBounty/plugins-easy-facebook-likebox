@@ -21,6 +21,123 @@ class ESF_Instagram_Migrator {
 	use ESF_Instagram_Singleton;
 
 	/**
+	 * Option guarding against overlapping `migrate()` runs (double-submit, parallel
+	 * REST + admin-notice requests). Stores a Unix timestamp; treated as stale (and
+	 * safe to re-acquire) after `LOCK_TTL_SECONDS` in case a prior run crashed/timed
+	 * out without releasing it.
+	 *
+	 * @since 6.9.7
+	 * @var string
+	 */
+	const LOCK_OPTION = 'esf_instagram_migrate_lock';
+
+	/**
+	 * Max lifetime of a migration lock before it is considered stale.
+	 *
+	 * @since 6.9.7
+	 * @var int
+	 */
+	const LOCK_TTL_SECONDS = 120;
+
+	/**
+	 * Default wall-clock budget (seconds) for all outbound Graph API calls made
+	 * during one `migrate()` run. Sites with many legacy accounts/pages would
+	 * otherwise perform dozens of sequential HTTP requests inline and risk a
+	 * PHP `max_execution_time` fatal on constrained hosting. Once the budget is
+	 * spent, remaining accounts are still upserted (feeds keep working) but
+	 * skip live token probing / profile enrichment; a later manual "Refresh"
+	 * or re-run of migrate fills in the rest (upserts are idempotent).
+	 *
+	 * @since 6.9.7
+	 * @var float
+	 */
+	const DEFAULT_NETWORK_TIME_BUDGET = 20.0;
+
+	/**
+	 * Monotonic deadline (microtime) for outbound Graph calls in the current
+	 * `migrate()` run, or null when no run is in progress.
+	 *
+	 * @since 6.9.7
+	 * @var float|null
+	 */
+	private $network_deadline = null;
+
+	/**
+	 * Attempt to acquire the migration lock.
+	 *
+	 * @since 6.9.7
+	 * @return bool True when the lock was acquired (or already stale/expired).
+	 */
+	private function acquire_migration_lock() {
+		$existing = get_option( self::LOCK_OPTION, 0 );
+		$existing = is_numeric( $existing ) ? (int) $existing : 0;
+
+		if ( $existing > 0 && ( time() - $existing ) < self::LOCK_TTL_SECONDS ) {
+			return false;
+		}
+
+		update_option( self::LOCK_OPTION, time(), false );
+		return true;
+	}
+
+	/**
+	 * Release the migration lock.
+	 *
+	 * @since 6.9.7
+	 * @return void
+	 */
+	private function release_migration_lock() {
+		delete_option( self::LOCK_OPTION );
+	}
+
+	/**
+	 * Result shape returned when a `migrate()` call is skipped because another
+	 * run is already in progress on this site.
+	 *
+	 * @since 6.9.7
+	 * @return array<string,mixed>
+	 */
+	private function migration_already_running_result() {
+		return array(
+			'migrated'          => 0,
+			'skipped'           => 0,
+			'default_feed_id'   => (int) get_option( 'esf_instagram_migration_default_feed_id', 0 ),
+			'widgets_updated'   => 0,
+			'widget_feeds'      => 0,
+			'map_entries'       => 0,
+			'map_feeds'         => 0,
+			'rewrite_status'    => '',
+			'rewrite_updated'   => 0,
+			'rewrite_scheduled' => false,
+			'already_running'   => true,
+		);
+	}
+
+	/**
+	 * Filterable wall-clock budget (seconds) for outbound Graph calls in one migrate() run.
+	 *
+	 * @since 6.9.7
+	 * @return float Clamped between 5 and 60 seconds.
+	 */
+	private function network_time_budget() {
+		$budget = apply_filters( 'esf_instagram_migrate_network_time_budget', self::DEFAULT_NETWORK_TIME_BUDGET );
+		$budget = is_numeric( $budget ) ? (float) $budget : self::DEFAULT_NETWORK_TIME_BUDGET;
+
+		return max( 5.0, min( 60.0, $budget ) );
+	}
+
+	/**
+	 * Whether the outbound-Graph-call time budget for the current migrate() run
+	 * has been spent. Always false outside of an active `migrate()` call.
+	 *
+	 * @since 6.9.7
+	 * @return bool
+	 */
+	private function network_budget_exceeded() {
+		return null !== $this->network_deadline && microtime( true ) >= $this->network_deadline;
+	}
+
+	/**
 	 * Normalize Graph-style Instagram payload (Basic user, or Business object from a page).
 	 *
 	 * WordPress options may store nested objects as arrays or JSON strings.
@@ -82,7 +199,7 @@ class ESF_Instagram_Migrator {
 	/**
 	 * Instagram Graph user node id for GET /v…/{id} (prefer payload `id` over stored value when they differ).
 	 *
-	 * @param string               $stored_instagram_user_id Value saved on the account row.
+	 * @param string                   $stored_instagram_user_id Value saved on the account row.
 	 * @param array<string,mixed>|null $payload                instagram_connected_account payload (optional).
 	 * @return string Digits-only node id or empty string.
 	 */
@@ -135,7 +252,7 @@ class ESF_Instagram_Migrator {
 	/**
 	 * Normalize a personal/basic row from instagram_connected_account.
 	 *
-	 * @param string               $legacy_id Legacy array key (Instagram user id).
+	 * @param string                     $legacy_id Legacy array key (Instagram user id).
 	 * @param array<string,mixed>|object $legacy_account Stored account data.
 	 * @return array<string,mixed>|null Normalized row or null if unusable.
 	 */
@@ -423,7 +540,7 @@ class ESF_Instagram_Migrator {
 	 * @since 6.9.0
 	 *
 	 * @param array<string,mixed> $data         Upsert payload.
-	 * @param string            $token_status   Probe result.
+	 * @param string              $token_status   Probe result.
 	 * @return array<string,mixed>
 	 */
 	private function apply_migration_token_status( array $data, $token_status ) {
@@ -437,9 +554,9 @@ class ESF_Instagram_Migrator {
 	/**
 	 * Instagram Graph (professional): live user node fields during migration.
 	 *
-	 * @param string               $instagram_user_id  Stored Instagram user / row id (digits).
-	 * @param string               $page_access_token Page access token.
-	 * @param string               $stats_time        GMT mysql datetime.
+	 * @param string                   $instagram_user_id  Stored Instagram user / row id (digits).
+	 * @param string                   $page_access_token Page access token.
+	 * @param string                   $stats_time        GMT mysql datetime.
 	 * @param array<string,mixed>|null $payload       instagram_connected_account payload for correct Graph node id.
 	 * @return array<string,mixed>
 	 */
@@ -674,6 +791,11 @@ class ESF_Instagram_Migrator {
 		$stats_time = current_time( 'mysql', true );
 
 		foreach ( $accounts as $row ) {
+			if ( $this->network_budget_exceeded() ) {
+				// Remaining accounts keep their existing/legacy-cached profile data;
+				// a manual "Refresh" or the next migrate() run tops these up.
+				break;
+			}
 			if ( ! is_object( $row ) ) {
 				continue;
 			}
@@ -762,12 +884,12 @@ class ESF_Instagram_Migrator {
 
 		$api_patch = array(
 			'instagram_user_id'  => $account_id,
-			'username'             => $username,
-			'display_name'         => $display,
-			'media_count'          => $media,
-			'followers_count'      => $followers,
-			'stats_refreshed_at'   => $stats_time,
-			'auth_source'          => 'instagram_login',
+			'username'           => $username,
+			'display_name'       => $display,
+			'media_count'        => $media,
+			'followers_count'    => $followers,
+			'stats_refreshed_at' => $stats_time,
+			'auth_source'        => 'instagram_login',
 		);
 		if ( '' !== $bio ) {
 			$api_patch['biography'] = $bio;
@@ -801,7 +923,7 @@ class ESF_Instagram_Migrator {
 		}
 
 		$row_digits = preg_replace( '/[^0-9]/', '', (string) $row->instagram_user_id );
-		$alt_digits  = '';
+		$alt_digits = '';
 		if ( is_array( $payload ) && isset( $payload['ig_id'] ) ) {
 			$alt_digits = preg_replace( '/[^0-9]/', '', (string) $payload['ig_id'] );
 		}
@@ -848,17 +970,17 @@ class ESF_Instagram_Migrator {
 			return;
 		}
 
-		$username = isset( $body->username ) ? sanitize_text_field( (string) $body->username ) : (string) $row->username;
-		$name     = isset( $body->name ) ? sanitize_text_field( (string) $body->name ) : '';
-		$display  = '' !== $name ? $name : $username;
-		$bio      = isset( $body->biography ) ? sanitize_textarea_field( (string) $body->biography ) : '';
-		$website  = isset( $body->website ) ? esc_url_raw( (string) $body->website ) : '';
-		$pic      = isset( $body->profile_picture_url ) ? esc_url_raw( (string) $body->profile_picture_url ) : (string) $row->profile_image_url;
-		$followers = isset( $body->followers_count ) ? (int) $body->followers_count : (int) $row->followers_count;
-		$media     = isset( $body->media_count ) ? (int) $body->media_count : (int) $row->media_count;
+		$username   = isset( $body->username ) ? sanitize_text_field( (string) $body->username ) : (string) $row->username;
+		$name       = isset( $body->name ) ? sanitize_text_field( (string) $body->name ) : '';
+		$display    = '' !== $name ? $name : $username;
+		$bio        = isset( $body->biography ) ? sanitize_textarea_field( (string) $body->biography ) : '';
+		$website    = isset( $body->website ) ? esc_url_raw( (string) $body->website ) : '';
+		$pic        = isset( $body->profile_picture_url ) ? esc_url_raw( (string) $body->profile_picture_url ) : (string) $row->profile_image_url;
+		$followers  = isset( $body->followers_count ) ? (int) $body->followers_count : (int) $row->followers_count;
+		$media      = isset( $body->media_count ) ? (int) $body->media_count : (int) $row->media_count;
 		$account_id = sanitize_text_field( (string) $row->instagram_user_id );
 
-		$patch = array(
+		$patch        = array(
 			'instagram_user_id'  => $account_id,
 			'username'           => $username,
 			'display_name'       => $display,
@@ -880,18 +1002,48 @@ class ESF_Instagram_Migrator {
 	/**
 	 * Migrate legacy accounts from fta_settings into modern accounts table.
 	 *
+	 * Also remaps Appearance → Widgets instances onto modern feed ids.
+	 *
+	 * Guarded by a short-lived lock (double-submit / parallel requests are
+	 * common on a "Migrate" button click) and by a wall-clock budget on
+	 * outbound Graph API calls so sites with many legacy accounts can never
+	 * hit a PHP execution timeout mid-request. Safe to call again: account
+	 * upserts, feed creation, widget remap, and the feed map are all
+	 * idempotent, so a second run tops up anything the budget skipped.
+	 *
 	 * @since 6.8.0
-	 * @return array{migrated:int,skipped:int}
+	 * @return array{migrated:int,skipped:int,default_feed_id:int,widgets_updated:int,widget_feeds:int,map_entries:int,map_feeds:int,rewrite_status?:string,rewrite_updated?:int,rewrite_scheduled?:bool,already_running?:bool,network_budget_exceeded?:bool}
 	 */
 	public function migrate() {
-		$repo          = ESF_Instagram_Account_Repository::get_instance();
-		$stats_time    = current_time( 'mysql', true );
-		$fta_settings  = get_option( 'fta_settings', array() );
-		$migrated      = 0;
-		$skipped       = 0;
-		$user_id       = (int) get_current_user_id();
-		$facebook_uid  = $this->resolve_facebook_user_id( $fta_settings );
-		$facebook_token = isset( $fta_settings['plugins']['facebook']['access_token'] )
+		if ( ! $this->acquire_migration_lock() ) {
+			return $this->migration_already_running_result();
+		}
+
+		try {
+			return $this->run_migration();
+		} finally {
+			$this->release_migration_lock();
+			$this->network_deadline = null;
+		}
+	}
+
+	/**
+	 * Actual migration body, run while the lock in {@see migrate()} is held.
+	 *
+	 * @since 6.9.7
+	 * @return array{migrated:int,skipped:int,default_feed_id:int,widgets_updated:int,widget_feeds:int,map_entries:int,map_feeds:int,rewrite_status:string,rewrite_updated:int,rewrite_scheduled:bool,network_budget_exceeded:bool}
+	 */
+	private function run_migration() {
+		$this->network_deadline = microtime( true ) + $this->network_time_budget();
+
+		$repo               = ESF_Instagram_Account_Repository::get_instance();
+		$stats_time         = current_time( 'mysql', true );
+		$fta_settings       = get_option( 'fta_settings', array() );
+		$migrated           = 0;
+		$skipped            = 0;
+		$user_id            = (int) get_current_user_id();
+		$facebook_uid       = $this->resolve_facebook_user_id( $fta_settings );
+		$facebook_token     = isset( $fta_settings['plugins']['facebook']['access_token'] )
 			? sanitize_text_field( (string) $fta_settings['plugins']['facebook']['access_token'] )
 			: '';
 		$global_insta_token = isset( $fta_settings['plugins']['instagram']['access_token'] )
@@ -934,27 +1086,32 @@ class ESF_Instagram_Migrator {
 					$access_token = sanitize_text_field( (string) $merged['access_token'] );
 				}
 
-				$token_status = ( '' === $access_token )
-					? 'invalid'
-					: $this->probe_instagram_login_token( $access_token );
+				if ( '' === $access_token ) {
+					$token_status = 'invalid';
+				} elseif ( $this->network_budget_exceeded() ) {
+					// Budget spent: keep the account (feeds still work) but skip the live probe.
+					$token_status = 'unknown';
+				} else {
+					$token_status = $this->probe_instagram_login_token( $access_token );
+				}
 
 				$upsert_personal = $this->fill_from_legacy_bio_transient(
 					array(
-						'user_id'            => $user_id,
-						'account_type'       => 'personal',
-						'auth_source'        => 'instagram_login',
-						'instagram_user_id'  => $row['instagram_user_id'],
-						'username'           => isset( $merged['username'] ) ? sanitize_text_field( (string) $merged['username'] ) : $row['username'],
-						'display_name'       => isset( $merged['username'] ) ? sanitize_text_field( (string) $merged['username'] ) : $row['display_name'],
-						'profile_image_url'  => ! empty( $row['profile_image_url'] ) ? $row['profile_image_url'] : '',
-						'access_token'       => $access_token,
-						'account_data'       => wp_json_encode( $merged ),
-						'status'             => 'active',
+						'user_id'           => $user_id,
+						'account_type'      => 'personal',
+						'auth_source'       => 'instagram_login',
+						'instagram_user_id' => $row['instagram_user_id'],
+						'username'          => isset( $merged['username'] ) ? sanitize_text_field( (string) $merged['username'] ) : $row['username'],
+						'display_name'      => isset( $merged['username'] ) ? sanitize_text_field( (string) $merged['username'] ) : $row['display_name'],
+						'profile_image_url' => ! empty( $row['profile_image_url'] ) ? $row['profile_image_url'] : '',
+						'access_token'      => $access_token,
+						'account_data'      => wp_json_encode( $merged ),
+						'status'            => 'active',
 					),
 					$stats_time
 				);
 				if ( 'valid' === $token_status ) {
-					$me_patch = $this->fetch_basic_display_me_migration_patch( $access_token, $stats_time );
+					$me_patch        = $this->fetch_basic_display_me_migration_patch( $access_token, $stats_time );
 					$upsert_personal = array_merge( $upsert_personal, $me_patch );
 				}
 				$upsert_personal = $this->apply_migration_token_status( $upsert_personal, $token_status );
@@ -975,7 +1132,13 @@ class ESF_Instagram_Migrator {
 
 		if ( is_array( $pages ) ) {
 			foreach ( $pages as $legacy_page ) {
-				if ( ! is_array( $legacy_page ) || empty( $legacy_page['instagram_connected_account'] ) ) {
+				if ( ! is_array( $legacy_page ) ) {
+					// Corrupted/legacy-object entry — count it so migrate stats surface the gap.
+					++$skipped;
+					continue;
+				}
+				if ( empty( $legacy_page['instagram_connected_account'] ) ) {
+					// Facebook-only page with no linked Instagram account — nothing to migrate.
 					continue;
 				}
 
@@ -1001,39 +1164,44 @@ class ESF_Instagram_Migrator {
 					continue;
 				}
 
-				$ig_json      = wp_json_encode( $normalized['payload'] );
-				$page_access  = isset( $legacy_page['access_token'] ) ? sanitize_text_field( (string) $legacy_page['access_token'] ) : '';
-				$token_status = ( '' === $page_access )
-					? 'invalid'
-					: $this->probe_graph_page_token(
+				$ig_json     = wp_json_encode( $normalized['payload'] );
+				$page_access = isset( $legacy_page['access_token'] ) ? sanitize_text_field( (string) $legacy_page['access_token'] ) : '';
+				if ( '' === $page_access ) {
+					$token_status = 'invalid';
+				} elseif ( $this->network_budget_exceeded() ) {
+					// Budget spent: keep the account (feeds still work) but skip the live probe.
+					$token_status = 'unknown';
+				} else {
+					$token_status = $this->probe_graph_page_token(
 						$page_access,
 						$this->instagram_graph_user_node_id_for_request(
 							$normalized['instagram_user_id'],
 							$normalized['payload']
 						)
 					);
+				}
 
 				$upsert_business = $this->fill_from_legacy_bio_transient(
 					array(
-						'user_id'              => $user_id,
-						'account_type'         => 'business',
-						'auth_source'          => 'facebook_page',
-						'instagram_user_id'    => $normalized['instagram_user_id'],
-						'username'             => $normalized['username'],
-						'display_name'         => '' !== $normalized['display_name'] ? $normalized['display_name'] : $normalized['username'],
-						'profile_image_url'    => $normalized['profile_image_url'],
-						'facebook_page_id'     => isset( $legacy_page['id'] ) ? sanitize_text_field( (string) $legacy_page['id'] ) : null,
-						'facebook_page_name'   => isset( $legacy_page['name'] ) ? sanitize_text_field( (string) $legacy_page['name'] ) : null,
-						'facebook_user_id'     => $facebook_uid,
-						'facebook_user_token'  => $facebook_token,
-						'page_access_token'    => '' !== $page_access ? $page_access : null,
-						'account_data'         => $ig_json,
-						'status'               => 'active',
+						'user_id'             => $user_id,
+						'account_type'        => 'business',
+						'auth_source'         => 'facebook_page',
+						'instagram_user_id'   => $normalized['instagram_user_id'],
+						'username'            => $normalized['username'],
+						'display_name'        => '' !== $normalized['display_name'] ? $normalized['display_name'] : $normalized['username'],
+						'profile_image_url'   => $normalized['profile_image_url'],
+						'facebook_page_id'    => isset( $legacy_page['id'] ) ? sanitize_text_field( (string) $legacy_page['id'] ) : null,
+						'facebook_page_name'  => isset( $legacy_page['name'] ) ? sanitize_text_field( (string) $legacy_page['name'] ) : null,
+						'facebook_user_id'    => $facebook_uid,
+						'facebook_user_token' => $facebook_token,
+						'page_access_token'   => '' !== $page_access ? $page_access : null,
+						'account_data'        => $ig_json,
+						'status'              => 'active',
 					),
 					$stats_time
 				);
 				if ( 'valid' === $token_status && '' !== $page_access ) {
-					$graph_patch = $this->fetch_graph_ig_user_migration_patch(
+					$graph_patch     = $this->fetch_graph_ig_user_migration_patch(
 						$normalized['instagram_user_id'],
 						$page_access,
 						$stats_time,
@@ -1057,10 +1225,16 @@ class ESF_Instagram_Migrator {
 
 		$this->localize_migrated_account_avatars( $repo );
 
+		$this->ensure_feed_repository_loaded();
+
 		$default_feed_id = $this->create_default_migrated_feed( $repo );
 		if ( $default_feed_id > 0 ) {
 			update_option( 'esf_instagram_migration_default_feed_id', $default_feed_id );
 		}
+
+		$widget_stats  = $this->migrate_legacy_widgets( $default_feed_id );
+		$map_stats     = $this->build_legacy_feed_map( $default_feed_id );
+		$rewrite_stats = $this->schedule_legacy_shortcode_rewrite();
 
 		if ( class_exists( 'ESF_Module_System' ) ) {
 			ESF_Module_System::switch_to_modern( 'instagram' );
@@ -1069,10 +1243,132 @@ class ESF_Instagram_Migrator {
 		}
 
 		return array(
-			'migrated'        => $migrated,
-			'skipped'         => $skipped,
-			'default_feed_id' => $default_feed_id,
+			'migrated'                => $migrated,
+			'skipped'                 => $skipped,
+			'default_feed_id'         => $default_feed_id,
+			'widgets_updated'         => isset( $widget_stats['updated'] ) ? (int) $widget_stats['updated'] : 0,
+			'widget_feeds'            => isset( $widget_stats['created_feeds'] ) ? (int) $widget_stats['created_feeds'] : 0,
+			'map_entries'             => isset( $map_stats['mapped'] ) ? (int) $map_stats['mapped'] : 0,
+			'map_feeds'               => isset( $map_stats['created_feeds'] ) ? (int) $map_stats['created_feeds'] : 0,
+			'rewrite_status'          => isset( $rewrite_stats['status'] ) ? (string) $rewrite_stats['status'] : '',
+			'rewrite_updated'         => isset( $rewrite_stats['updated'] ) ? (int) $rewrite_stats['updated'] : 0,
+			'rewrite_scheduled'       => ! empty( $rewrite_stats['scheduled'] ),
+			'network_budget_exceeded' => $this->network_budget_exceeded(),
 		);
+	}
+
+	/**
+	 * Ensure the feed repository class is available (legacy migrate path).
+	 *
+	 * @since 6.9.6
+	 * @return void
+	 */
+	private function ensure_feed_repository_loaded() {
+		if ( class_exists( 'ESF_Instagram_Feed_Repository', false ) ) {
+			return;
+		}
+		if ( ! defined( 'ESF_INSTAGRAM_DIR' ) ) {
+			return;
+		}
+		require_once ESF_INSTAGRAM_DIR . 'includes/models/class-esf-instagram-feed-repository.php';
+	}
+
+	/**
+	 * Remap Appearance → Widgets instances to modern feed ids.
+	 *
+	 * @since 6.9.6
+	 *
+	 * @param int $default_feed_id Fallback feed id.
+	 * @return array{updated:int,created_feeds:int,skipped:int}
+	 */
+	private function migrate_legacy_widgets( $default_feed_id ) {
+		$empty = array(
+			'updated'       => 0,
+			'created_feeds' => 0,
+			'skipped'       => 0,
+		);
+
+		if ( ! defined( 'ESF_INSTAGRAM_DIR' ) ) {
+			return $empty;
+		}
+
+		if ( ! class_exists( 'ESF_Instagram_Widget_Migrator', false ) ) {
+			require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-widget-migrator.php';
+		}
+
+		if ( ! class_exists( 'ESF_Instagram_Widget_Migrator', false ) ) {
+			return $empty;
+		}
+
+		if ( ! class_exists( 'ESF_Instagram_Legacy_Source_Resolver', false ) ) {
+			require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-legacy-source-resolver.php';
+		}
+
+		return ( new ESF_Instagram_Widget_Migrator() )->migrate_widgets( (int) $default_feed_id );
+	}
+
+	/**
+	 * Build attribute → feed_id aliases for legacy shortcodes.
+	 *
+	 * @since 6.9.6
+	 *
+	 * @param int $default_feed_id Fallback feed id.
+	 * @return array{mapped:int,created_feeds:int}
+	 */
+	private function build_legacy_feed_map( $default_feed_id ) {
+		$empty = array(
+			'mapped'        => 0,
+			'created_feeds' => 0,
+		);
+
+		if ( ! defined( 'ESF_INSTAGRAM_DIR' ) ) {
+			return $empty;
+		}
+
+		if ( ! class_exists( 'ESF_Instagram_Legacy_Source_Resolver', false ) ) {
+			require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-legacy-source-resolver.php';
+		}
+		if ( ! class_exists( 'ESF_Instagram_Legacy_Feed_Map', false ) ) {
+			require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-legacy-feed-map.php';
+		}
+
+		if ( ! class_exists( 'ESF_Instagram_Legacy_Feed_Map', false ) ) {
+			return $empty;
+		}
+
+		return ( new ESF_Instagram_Legacy_Feed_Map() )->build( (int) $default_feed_id );
+	}
+
+	/**
+	 * Queue a non-blocking background rewrite of classic post_content shortcodes.
+	 *
+	 * Processes at most one small batch inline; the rest runs via WP-Cron so
+	 * sites with thousands of posts never time out the migrate request.
+	 *
+	 * @since 6.9.6
+	 * @return array{status:string,scheduled:bool,updated:int,scanned:int}
+	 */
+	private function schedule_legacy_shortcode_rewrite() {
+		$empty = array(
+			'status'    => 'idle',
+			'scheduled' => false,
+			'updated'   => 0,
+			'scanned'   => 0,
+		);
+
+		if ( ! defined( 'ESF_INSTAGRAM_DIR' ) ) {
+			return $empty;
+		}
+
+		if ( ! class_exists( 'ESF_Instagram_Legacy_Shortcode_Rewriter', false ) ) {
+			require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-legacy-shortcode-rewriter.php';
+		}
+
+		if ( ! class_exists( 'ESF_Instagram_Legacy_Shortcode_Rewriter', false ) ) {
+			return $empty;
+		}
+
+		return ( new ESF_Instagram_Legacy_Shortcode_Rewriter() )->start( true );
 	}
 
 	/**

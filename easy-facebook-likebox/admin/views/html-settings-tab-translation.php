@@ -2,7 +2,7 @@
 /**
  * Admin View: Settings tab - Translation
  *
- * Displays frontend strings from Facebook and Instagram in a table
+ * Displays frontend strings from all feed modules in a table
  * so users can override labels and copy globally.
  *
  * @since 6.8.0
@@ -30,7 +30,7 @@ $saved_translations = isset( $fta_settings['translation'] ) && is_array( $fta_se
 <div id="esf-settings-translation" class="col s12 efbl_tab_c slideLeft active">
 	<h5><?php esc_html_e( 'Translation', 'easy-facebook-likebox' ); ?></h5>
 	<p class="description esf-translation-intro">
-		<?php esc_html_e( 'Change the text shown in your Facebook, Instagram, YouTube, and X/Twitter feeds. Leave a field blank to use the default.', 'easy-facebook-likebox' ); ?>
+		<?php esc_html_e( 'Change the text shown in your Facebook, Instagram, YouTube, X/Twitter, and TikTok feeds. Leave a field blank to use the default.', 'easy-facebook-likebox' ); ?>
 	</p>
 
 	<?php

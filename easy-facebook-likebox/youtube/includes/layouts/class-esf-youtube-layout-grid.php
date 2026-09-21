@@ -9,6 +9,8 @@
  * @since 6.7.5
  */
 
+use EasySocialFeed\Layouts\ValueObjects\LayoutDefinition;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -35,7 +37,7 @@ class ESF_YouTube_Layout_Grid extends ESF_YouTube_Layout_Base {
 	 * @since 6.7.5
 	 * @return string HTML output.
 	 */
-	public function render() {
+	public function render(): string {
 		$settings = isset( $this->feed->settings ) && is_array( $this->feed->settings ) ? $this->feed->settings : array();
 		$layout   = isset( $settings['layout'] ) && is_array( $settings['layout'] ) ? $settings['layout'] : array();
 		$grid     = isset( $layout['grid'] ) && is_array( $layout['grid'] ) ? $layout['grid'] : array();
@@ -46,7 +48,7 @@ class ESF_YouTube_Layout_Grid extends ESF_YouTube_Layout_Base {
 		$columns_desktop = isset( $grid['columns'] ) ? max( 1, min( 6, (int) $grid['columns'] ) ) : 3;
 		$columns_tablet  = isset( $grid['columns_tablet'] ) ? max( 1, min( 6, (int) $grid['columns_tablet'] ) ) : 2;
 		$columns_mobile  = isset( $grid['columns_mobile'] ) ? max( 1, min( 6, (int) $grid['columns_mobile'] ) ) : 1;
-		$gap             = isset( $grid['gap'] ) ? max( 0, min( 48, (int) $grid['gap'] ) ) : 16;
+		$gap             = isset( $grid['gap'] ) ? max( 0, min( 48, (int) $grid['gap'] ) ) : 20;
 
 		$parts = array(
 			sprintf(
@@ -65,17 +67,42 @@ class ESF_YouTube_Layout_Grid extends ESF_YouTube_Layout_Base {
 			}
 		}
 
-		$has_plan = function_exists( 'esf_youtube_has_youtube_plan' ) && esf_youtube_has_youtube_plan();
-		$ratio    = '16:9';
-		if ( $has_plan && function_exists( 'esf_layout_sanitize_aspect_ratio' ) ) {
+		$has_plan       = function_exists( 'esf_youtube_has_youtube_plan' ) && esf_youtube_has_youtube_plan();
+		$ratio          = '16:9';
+		$content_filter = function_exists( 'esf_youtube_content_filter_from_settings' )
+			? esf_youtube_content_filter_from_settings( $settings )
+			: 'all';
+		// Shorts-only feeds always use vertical tiles (Connect sets this too).
+		if ( $has_plan && 'shorts' === $content_filter ) {
+			$ratio = '9:16';
+		} elseif ( $has_plan && function_exists( 'esf_layout_sanitize_aspect_ratio' ) ) {
 			$ratio = esf_layout_sanitize_aspect_ratio(
 				isset( $grid['media_aspect_ratio'] ) ? (string) $grid['media_aspect_ratio'] : '16:9',
-				array( '16:9', '1:1', '3:4' ),
+				array( '16:9', '1:1', '3:4', '9:16' ),
 				'16:9'
 			);
 		}
 		if ( function_exists( 'esf_layout_aspect_ratio_to_css' ) ) {
 			$parts[] = '--esf-yt-media-ratio:' . esf_layout_aspect_ratio_to_css( $ratio, '16 / 9' );
+		}
+
+		// Pro: card theme colors as CSS vars on the grid shell.
+		if ( $has_plan ) {
+			$theme_map = array(
+				'bg_color'     => '--esf-yt-card-bg',
+				'text_color'   => '--esf-yt-card-text',
+				'meta_color'   => '--esf-yt-card-meta',
+				'accent_color' => '--esf-yt-card-accent',
+			);
+			foreach ( $theme_map as $key => $css_var ) {
+				$raw = isset( $grid[ $key ] ) ? (string) $grid[ $key ] : '';
+				$hex = '' !== $raw && function_exists( 'sanitize_hex_color' )
+					? sanitize_hex_color( $raw )
+					: '';
+				if ( is_string( $hex ) && '' !== $hex ) {
+					$parts[] = $css_var . ':' . $hex;
+				}
+			}
 		}
 
 		$inline_style = implode( ';', array_filter( $parts ) );
@@ -105,5 +132,32 @@ class ESF_YouTube_Layout_Grid extends ESF_YouTube_Layout_Base {
 	 */
 	public function get_css_handle() {
 		return self::CSS_HANDLE;
+	}
+
+	/**
+	 * Get layout definition.
+	 *
+	 * @since 6.9.0
+	 * @return LayoutDefinition
+	 */
+	public function get_definition(): LayoutDefinition {
+		if ( null === $this->definition ) {
+			$this->definition = new LayoutDefinition(
+				array(
+					'slug'        => 'grid',
+					'label'       => __( 'Grid', 'easy-facebook-likebox' ),
+					'description' => __( 'Responsive grid of video cards', 'easy-facebook-likebox' ),
+					'icon'        => 'grid',
+					'class_name'  => self::class,
+					'is_pro'      => false,
+					'supports'    => array( 'header', 'metrics', 'load_more', 'columns' ),
+					'assets'      => array(
+						'css' => ESF_YOUTUBE_URL . 'frontend/assets/css/layouts/grid.css',
+						'js'  => null,
+					),
+				)
+			);
+		}
+		return $this->definition;
 	}
 }

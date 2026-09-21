@@ -102,6 +102,52 @@ function esf_instagram_get_migration_default_feed_id() {
 }
 
 /**
+ * Whether a legacy shortcode → feed alias map exists.
+ *
+ * @since 6.9.6
+ * @return bool
+ */
+function esf_instagram_legacy_feed_map_has_entries() {
+    if ( class_exists( 'ESF_Instagram_Legacy_Feed_Map', false ) ) {
+        return ESF_Instagram_Legacy_Feed_Map::has_entries();
+    }
+    $map = get_option( 'esf_instagram_legacy_feed_map', array() );
+    return is_array( $map ) && !empty( $map );
+}
+
+/**
+ * Resolve a modern feed id for legacy [my-instagram-feed] attributes.
+ *
+ * @since 6.9.6
+ *
+ * @param array<string,mixed> $atts            Shortcode attributes.
+ * @param int                 $default_feed_id Fallback feed id.
+ * @return int
+ */
+function esf_instagram_resolve_legacy_shortcode_feed_id(  $atts, $default_feed_id = 0  ) {
+    $default_feed_id = absint( $default_feed_id );
+    if ( $default_feed_id <= 0 ) {
+        $default_feed_id = esf_instagram_get_migration_default_feed_id();
+    }
+    if ( !class_exists( 'ESF_Instagram_Legacy_Feed_Map', false ) ) {
+        if ( defined( 'ESF_INSTAGRAM_DIR' ) ) {
+            $resolver = ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-legacy-source-resolver.php';
+            $map_file = ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-legacy-feed-map.php';
+            if ( file_exists( $resolver ) ) {
+                require_once $resolver;
+            }
+            if ( file_exists( $map_file ) ) {
+                require_once $map_file;
+            }
+        }
+    }
+    if ( !class_exists( 'ESF_Instagram_Legacy_Feed_Map', false ) ) {
+        return $default_feed_id;
+    }
+    return ( new ESF_Instagram_Legacy_Feed_Map() )->resolve_shortcode_atts( $atts, $default_feed_id );
+}
+
+/**
  * Check whether legacy Instagram data exists in fta_settings.
  *
  * @since 6.8.0
@@ -439,8 +485,8 @@ function esf_instagram_get_feeds_using_hashtag(  $tag, $media_type = 'top_media'
 /**
  * Whether debug logging is enabled for Instagram hashtag/media diagnostics.
  *
- * Opt-in only via `ESF_INSTAGRAM_DEBUG` — do not tie to `WP_DEBUG` alone or
- * Local sites with debug logging fill `debug.log` on every preview/render.
+ * Kept for API payload gating only. File logging is intentionally disabled —
+ * do not write to `debug.log` even when `WP_DEBUG` is on.
  *
  * @since 6.9.0
  * @return bool
@@ -450,7 +496,7 @@ function esf_instagram_debug_enabled() {
 }
 
 /**
- * Write a diagnostic line to the PHP error log when debug logging is enabled.
+ * Instagram diagnostic hook — no-op so nothing hits debug.log.
  *
  * @since 6.9.0
  *
@@ -460,18 +506,7 @@ function esf_instagram_debug_enabled() {
  * @return void
  */
 function esf_instagram_debug_log(  $channel, $message, $context = array()  ) {
-    if ( !function_exists( 'esf_instagram_debug_enabled' ) || !esf_instagram_debug_enabled() ) {
-        return;
-    }
-    $line = sprintf( '[ESF Instagram:%s] %s', sanitize_key( (string) $channel ), (string) $message );
-    if ( !empty( $context ) ) {
-        $encoded = wp_json_encode( $context );
-        if ( is_string( $encoded ) ) {
-            $line .= ' ' . $encoded;
-        }
-    }
-    error_log( $line );
-    // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+    // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- No-op; reserved for future redacted logging.
 }
 
 /**
@@ -551,19 +586,40 @@ function esf_instagram_has_instagram_plan() {
 }
 
 /**
- * Whether Instagram Multifeed support is loaded.
+ * Whether Instagram Multifeed support is available.
  *
- * Modern Instagram: only the Multifeed addon (`Esf_Multifeed_Instagram_Modern`).
+ * Modern Instagram: Included in Instagram Pro (`instagram_premium` / `combo_premium`)
+ * **or** the standalone Multifeed addon (`Esf_Multifeed_Instagram_Modern`).
  * Legacy Instagram: Multifeed addon or parent Pro bundled fallback
  * (`Esf_Multifeed_Instagram_Frontend`).
  *
+ * Delegates to shared {@see ESF_Multifeed::is_available()} for cross-module consistency.
+ *
+ * Users with the standalone addon can deactivate it after upgrading to Pro—
+ * their feeds will continue working via native Pro support.
+ *
  * @since 6.9.2
+ * @since 6.10.0 Multifeed now included in Instagram Pro (native, not addon-only). Uses shared ESF_Multifeed class.
  * @return bool
  */
 function esf_instagram_multifeed_active() {
+    // Modern mode.
     if ( function_exists( 'esf_instagram_use_new_system' ) && esf_instagram_use_new_system() ) {
-        return class_exists( 'Esf_Multifeed_Instagram_Modern', false );
+        if ( class_exists( 'ESF_Multifeed' ) ) {
+            return ESF_Multifeed::is_available( 'instagram' );
+        }
+        // Fallback if shared class is not loaded (should not happen).
+        // Check addon class directly.
+        if ( class_exists( 'Esf_Multifeed_Instagram_Modern', false ) ) {
+            return true;
+        }
+        // Check if Pro plan active (requires Instagram plan check helper).
+        if ( !function_exists( 'efl_fs' ) || !efl_fs()->can_use_premium_code__premium_only() ) {
+            return false;
+        }
+        return function_exists( 'esf_instagram_has_instagram_plan' ) && esf_instagram_has_instagram_plan();
     }
+    // Legacy mode: addon only.
     return class_exists( 'Esf_Multifeed_Instagram_Frontend', false );
 }
 
@@ -633,6 +689,52 @@ function esf_instagram_resolve_feed_account_ids(  $feed_obj  ) {
  */
 function esf_instagram_feed_is_multifeed(  $feed_obj  ) {
     return count( esf_instagram_resolve_feed_account_ids( $feed_obj ) ) > 1;
+}
+
+/**
+ * Resolve a Graph pagination cursor for Load More button visibility.
+ *
+ * Single-account / hashtag feeds use the primary media meta key. Multifeed
+ * checks every selected account — Load More is offset-based and ignores the
+ * token value, but layouts still need a non-empty cursor (or posts beyond
+ * per_page) to render the button when the merged local buffer is thin.
+ *
+ * @since 6.10.0
+ *
+ * @param object|null $feed_obj Feed object.
+ * @return string Cursor string, or empty when none is available.
+ */
+function esf_instagram_resolve_media_pagination_cursor(  $feed_obj  ) {
+    if ( !class_exists( 'ESF_Instagram_Cache' ) ) {
+        return '';
+    }
+    if ( function_exists( 'esf_instagram_feed_is_multifeed' ) && esf_instagram_feed_is_multifeed( $feed_obj ) ) {
+        $account_ids = esf_instagram_resolve_feed_account_ids( $feed_obj );
+        foreach ( $account_ids as $account_id ) {
+            $account_id = (int) $account_id;
+            if ( $account_id <= 0 ) {
+                continue;
+            }
+            $cache_key = ( class_exists( 'ESF_Instagram_Renderer' ) ? ESF_Instagram_Renderer::media_cache_key( $account_id ) : sprintf( 'esf_ig_media_%d', $account_id ) );
+            $meta = ESF_Instagram_Cache::get( $cache_key . '_meta' );
+            if ( is_array( $meta ) && !empty( $meta['cursor'] ) ) {
+                return sanitize_text_field( (string) $meta['cursor'] );
+            }
+        }
+        return '';
+    }
+    if ( !class_exists( 'ESF_Instagram_Renderer' ) ) {
+        return '';
+    }
+    $keys = ESF_Instagram_Renderer::resolve_media_cache_keys( $feed_obj );
+    if ( empty( $keys['meta_key'] ) ) {
+        return '';
+    }
+    $meta_cache = ESF_Instagram_Cache::get( $keys['meta_key'] );
+    if ( !is_array( $meta_cache ) || empty( $meta_cache['cursor'] ) ) {
+        return '';
+    }
+    return sanitize_text_field( (string) $meta_cache['cursor'] );
 }
 
 /**
@@ -810,7 +912,12 @@ function esf_instagram_normalize_feed_settings(  array $settings  ) {
         $full_width_ratio = ( isset( $settings['layout']['full_width']['media_aspect_ratio'] ) ? (string) $settings['layout']['full_width']['media_aspect_ratio'] : '' );
         if ( '4:5' === $full_width_ratio ) {
             $settings['layout']['full_width']['media_aspect_ratio'] = '16:9';
-        } elseif ( !in_array( $full_width_ratio, array('16:9', '1:1', '3:4'), true ) ) {
+        } elseif ( !in_array( $full_width_ratio, array(
+            '16:9',
+            '1:1',
+            '3:4',
+            'auto'
+        ), true ) ) {
             $settings['layout']['full_width']['media_aspect_ratio'] = '16:9';
         }
     }
@@ -1340,7 +1447,11 @@ function esf_instagram_get_cache_ttl_secs(  $feed_obj = null, $account_id = 0  )
  * @return array<string,mixed>
  */
 function esf_instagram_get_lightbox_localize_data() {
-    return array(
+    $admin = ( class_exists( 'ESF_GDPR_Integrations' ) ? ESF_GDPR_Integrations::get_lightbox_admin_localize_data() : array(
+        'adminMediaBlockedText' => '',
+        'adminsOnlyText'        => __( 'Admins only', 'easy-facebook-likebox' ),
+    ) );
+    return array_merge( array(
         'restUrl'                     => rest_url( 'esf/v1' ),
         'nonce'                       => wp_create_nonce( 'wp_rest' ),
         'viewOnInstagramText'         => __( 'View on Instagram', 'easy-facebook-likebox' ),
@@ -1375,7 +1486,7 @@ function esf_instagram_get_lightbox_localize_data() {
             'm' => __( 'M', 'easy-facebook-likebox' ),
             'b' => __( 'B', 'easy-facebook-likebox' ),
         ),
-    );
+    ), $admin );
 }
 
 /**
@@ -1545,8 +1656,23 @@ function esf_instagram_handle_legacy_migration_action() {
     if ( !class_exists( 'ESF_Instagram_Account_Repository' ) ) {
         require_once ESF_INSTAGRAM_DIR . 'includes/models/class-esf-instagram-account-repository.php';
     }
+    if ( !class_exists( 'ESF_Instagram_Feed_Repository' ) ) {
+        require_once ESF_INSTAGRAM_DIR . 'includes/models/class-esf-instagram-feed-repository.php';
+    }
     if ( !class_exists( 'ESF_Instagram_Migrator' ) ) {
         require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-migrator.php';
+    }
+    if ( !class_exists( 'ESF_Instagram_Widget_Migrator' ) ) {
+        require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-widget-migrator.php';
+    }
+    if ( !class_exists( 'ESF_Instagram_Legacy_Source_Resolver' ) ) {
+        require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-legacy-source-resolver.php';
+    }
+    if ( !class_exists( 'ESF_Instagram_Legacy_Feed_Map' ) ) {
+        require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-legacy-feed-map.php';
+    }
+    if ( !class_exists( 'ESF_Instagram_Legacy_Shortcode_Rewriter' ) ) {
+        require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-legacy-shortcode-rewriter.php';
     }
     if ( !ESF_Instagram_DB_Installer::tables_exist() ) {
         ESF_Instagram_DB_Installer::create_tables();

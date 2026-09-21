@@ -53,6 +53,45 @@ class ESF_Twitter_API_OAuth {
 				'permission_callback' => array( __CLASS__, 'permissions_check' ),
 			)
 		);
+
+		register_rest_route(
+			'esf/v1',
+			'/twitter/oauth/manual',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( __CLASS__, 'stage_manual_token' ),
+				'permission_callback' => array( __CLASS__, 'write_permissions_check' ),
+				'args'                => array(
+					'access_token' => array(
+						'description' => __( 'X access token.', 'easy-facebook-likebox' ),
+						'type'        => 'string',
+						'required'    => true,
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Write permission callback (capability + REST nonce).
+	 *
+	 * @since 6.9.0
+	 * @param WP_REST_Request $request Request.
+	 * @return bool|WP_Error
+	 */
+	public static function write_permissions_check( $request ) {
+		if ( ! esf_twitter_user_can_manage() ) {
+			return false;
+		}
+		$nonce = $request instanceof WP_REST_Request ? $request->get_header( 'X-WP-Nonce' ) : '';
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+			return new WP_Error(
+				'rest_cookie_invalid_nonce',
+				__( 'Cookie check failed.', 'easy-facebook-likebox' ),
+				array( 'status' => 403 )
+			);
+		}
+		return true;
 	}
 
 	/**
@@ -89,7 +128,7 @@ class ESF_Twitter_API_OAuth {
 		) {
 			return new WP_Error(
 				'account_limit_reached',
-				__( 'Your plan allows one connected X account per site. Upgrade to add more.', 'easy-facebook-likebox' ),
+				__( 'Free includes one connected X account per site. X charges for API access, so connecting more accounts requires Pro.', 'easy-facebook-likebox' ),
 				array( 'status' => 403 )
 			);
 		}
@@ -273,5 +312,30 @@ class ESF_Twitter_API_OAuth {
 		$decoded = base64_decode( $input, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 		return is_string( $decoded ) ? $decoded : '';
+	}
+
+	/**
+	 * POST pasted access token — validate and connect the account.
+	 *
+	 * @since 6.9.0
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function stage_manual_token( $request ) {
+		$token = $request instanceof WP_REST_Request
+			? $request->get_param( 'access_token' )
+			: '';
+		$token = is_string( $token ) ? $token : '';
+
+		$result = ESF_Twitter_Manual_Oauth_Service::submit_manual_access_token(
+			get_current_user_id(),
+			$token
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( $result );
 	}
 }

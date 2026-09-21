@@ -161,6 +161,36 @@ abstract class AbstractLayout implements Layout {
 	}
 
 	/**
+	 * Render a feed/API error notice (optional admin action link).
+	 *
+	 * @since 6.14.0
+	 * @param string $message Error message.
+	 * @return string
+	 */
+	protected function render_media_error_state( string $message ): string {
+		$action_url   = trim( (string) $this->setting( 'feed.media_error_action_url', '' ) );
+		$action_label = trim( (string) $this->setting( 'feed.media_error_action_label', '' ) );
+		$action_html  = '';
+		if ( '' !== $action_url && '' !== $action_label ) {
+			$action_html = sprintf(
+				'<p class="esf-%1$s-feed__empty-action"><a class="esf-%1$s-feed__empty-action-link" href="%2$s">%3$s</a></p>',
+				esc_attr( $this->module ),
+				esc_url( $action_url ),
+				esc_html( $action_label )
+			);
+		}
+
+		$html = sprintf(
+			'<div class="esf-%1$s-feed__empty esf-%1$s-feed__empty--error" role="alert"><p class="esf-%1$s-feed__empty-text">%2$s</p>%3$s</div>',
+			esc_attr( $this->module ),
+			esc_html( $message ),
+			$action_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+		);
+
+		return (string) $this->apply_filters( 'media_error_state_html', $html, $message );
+	}
+
+	/**
 	 * Render a single post card via shared primitive + hooks.
 	 *
 	 * @param array<string,mixed> $options Card rendering options (see PostCard::render).

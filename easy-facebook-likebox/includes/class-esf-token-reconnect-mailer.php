@@ -104,6 +104,59 @@ class ESF_Token_Reconnect_Mailer {
 	}
 
 	/**
+	 * Send a throttled admin notification using module settings recipients.
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param array<string,mixed> $args {
+	 *     @type array        $settings                     Module settings option.
+	 *     @type string       $notify_setting_key           On/off settings key.
+	 *     @type string       $recipient_emails_setting_key Optional multi-recipient key.
+	 *     @type string       $recipient_filter             Optional filter tag.
+	 *     @type string       $transient_key                Full throttle transient key.
+	 *     @type int          $throttle_ttl                 Seconds between sends.
+	 *     @type string       $subject                      Email subject.
+	 *     @type string       $message                      Email body.
+	 *     @type object|null  $filter_row                   Row passed to recipient filter.
+	 * }
+	 * @return bool True when mail was sent.
+	 */
+	public static function send_admin_notification( array $args ) {
+		$settings = isset( $args['settings'] ) && is_array( $args['settings'] ) ? $args['settings'] : array();
+		$key      = isset( $args['notify_setting_key'] ) ? (string) $args['notify_setting_key'] : 'notify_token_reconnect';
+		if ( empty( $settings[ $key ] ) ) {
+			return false;
+		}
+
+		$transient_key = isset( $args['transient_key'] ) ? (string) $args['transient_key'] : '';
+		if ( '' === $transient_key ) {
+			return false;
+		}
+
+		$ttl = isset( $args['throttle_ttl'] ) ? max( 60, (int) $args['throttle_ttl'] ) : (int) DAY_IN_SECONDS;
+		if ( get_transient( $transient_key ) ) {
+			return false;
+		}
+
+		$row = isset( $args['filter_row'] ) && is_object( $args['filter_row'] ) ? $args['filter_row'] : (object) array();
+		$recipients = self::resolve_recipients( $args, $settings, $row );
+		if ( empty( $recipients ) ) {
+			return false;
+		}
+
+		$subject = isset( $args['subject'] ) ? trim( (string) $args['subject'] ) : '';
+		$message = isset( $args['message'] ) ? trim( (string) $args['message'] ) : '';
+		if ( '' === $subject || '' === $message ) {
+			return false;
+		}
+
+		set_transient( $transient_key, 1, $ttl );
+		wp_mail( $recipients, $subject, $message );
+
+		return true;
+	}
+
+	/**
 	 * Resolve one or more valid recipient addresses for a reconnect email.
 	 *
 	 * @since 6.9.0

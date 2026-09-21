@@ -21,6 +21,19 @@ if ( ! class_exists( 'ESF_API_Missing_Feed' ) ) {
 	class ESF_API_Missing_Feed {
 
 		/**
+		 * Feed repository class per module slug.
+		 *
+		 * @var array<string,class-string>
+		 */
+		private const FEED_REPOSITORY_CLASSES = array(
+			'instagram' => 'ESF_Instagram_Feed_Repository',
+			'twitter'   => 'ESF_Twitter_Feed_Repository',
+			'youtube'   => 'ESF_YouTube_Feed_Repository',
+			'tiktok'    => 'ESF_TikTok_Feed_Repository',
+			'facebook'  => 'ESF_Facebook_Feed_Repository',
+		);
+
+		/**
 		 * REST namespace.
 		 *
 		 * @var string
@@ -230,6 +243,8 @@ if ( ! class_exists( 'ESF_API_Missing_Feed' ) ) {
 				'instagram' => 'esf_instagram_feed',
 				'twitter'   => 'esf_twitter_feed',
 				'youtube'   => 'esf_youtube_feed',
+				'tiktok'    => 'esf_tiktok_feed',
+				'facebook'  => 'esf_facebook_feed',
 			);
 
 			$module = sanitize_key( $module );
@@ -272,11 +287,7 @@ if ( ! class_exists( 'ESF_API_Missing_Feed' ) ) {
 				return $exists;
 			}
 
-			$class_map = array(
-				'instagram' => 'ESF_Instagram_Feed_Repository',
-				'twitter'   => 'ESF_Twitter_Feed_Repository',
-				'youtube'   => 'ESF_YouTube_Feed_Repository',
-			);
+			$class_map = self::FEED_REPOSITORY_CLASSES;
 
 			if ( ! isset( $class_map[ $module ] ) || ! class_exists( $class_map[ $module ] ) ) {
 				return false;

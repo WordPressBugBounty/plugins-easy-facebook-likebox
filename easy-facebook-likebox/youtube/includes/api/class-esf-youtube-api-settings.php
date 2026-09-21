@@ -117,18 +117,8 @@ class ESF_YouTube_API_Settings {
 	 */
 	public static function get_settings( $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		$settings = esf_get_youtube_settings();
-		$cache    = isset( $settings['cache_duration'] ) ? (int) $settings['cache_duration'] : 43200;
 
-		// Ensure stored value is allowed; otherwise return default.
-		if ( ! in_array( $cache, self::CACHE_DURATION_OPTIONS, true ) ) {
-			$cache = 43200;
-		}
-
-		return rest_ensure_response(
-			array(
-				'cache_duration' => $cache,
-			)
-		);
+		return rest_ensure_response( self::format_settings_response( $settings ) );
 	}
 
 	/**
@@ -161,6 +151,17 @@ class ESF_YouTube_API_Settings {
 				ESF_YouTube_Main::get_instance()->reschedule_feed_cache_refresh();
 			}
 		}
+		if ( array_key_exists( 'notify_token_reconnect', $params ) ) {
+			esf_update_youtube_settings( 'notify_token_reconnect', (bool) $params['notify_token_reconnect'] );
+		}
+		if ( array_key_exists( 'notify_token_reconnect_emails', $params ) && function_exists( 'esf_sanitize_notify_emails' ) ) {
+			esf_update_youtube_settings( 'notify_token_reconnect_emails', esf_sanitize_notify_emails( $params['notify_token_reconnect_emails'] ) );
+		}
+
+		$current = esf_get_youtube_settings();
+		if ( ! empty( $current['notify_token_reconnect'] ) && empty( $current['notify_token_reconnect_emails'] ) && function_exists( 'esf_default_notify_emails' ) ) {
+			esf_update_youtube_settings( 'notify_token_reconnect_emails', esf_default_notify_emails() );
+		}
 
 		return self::get_settings( $request );
 	}
@@ -180,6 +181,31 @@ class ESF_YouTube_API_Settings {
 				'success' => ( false !== $deleted ),
 				'deleted' => false !== $deleted ? (int) $deleted : 0,
 			)
+		);
+	}
+
+	/**
+	 * Shape the REST response with UI-only administrator email choices.
+	 *
+	 * @since 6.9.0
+	 * @param array<string,mixed> $settings Normalized settings.
+	 * @return array<string,mixed>
+	 */
+	private static function format_settings_response( array $settings ) {
+		$cache = isset( $settings['cache_duration'] ) ? (int) $settings['cache_duration'] : 43200;
+		if ( ! in_array( $cache, self::CACHE_DURATION_OPTIONS, true ) ) {
+			$cache = 43200;
+		}
+
+		return array(
+			'cache_duration'                => $cache,
+			'notify_token_reconnect'        => ! empty( $settings['notify_token_reconnect'] ),
+			'notify_token_reconnect_emails' => isset( $settings['notify_token_reconnect_emails'] ) && is_array( $settings['notify_token_reconnect_emails'] )
+				? $settings['notify_token_reconnect_emails']
+				: array(),
+			'admin_email_options'           => function_exists( 'esf_get_site_administrator_email_options' )
+				? esf_get_site_administrator_email_options()
+				: array(),
 		);
 	}
 }

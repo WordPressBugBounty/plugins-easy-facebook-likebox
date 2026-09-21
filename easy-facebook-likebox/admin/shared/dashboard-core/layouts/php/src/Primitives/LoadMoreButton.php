@@ -2,8 +2,10 @@
 /**
  * LoadMore button primitive.
  *
- * Renders a button the frontend JS listens to for paginating a feed. The
- * actual load-more endpoint is module-specific (Pro feature for IG/X).
+ * Renders a button the frontend JS listens to for paginating a feed. Load
+ * More is a Pro feature for every modern module; `infinite` mode (auto-fetch
+ * via IntersectionObserver) is an alternate Pro pagination mode — the markup
+ * and endpoint contract stay identical.
  *
  * @package Easy_Social_Feed
  * @subpackage Layouts\Primitives
@@ -31,9 +33,14 @@ final class LoadMoreButton {
 	 * - text_color (string) optional hex
 	 * - hover_bg_color (string) optional hex
 	 * - hover_text_color (string) optional hex
+	 * - mode (string) optional `button` (default) or `infinite` (Pro pagination)
+	 *
+	 * @since 6.9.0
+	 * @since 6.16.0 Added `mode` arg for Pro infinite-scroll pagination.
 	 *
 	 * @param string              $module Module slug.
 	 * @param array<string,mixed> $args   Render args.
+	 * @return string Button markup, or '' when required args are missing.
 	 */
 	public static function render( string $module, array $args ): string {
 		$module     = sanitize_key( $module );
@@ -46,6 +53,7 @@ final class LoadMoreButton {
 		$text_color      = isset( $args['text_color'] ) ? sanitize_hex_color( (string) $args['text_color'] ) : '';
 		$hover_bg_color  = isset( $args['hover_bg_color'] ) ? sanitize_hex_color( (string) $args['hover_bg_color'] ) : '';
 		$hover_text_color = isset( $args['hover_text_color'] ) ? sanitize_hex_color( (string) $args['hover_text_color'] ) : '';
+		$mode             = isset( $args['mode'] ) && 'infinite' === $args['mode'] ? 'infinite' : 'button';
 
 		if ( $feed_id <= 0 || '' === $label ) {
 			return '';
@@ -73,8 +81,13 @@ final class LoadMoreButton {
 			$data_attrs .= ' data-esf-lm-has-hover-bg="1"';
 		}
 
+		$wrap_class = 'esf-' . $module . '-feed__load-more-wrap';
+		if ( 'infinite' === $mode ) {
+			$wrap_class .= ' esf-' . $module . '-feed__load-more-wrap--infinite';
+		}
+
 		return sprintf(
-			'<div class="esf-%1$s-feed__load-more-wrap">'
+			'<div class="%9$s" data-esf-lm-mode="%10$s">'
 			. '<button type="button" class="esf-%1$s-feed__load-more" data-feed-id="%2$d" data-offset="%3$d" data-next-token="%4$s" aria-label="%5$s"%6$s%8$s>%7$s</button>'
 			. '</div>',
 			esc_attr( $module ),
@@ -84,7 +97,9 @@ final class LoadMoreButton {
 			esc_attr( $aria_label ),
 			$style_attr, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped above.
 			esc_html( $label ),
-			$data_attrs // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static data attribute.
+			$data_attrs, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static data attribute.
+			esc_attr( $wrap_class ),
+			esc_attr( $mode )
 		);
 	}
 }

@@ -39,6 +39,8 @@ class ESF_Twitter_Frontend {
     private function init_hooks() {
         add_shortcode( 'esf_twitter_feed', array($this, 'render_shortcode') );
         add_action( 'wp_footer', array($this, 'maybe_enqueue_frontend_assets') );
+        add_action( 'wp_footer', array($this, 'maybe_enqueue_loading_script'), 5 );
+        add_action( 'wp_footer', array($this, 'maybe_enqueue_missing_feed_admin_assets'), 8 );
         if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
             if ( function_exists( 'esf_twitter_has_twitter_plan' ) && esf_twitter_has_twitter_plan() ) {
                 add_action( 'wp_footer', array($this, 'maybe_enqueue_lightbox_assets__premium_only'), 6 );
@@ -90,7 +92,41 @@ class ESF_Twitter_Frontend {
                 $version
             );
         }
+        if ( class_exists( 'ESF_GDPR_Integrations' ) ) {
+            ESF_GDPR_Integrations::maybe_enqueue_consent_script();
+        }
         $this->maybe_enqueue_public_script();
+    }
+
+    /**
+     * Enqueue skeleton loading script when a feed rendered this request.
+     *
+     * @since 6.7.6
+     * @return void
+     */
+    public function maybe_enqueue_loading_script() {
+        global $esf_twitter_feed_script_needed;
+        if ( empty( $esf_twitter_feed_script_needed ) ) {
+            return;
+        }
+        if ( function_exists( 'esf_enqueue_feed_loading_script' ) ) {
+            esf_enqueue_feed_loading_script();
+        }
+    }
+
+    /**
+     * Enqueue shared missing-feed admin recovery assets when placeholders render.
+     *
+     * @since 6.11.0
+     * @return void
+     */
+    public function maybe_enqueue_missing_feed_admin_assets() {
+        if ( !function_exists( 'esf_twitter_user_can_manage' ) || !esf_twitter_user_can_manage() ) {
+            return;
+        }
+        if ( function_exists( 'esf_enqueue_missing_feed_admin_assets' ) ) {
+            esf_enqueue_missing_feed_admin_assets( array('[esf_twitter_feed') );
+        }
     }
 
     /**
@@ -100,13 +136,13 @@ class ESF_Twitter_Frontend {
      * @return void
      */
     private function maybe_enqueue_public_script() {
-        $script_path = ESF_TWITTER_DIR . 'frontend/assets/js/esf-twitter-public.js';
+        $script_path = ESF_TWITTER_DIR . 'frontend/assets/js/esf-twitter-public__premium_only.js';
         if ( !file_exists( $script_path ) ) {
             return;
         }
         wp_enqueue_script(
             'esf-twitter-public',
-            ESF_TWITTER_URL . 'frontend/assets/js/esf-twitter-public.js',
+            ESF_TWITTER_URL . 'frontend/assets/js/esf-twitter-public__premium_only.js',
             array(),
             (string) filemtime( $script_path ),
             true

@@ -155,10 +155,17 @@ function esf_layout_aspect_ratio_to_css( $ratio, $fallback = '16 / 9' ) {
 			return '4 / 5';
 		case '3:4':
 			return '3 / 4';
+		case '9:16':
+			return '9 / 16';
 		case '16:9':
 			return '16 / 9';
 		case '16:10':
 			return '16 / 10';
+		case 'auto':
+			// "Original (no cropping)" — only reachable when a layout's own
+			// allow-list explicitly permits it (see esf_layout_sanitize_aspect_ratio()
+			// call sites); other layouts are unaffected.
+			return 'auto';
 		default:
 			return $fallback;
 	}

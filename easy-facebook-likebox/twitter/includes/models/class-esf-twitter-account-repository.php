@@ -42,21 +42,29 @@ class ESF_Twitter_Account_Repository {
      * @param string $access_token  OAuth 2.0 access token.
      * @param string $refresh_token OAuth 2.0 refresh token.
      * @param int    $expires_in    Seconds until access_token expires.
+     * @param string $auth_source   `oauth` or `manual`.
      * @return int|false Account ID on success, false on failure.
      */
     public function upsert_from_tokens(
         $wp_user_id,
         $access_token,
         $refresh_token = '',
-        $expires_in = 7200
+        $expires_in = 7200,
+        $auth_source = 'oauth'
     ) {
         global $wpdb;
         $wp_user_id = (int) $wp_user_id;
         $access_token = (string) $access_token;
         $refresh_token = (string) $refresh_token;
         $expires_in = (int) $expires_in;
+        $auth_source = ( class_exists( 'ESF_Manual_Access_Token' ) ? ESF_Manual_Access_Token::normalize_auth_source( $auth_source ) : 'oauth' );
+        $is_manual = class_exists( 'ESF_Manual_Access_Token' ) && ESF_Manual_Access_Token::AUTH_MANUAL === $auth_source;
         if ( $wp_user_id <= 0 || '' === $access_token ) {
             return false;
+        }
+        if ( $is_manual ) {
+            $refresh_token = '';
+            $expires_in = 0;
         }
         $api_service = ESF_Twitter_API_Service::get_instance();
         $user_data = $api_service->validate_token_and_fetch_user( $access_token );
@@ -69,7 +77,7 @@ class ESF_Twitter_Account_Repository {
         }
         $table = $this->get_table_name();
         $now = current_time( 'mysql', true );
-        $token_expires = gmdate( 'Y-m-d H:i:s', time() + max( 60, $expires_in ) );
+        $token_expires = ( $is_manual || $expires_in <= 0 ? null : gmdate( 'Y-m-d H:i:s', time() + max( 60, $expires_in ) ) );
         $table_escaped = esc_sql( $table );
         $x_user_id_esc = esc_sql( $user_data['x_user_id'] );
         $existing_id = (int) $wpdb->get_var( 
@@ -77,21 +85,10 @@ class ESF_Twitter_Account_Repository {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             "SELECT id FROM `{$table_escaped}` WHERE x_user_id = '{$x_user_id_esc}' LIMIT 1"
          );
-        // Save avatar locally when media helpers are available.
-        $profile_image_url = $user_data['profile_image_url'];
+        // Store the remote CDN URL. Local copies are warmed after we know account_id.
+        $profile_image_url = ( isset( $user_data['profile_image_url'] ) ? (string) $user_data['profile_image_url'] : '' );
         if ( function_exists( 'esf_twitter_get_best_profile_image_url' ) ) {
             $profile_image_url = esf_twitter_get_best_profile_image_url( $profile_image_url );
-        }
-        if ( !empty( $user_data['x_user_id'] ) && !empty( $profile_image_url ) ) {
-            if ( function_exists( 'esf_delete_media' ) ) {
-                esf_delete_media( 'tw_' . $user_data['x_user_id'], 'twitter' );
-            }
-            if ( function_exists( 'esf_serve_media_locally' ) ) {
-                $local = esf_serve_media_locally( 'tw_' . $user_data['x_user_id'], $profile_image_url, 'twitter' );
-                if ( is_string( $local ) && '' !== $local ) {
-                    $profile_image_url = $local;
-                }
-            }
         }
         $fields = array(
             'user_id'            => $wp_user_id,
@@ -108,6 +105,7 @@ class ESF_Twitter_Account_Repository {
             'verified_type'      => ( isset( $user_data['verified_type'] ) ? sanitize_text_field( (string) $user_data['verified_type'] ) : '' ),
             'access_token'       => $access_token,
             'refresh_token'      => $refresh_token,
+            'auth_source'        => $auth_source,
             'token_expires_at'   => $token_expires,
             'account_data'       => wp_json_encode( $user_data ),
             'status'             => 'active',
@@ -133,6 +131,7 @@ class ESF_Twitter_Account_Repository {
             '%s',
             '%s',
             '%s',
+            '%s',
             '%s'
         );
         if ( $existing_id > 0 ) {
@@ -146,7 +145,11 @@ class ESF_Twitter_Account_Repository {
                 array('%d')
             );
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-            return ( false === $updated ? false : $existing_id );
+            if ( false === $updated ) {
+                return false;
+            }
+            $this->warm_account_avatar( $existing_id, $user_data['x_user_id'], $profile_image_url );
+            return $existing_id;
         }
         $fields['created_at'] = $now;
         $format[] = '%s';
@@ -155,7 +158,9 @@ class ESF_Twitter_Account_Repository {
         if ( false === $inserted ) {
             return false;
         }
-        return (int) $wpdb->insert_id;
+        $account_id = (int) $wpdb->insert_id;
+        $this->warm_account_avatar( $account_id, $user_data['x_user_id'], $profile_image_url );
+        return $account_id;
     }
 
     /**
@@ -309,7 +314,7 @@ class ESF_Twitter_Account_Repository {
     }
 
     /**
-     * Delete an account and its associated media/cache.
+     * Delete an account row; keep feeds, tweet cache, and local media.
      *
      * @since 6.7.6
      * @param int $account_id Account ID.
@@ -322,17 +327,58 @@ class ESF_Twitter_Account_Repository {
             return false;
         }
         $account = $this->get_by_id( $account_id );
-        if ( $account && !empty( $account->x_user_id ) && function_exists( 'esf_delete_media' ) ) {
-            esf_delete_media( 'tw_' . $account->x_user_id, 'twitter' );
+        if ( $account ) {
+            $this->delete_associated_data( $account );
         }
-        // Flush per-account cache entries.
-        ESF_Twitter_Cache::flush_account_cache( $account_id );
         $table = $this->get_table_name();
         $deleted = $wpdb->delete( $table, array(
             'id' => $account_id,
         ), array('%d') );
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         return false !== $deleted && $deleted > 0;
+    }
+
+    /**
+     * Remove warm-cache transients; keep feeds, API cache, and local media.
+     *
+     * Feeds keep their rows (orphaned `account_id`) so the public frontend can
+     * keep serving cached tweets after disconnect. Local avatars under
+     * `uploads/esf-twitter/{id}/` stay on disk for the header — Instagram's
+     * disconnect path. Do not call `purge_account_media()` here.
+     *
+     * @since 6.7.9
+     * @param object $row Account row.
+     * @return void
+     */
+    private function delete_associated_data( $row ) {
+        if ( !is_object( $row ) || empty( $row->id ) ) {
+            return;
+        }
+        $account_id = (int) $row->id;
+        try {
+            if ( class_exists( 'ESF_Twitter_Cache' ) ) {
+                ESF_Twitter_Cache::save_account_profile_snapshot( $row );
+            }
+            if ( class_exists( 'ESF_Feed_Disconnected_Cache' ) ) {
+                ESF_Feed_Disconnected_Cache::maybe_notify_twitter_account_disconnected( $row );
+            }
+            if ( class_exists( 'ESF_Twitter_Feed_Repository' ) ) {
+                $feed_repo = ESF_Twitter_Feed_Repository::get_instance();
+                foreach ( $feed_repo->get_by_account_id( $account_id ) as $feed ) {
+                    if ( !is_object( $feed ) || empty( $feed->id ) ) {
+                        continue;
+                    }
+                    if ( class_exists( 'ESF_Twitter_Local_Media' ) ) {
+                        ESF_Twitter_Local_Media::clear_feed_warm_transient( (int) $feed->id, $account_id );
+                    }
+                }
+            }
+        } catch ( \Throwable $e ) {
+            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- debug-only disconnect cleanup trail.
+                error_log( 'ESF Twitter account disconnect cleanup failed: ' . $e->getMessage() );
+            }
+        }
     }
 
     /**
@@ -378,12 +424,7 @@ class ESF_Twitter_Account_Repository {
         if ( function_exists( 'esf_twitter_get_best_profile_image_url' ) ) {
             $profile_image_url = esf_twitter_get_best_profile_image_url( $profile_image_url );
         }
-        if ( !empty( $user_data['x_user_id'] ) && '' !== $profile_image_url && function_exists( 'esf_serve_media_locally' ) ) {
-            $local = esf_serve_media_locally( 'tw_' . $user_data['x_user_id'], $profile_image_url, 'twitter' );
-            if ( is_string( $local ) && '' !== $local ) {
-                $profile_image_url = $local;
-            }
-        }
+        $this->warm_account_avatar( $account_id, $user_data['x_user_id'], $profile_image_url );
         $table = $this->get_table_name();
         $updated = $wpdb->update(
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -422,6 +463,22 @@ class ESF_Twitter_Account_Repository {
             array('%d')
         );
         return false !== $updated;
+    }
+
+    /**
+     * Warm a local avatar file without writing the local URL into the DB.
+     *
+     * @since 6.14.1
+     *
+     * @param int    $account_id        Internal account id.
+     * @param string $x_user_id         X user id.
+     * @param string $profile_image_url Remote CDN URL.
+     * @return void
+     */
+    private function warm_account_avatar( $account_id, $x_user_id, $profile_image_url ) {
+        if ( class_exists( 'ESF_Twitter_Local_Media' ) ) {
+            ESF_Twitter_Local_Media::persist_account_avatar( $account_id, $x_user_id, $profile_image_url );
+        }
     }
 
 }

@@ -137,6 +137,7 @@ if ( ! class_exists( 'ESF_Admin_Paths' ) ) {
 		 * under Freemius/add-on pages.
 		 *
 		 * @since 6.9.0
+		 * @since 6.10.0 Removed deprecated addons screen IDs (Multifeed is now native in Pro).
 		 * @return array<int,string>
 		 */
 		public static function get_esf_admin_screen_ids() {
@@ -145,23 +146,24 @@ if ( ! class_exists( 'ESF_Admin_Paths' ) ) {
 				'easy-social-feed_page_easy-facebook-likebox',
 				'easy-social-feed_page_mif',
 				'admin_page_' . self::WELCOME_SLUG,
-				'easy-social-feed_page_feed-them-all-addons',
 				self::submenu_screen_id( self::SETTINGS_SLUG ),
 				// Legacy submenu screen IDs (older installs / direct links).
 				'feed-them-all_page_easy-facebook-likebox',
+				'feed-them-all_page_esf-facebook',
 				'feed-them-all_page_mif',
 				'feed-them-all_page_esf-instagram',
 				'feed-them-all_page_esf-twitter',
 				'feed-them-all_page_esf-youtube',
-				'feed-them-all_page_feed-them-all-addons',
+				'feed-them-all_page_esf-tiktok',
 				'feed-them-all_page_esf-settings',
 				// Modern hub submenu screen IDs.
 				self::submenu_screen_id( 'easy-facebook-likebox' ),
+				self::submenu_screen_id( 'esf-facebook' ),
 				self::submenu_screen_id( 'mif' ),
 				self::submenu_screen_id( 'esf-instagram' ),
 				self::submenu_screen_id( 'esf-twitter' ),
 				self::submenu_screen_id( 'esf-youtube' ),
-				self::submenu_screen_id( 'feed-them-all-addons' ),
+				self::submenu_screen_id( 'esf-tiktok' ),
 			);
 		}
 	}

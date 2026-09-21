@@ -26,7 +26,19 @@ class ESF_Instagram_Feed_Widget extends WP_Widget {
      *
      */
     public function widget( $args, $instance ) {
+        /*
+         * Modern Instagram Frontend is a singleton with a private constructor and
+         * does not implement esf_insta_shortcode(). Instantiating it fatals and
+         * takes the whole site down when this legacy widget is still in a sidebar.
+         */
+        if ( function_exists( 'esf_instagram_use_new_system' ) && esf_instagram_use_new_system() ) {
+            return;
+        }
         if ( !class_exists( 'ESF_Instagram_Frontend' ) ) {
+            return;
+        }
+        // Modern and legacy share the class name — only legacy is instantiable here.
+        if ( !method_exists( 'ESF_Instagram_Frontend', 'esf_insta_shortcode' ) ) {
             return;
         }
         $ESF_Instagram_Frontend = new ESF_Instagram_Frontend();

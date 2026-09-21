@@ -36,9 +36,20 @@ final class AccountHeader {
 	 * - stat_display (string) `icons` (icon + count + tooltip, X-style) or `labels` (count + text label).
 	 * - show_follow_button (bool)
 	 * - follow_label (string)
+	 * - follow_html (string) Optional pre-escaped follow CTA replacing the default link button.
+	 *   When set, used whenever show_follow_button is true.
+	 * - secondary_ctas (array<int,array{url:string,label:string,slug?:string}>) Extra header CTAs
+	 *   (e.g. LinkedIn Jobs). When non-empty, follow + secondary wrap in `__header-actions`.
 	 * - show_link (bool) When true, render the account website link below the header top row.
 	 * - link_url (string) Optional override; defaults to account website.
 	 * - link_label (string) Optional visible label; defaults to a host/path derived from link_url.
+	 * - meta_lines (string[]) Extra plain-text lines below bio (e.g. employees, location).
+	 * - meta_html (string) Optional pre-escaped HTML replacing meta_lines (icon rows, etc.).
+	 * - stats_extra_html (string) Optional pre-escaped HTML appended inside `__header-stats`
+	 *   (non-numeric chips such as Facebook Page category).
+	 * - banner_url (string) Optional cover image shown above the header body.
+	 * - banner_lightbox (bool) When true, wrap the cover in a FancyBox image link.
+	 * - banner_lightbox_label (string) Accessible label for the cover lightbox link.
 	 * - stat_labels (array<string,string>)
 	 * - avatar_link (array{href?:string,class?:string,attrs?:string,target?:string})
 	 * - avatar_wrapper_class (string) Extra class on the avatar link wrapper.
@@ -55,9 +66,17 @@ final class AccountHeader {
 	 *     stat_display?:string,
 	 *     show_follow_button?:bool,
 	 *     follow_label?:string,
+	 *     follow_html?:string,
+	 *     secondary_ctas?:array<int,array{url?:string,label?:string,slug?:string}>,
 	 *     show_link?:bool,
 	 *     link_url?:string,
 	 *     link_label?:string,
+	 *     meta_lines?:string[],
+	 *     meta_html?:string,
+	 *     stats_extra_html?:string,
+	 *     banner_url?:string,
+	 *     banner_lightbox?:bool,
+	 *     banner_lightbox_label?:string,
 	 *     stat_labels?:array<string,string>,
 	 *     bg_color?:string,
 	 *     text_color?:string,
@@ -92,6 +111,16 @@ final class AccountHeader {
 			? $options['stat_labels']
 			: array();
 		$use_stat_icons     = 'icons' === $stat_display;
+		$meta_lines         = isset( $options['meta_lines'] ) && is_array( $options['meta_lines'] )
+			? $options['meta_lines']
+			: array();
+		$meta_html_override = isset( $options['meta_html'] ) && is_string( $options['meta_html'] )
+			? $options['meta_html']
+			: null;
+		$banner_url         = isset( $options['banner_url'] ) ? \esc_url_raw( (string) $options['banner_url'] ) : '';
+		if ( '' !== $banner_url && ! preg_match( '#^https?://#i', $banner_url ) ) {
+			$banner_url = '';
+		}
 
 		$name        = $account->get_name();
 		$handle      = $account->get_handle();
@@ -148,11 +177,24 @@ final class AccountHeader {
 			$target_attr = '' !== $link_target ? ' target="' . esc_attr( $link_target ) . '"' : '';
 			$rel_attr    = '' !== $link_rel ? ' rel="' . esc_attr( $link_rel ) . '"' : '';
 
+			$prepared_avatar = class_exists( '\ESF_GDPR_Integrations' )
+				? \ESF_GDPR_Integrations::prepare_img_src( $avatar_url, $module )
+				: array(
+					'src'           => $avatar_url,
+					'class'         => '',
+					'attrs'         => '',
+					'is_restricted' => false,
+				);
+			$avatar_img_class = "esf-{$module}-feed__header-avatar";
+			if ( ! empty( $prepared_avatar['class'] ) ) {
+				$avatar_img_class .= ' ' . $prepared_avatar['class'];
+			}
+
 			$avatar_html = sprintf(
 				'<span class="%1$s">'
 				. '<a class="%2$s" href="%3$s"%4$s%5$s%6$s>'
-				. '<img class="esf-%7$s-feed__header-avatar" src="%8$s" alt="%9$s" width="48" height="48" loading="lazy" />'
-				. '%10$s'
+				. '<img class="%7$s" src="%8$s" alt="%9$s" width="48" height="48" loading="lazy"%10$s />'
+				. '%11$s'
 				. '</a>'
 				. '</span>',
 				esc_attr( $wrapper_class ),
@@ -161,9 +203,10 @@ final class AccountHeader {
 				$target_attr, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- esc_attr above.
 				$rel_attr, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- esc_attr above.
 				$link_attrs, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Caller supplies vetted attrs.
-				esc_attr( $module ),
-				esc_url( $avatar_url ),
+				esc_attr( $avatar_img_class ),
+				esc_url( $prepared_avatar['src'] ),
 				esc_attr( $name ),
+				isset( $prepared_avatar['attrs'] ) ? $prepared_avatar['attrs'] : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in prepare_img_src.
 				$badge_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built by trusted module callers.
 			);
 		} elseif ( $show_avatar && '' !== $avatar_icon ) {
@@ -220,7 +263,17 @@ final class AccountHeader {
 			);
 		}
 
-		$stats_html = self::render_stats( $module, $account, $show_stats, $stat_labels, $use_stat_icons );
+		$stats_extra_html = isset( $options['stats_extra_html'] ) && is_string( $options['stats_extra_html'] )
+			? $options['stats_extra_html']
+			: '';
+		$stats_html       = self::render_stats(
+			$module,
+			$account,
+			$show_stats,
+			$stat_labels,
+			$use_stat_icons,
+			$stats_extra_html
+		);
 
 		$info_class = 'esf-' . $module . '-feed__header-info';
 		if ( $use_stat_icons && '' !== $stats_html ) {
@@ -234,12 +287,57 @@ final class AccountHeader {
 		}
 
 		$follow_html = '';
-		if ( $show_follow_button && '' !== $follow_label ) {
+		$follow_html_override = isset( $options['follow_html'] ) && is_string( $options['follow_html'] )
+			? $options['follow_html']
+			: '';
+		if ( $show_follow_button && '' !== $follow_html_override ) {
+			$follow_html = $follow_html_override;
+		} elseif ( $show_follow_button && '' !== $follow_label ) {
 			$follow_html = sprintf(
 				'<a class="esf-%1$s-feed__header-follow" href="%2$s" target="_blank" rel="noopener noreferrer">%3$s</a>',
 				esc_attr( $module ),
 				esc_url( $profile_url ),
 				esc_html( $follow_label )
+			);
+		}
+
+		$secondary_html = '';
+		$secondary_ctas = isset( $options['secondary_ctas'] ) && is_array( $options['secondary_ctas'] )
+			? $options['secondary_ctas']
+			: array();
+		foreach ( $secondary_ctas as $cta ) {
+			if ( ! is_array( $cta ) ) {
+				continue;
+			}
+			$cta_url = isset( $cta['url'] ) ? \esc_url_raw( (string) $cta['url'] ) : '';
+			if ( '' === $cta_url || ! preg_match( '#^https?://#i', $cta_url ) ) {
+				continue;
+			}
+			$cta_label = isset( $cta['label'] ) ? trim( (string) $cta['label'] ) : '';
+			if ( '' === $cta_label ) {
+				continue;
+			}
+			$cta_slug = isset( $cta['slug'] ) ? sanitize_key( (string) $cta['slug'] ) : 'cta';
+			if ( '' === $cta_slug ) {
+				$cta_slug = 'cta';
+			}
+			$secondary_html .= sprintf(
+				'<a class="esf-%1$s-feed__header-%2$s" href="%3$s" target="_blank" rel="noopener noreferrer">%4$s</a>',
+				esc_attr( $module ),
+				esc_attr( $cta_slug ),
+				esc_url( $cta_url ),
+				esc_html( $cta_label )
+			);
+		}
+
+		// Keep a bare follow link when there are no secondary CTAs (IG/X CSS expects it).
+		$actions_html = $follow_html;
+		if ( '' !== $secondary_html ) {
+			$actions_html = sprintf(
+				'<div class="esf-%1$s-feed__header-actions">%2$s%3$s</div>',
+				esc_attr( $module ),
+				$follow_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped above.
+				$secondary_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped above.
 			);
 		}
 
@@ -264,6 +362,81 @@ final class AccountHeader {
 				esc_attr( $module ),
 				esc_html( $bio )
 			);
+		}
+
+		$meta_html = '';
+		if ( null !== $meta_html_override ) {
+			$meta_html = $meta_html_override;
+		} else {
+			foreach ( $meta_lines as $line ) {
+				$line = trim( (string) $line );
+				if ( '' === $line ) {
+					continue;
+				}
+				$meta_html .= sprintf(
+					'<p class="esf-%1$s-feed__header-meta-line">%2$s</p>',
+					esc_attr( $module ),
+					esc_html( $line )
+				);
+			}
+		}
+
+		$banner_html = '';
+		if ( '' !== $banner_url ) {
+			$prepared_banner = class_exists( '\ESF_GDPR_Integrations' )
+				? \ESF_GDPR_Integrations::prepare_img_src( $banner_url, $module )
+				: array(
+					'src'           => $banner_url,
+					'class'         => '',
+					'attrs'         => '',
+					'is_restricted' => false,
+				);
+			$banner_img_class = "esf-{$module}-feed__header-banner-img";
+			if ( ! empty( $prepared_banner['class'] ) ) {
+				$banner_img_class .= ' ' . $prepared_banner['class'];
+			}
+
+			$banner_img = sprintf(
+				'<img class="%1$s" src="%2$s" alt="" loading="lazy"%3$s />',
+				esc_attr( $banner_img_class ),
+				esc_url( $prepared_banner['src'] ),
+				isset( $prepared_banner['attrs'] ) ? $prepared_banner['attrs'] : '' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in prepare_img_src.
+			);
+
+			$banner_inner = sprintf(
+				'<span class="esf-%1$s-feed__header-banner">%2$s</span>',
+				esc_attr( $module ),
+				$banner_img // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built above.
+			);
+
+			if ( ! empty( $options['banner_lightbox'] ) ) {
+				$lightbox_src = isset( $prepared_banner['src'] ) ? (string) $prepared_banner['src'] : $banner_url;
+				$label        = isset( $options['banner_lightbox_label'] )
+					? trim( (string) $options['banner_lightbox_label'] )
+					: '';
+				if ( '' === $label ) {
+					$label = '' !== $name
+						? sprintf(
+							/* translators: %s: account / page name */
+							__( 'View cover photo for %s', 'easy-facebook-likebox' ),
+							$name
+						)
+						: __( 'View cover photo', 'easy-facebook-likebox' );
+				}
+				$banner_html = sprintf(
+					'<a class="esf-%1$s-feed__header-banner-link" href="%2$s" data-esf-cover-lightbox="1" aria-label="%3$s">%4$s</a>',
+					esc_attr( $module ),
+					esc_url( $lightbox_src ),
+					esc_attr( $label ),
+					$banner_inner // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built above.
+				);
+			} else {
+				$banner_html = sprintf(
+					'<div class="esf-%1$s-feed__header-banner" aria-hidden="true">%2$s</div>',
+					esc_attr( $module ),
+					$banner_img // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built above.
+				);
+			}
 		}
 
 		$style_attr = '';
@@ -304,9 +477,13 @@ final class AccountHeader {
 		if ( '' !== $text_color ) {
 			$header_class .= ' esf-' . $module . '-feed__header--custom-text';
 		}
+		if ( '' !== $banner_html ) {
+			$header_class .= ' esf-' . $module . '-feed__header--has-banner';
+		}
 
 		return sprintf(
 			'<header class="%1$s"%2$s>'
+			. '%10$s'
 			. '<div class="esf-%3$s-feed__header-inner">%4$s'
 			. '<div class="esf-%3$s-feed__header-meta">'
 			. '<div class="esf-%3$s-feed__header-top">'
@@ -314,6 +491,7 @@ final class AccountHeader {
 			. '%7$s'
 			. '</div>'
 			. '%8$s'
+			. '%11$s'
 			. '%9$s'
 			. '</div>'
 			. '</div>'
@@ -324,9 +502,11 @@ final class AccountHeader {
 			$avatar_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped above.
 			esc_attr( $info_class ),
 			$info_inner, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped above.
-			$follow_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped above.
+			$actions_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped above.
 			$bio_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped above.
-			$link_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped above.
+			$link_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped above.
+			$banner_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped above.
+			$meta_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped above.
 		);
 	}
 
@@ -380,23 +560,21 @@ final class AccountHeader {
 	/**
 	 * Render the stats row inside the header.
 	 *
-	 * @param string               $module          Module slug.
-	 * @param AccountSummary       $account         Account data.
-	 * @param string[]             $show_stats      Stat keys to render in order.
-	 * @param array<string,string> $stat_labels     Optional label overrides.
-	 * @param bool                 $use_stat_icons  When true, render icon + count with tooltip (X-style).
+	 * @param string               $module           Module slug.
+	 * @param AccountSummary       $account          Account data.
+	 * @param string[]             $show_stats       Stat keys to render in order.
+	 * @param array<string,string> $stat_labels      Optional label overrides.
+	 * @param bool                 $use_stat_icons   When true, render icon + count with tooltip (X-style).
+	 * @param string               $stats_extra_html Optional pre-escaped HTML appended after numeric stats.
 	 */
 	private static function render_stats(
 		string $module,
 		AccountSummary $account,
 		array $show_stats,
 		array $stat_labels,
-		bool $use_stat_icons = false
+		bool $use_stat_icons = false,
+		string $stats_extra_html = ''
 	): string {
-		if ( empty( $show_stats ) ) {
-			return '';
-		}
-
 		$items = '';
 		foreach ( $show_stats as $key ) {
 			$value = $account->get_stat( $key );
@@ -430,6 +608,8 @@ final class AccountHeader {
 				esc_html( $label )
 			);
 		}
+
+		$items .= $stats_extra_html;
 
 		if ( '' === $items ) {
 			return '';

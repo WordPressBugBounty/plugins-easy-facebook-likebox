@@ -46,7 +46,7 @@ if ( ! class_exists( 'ESF_Welcome_State' ) ) {
 		 * @since 6.8.0
 		 * @var string[]
 		 */
-		const ALLOWED_MODULES = array( 'facebook', 'instagram', 'youtube', 'twitter' );
+		const ALLOWED_MODULES = array( 'facebook', 'instagram', 'youtube', 'twitter', 'tiktok' );
 
 		/**
 		 * Get the wizard state from the fta_settings option.

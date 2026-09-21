@@ -559,13 +559,11 @@ jQuery(document).ready(function($) {
 
     const currentModal = jQuery(this).closest('.esf-modal');
     currentModal.removeClass( 'open' ).css( 'display', 'none' );
-    console.log(currentModal);
     currentModal.parents('.esf-insta-shoppable-wrap').removeClass('esf-insta-shoppable-selected');
 
     if( type === 'next' ) {
       const nextModal = jQuery(this).parents('.esf-insta-shoppable-wrap').next('.esf-insta-shoppable-wrap').find('.esf-modal-trigger');
       if( nextModal.length > 0 ){
-        console.log(currentModal);
         nextModal.trigger('click');
       }
     }

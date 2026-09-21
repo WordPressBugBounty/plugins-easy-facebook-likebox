@@ -148,37 +148,39 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
         $slug = $this->get_layout_settings_slug();
         $path = 'layout.' . $slug . '.';
         $vars = array();
+        $prefix = '--esf-' . $this->module;
         $bg = $this->resolve_stacked_setting_color( $path, 'bg_color', array('content_bg_color', 'card_bg_color') );
         if ( '' !== $bg ) {
-            $vars['--esf-ig-stacked-bg'] = $bg;
+            $vars[$prefix . '-stacked-bg'] = $bg;
         }
         $footer_bg = $this->resolve_stacked_setting_color( $path, 'footer_bg_color' );
         if ( '' !== $footer_bg ) {
-            $vars['--esf-ig-stacked-footer-bg'] = $footer_bg;
+            $vars[$prefix . '-stacked-footer-bg'] = $footer_bg;
         }
         $text = $this->resolve_stacked_setting_color( $path, 'text_color' );
         if ( '' !== $text ) {
-            $vars['--esf-ig-stacked-text'] = $text;
+            $vars[$prefix . '-stacked-text'] = $text;
         }
         $accent = $this->resolve_stacked_setting_color( $path, 'accent_color', array('caption_link_color') );
         if ( '' !== $accent ) {
-            $vars['--esf-ig-primary'] = $accent;
+            $vars[$prefix . '-primary'] = $accent;
         }
         $muted = $this->resolve_stacked_setting_color( $path, 'muted_text_color' );
         if ( '' !== $muted ) {
-            $vars['--esf-ig-stacked-muted'] = $muted;
+            $vars[$prefix . '-stacked-muted'] = $muted;
         }
         $border = $this->resolve_stacked_setting_color( $path, 'border_color' );
         if ( '' !== $border ) {
-            $vars['--esf-ig-stacked-border'] = $border;
+            $vars[$prefix . '-stacked-border'] = $border;
         }
         $link = $this->resolve_stacked_setting_color( $path, 'caption_link_color' );
         if ( '' !== $link ) {
-            $vars['--esf-ig-stacked-link'] = $link;
+            $vars[$prefix . '-stacked-link'] = $link;
         }
         $content_bg = $this->resolve_stacked_setting_color( $path, 'content_bg_color' );
-        if ( '' !== $content_bg && (!isset( $vars['--esf-ig-stacked-bg'] ) || $content_bg !== $vars['--esf-ig-stacked-bg']) ) {
-            $vars['--esf-ig-stacked-content-bg'] = $content_bg;
+        $bg_key = $prefix . '-stacked-bg';
+        if ( '' !== $content_bg && (!isset( $vars[$bg_key] ) || $content_bg !== $vars[$bg_key]) ) {
+            $vars[$prefix . '-stacked-content-bg'] = $content_bg;
         }
         return $vars;
     }
@@ -221,12 +223,11 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
         $stories_row = $chrome['stories_row'];
         $stories_attr = $chrome['stories_attr'];
         $settings_slug = $this->get_layout_settings_slug();
-        $gap = $this->get_default_gap();
-        $card_radius = $this->get_default_card_radius();
-        $card_shadow = false;
+        // Gap + corner radius are free geometry. Card shadow is Pro (stacked theme).
+        $gap = (int) $this->setting( 'layout.' . $settings_slug . '.gap', $this->get_default_gap() );
+        $card_radius = (int) $this->setting( 'layout.' . $settings_slug . '.card_border_radius', $this->get_default_card_radius() );
+        $card_shadow = $this->get_default_card_shadow();
         if ( $this->has_pro_plan() ) {
-            $gap = (int) $this->setting( 'layout.' . $settings_slug . '.gap', $this->get_default_gap() );
-            $card_radius = (int) $this->setting( 'layout.' . $settings_slug . '.card_border_radius', $this->get_default_card_radius() );
             $card_shadow = (bool) $this->setting( 'layout.' . $settings_slug . '.card_shadow', $this->get_default_card_shadow() );
         }
         $gap = max( 0, min( 100, $gap ) );
@@ -234,9 +235,12 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
         $shell = $this->build_stacked_shell_attributes( $gap, $card_radius, $card_shadow );
         $state = $this->get_display_state();
         if ( empty( $state['posts'] ) ) {
+            $empty_message = trim( (string) $this->setting( 'feed.empty_message', '' ) );
             $error_message = trim( (string) $this->setting( 'feed.media_error_message', '' ) );
-            if ( '' !== $error_message ) {
-                $empty = sprintf( '<div class="esf-%1$s-feed__empty esf-%1$s-feed__empty--error"><p class="esf-%1$s-feed__empty-text">%2$s</p></div>', esc_attr( $this->module ), esc_html( $error_message ) );
+            if ( '' !== $empty_message ) {
+                $empty = $this->render_empty_state( $empty_message );
+            } elseif ( '' !== $error_message ) {
+                $empty = $this->render_media_error_state( $error_message );
             } else {
                 $empty = $this->render_empty_state( __( 'No posts to display yet.', 'easy-facebook-likebox' ) );
             }
@@ -258,14 +262,14 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
             $cards .= $this->render_stacked_cell( $post );
         }
         $load_more = '';
-        // This entire code block will be removed from the free version.
         if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
             if ( $this->can_render_load_more() && method_exists( $this, 'render_stacked_load_more__premium_only' ) ) {
                 $load_more = $this->render_stacked_load_more__premium_only( count( $state['posts'] ), __( 'Load more', 'easy-facebook-likebox' ), __( 'Load more posts', 'easy-facebook-likebox' ) );
             }
         }
+        $footer = $this->compose_feed_footer( $load_more );
         return sprintf(
-            '<div class="%1$s"%2$s style="%3$s">%4$s%5$s<div class="%6$s esf-instagram-feed__items-inner">%7$s</div>%8$s</div>',
+            '<div class="%1$s"%2$s style="%3$s">%4$s%5$s<div class="%6$s %7$s">%8$s</div>%9$s</div>',
             esc_attr( $shell['class'] ),
             $stories_attr,
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -275,10 +279,26 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
             $stories_row,
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             esc_attr( $this->get_inner_class() ),
+            esc_attr( 'esf-' . $this->module . '-feed__items-inner' ),
             $cards,
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            $load_more
+            $footer
         );
+    }
+
+    /**
+     * Wrap or extend the Load More markup with module-specific footer CTAs.
+     *
+     * Modules override this (e.g. Instagram footer follow button). Default
+     * returns the Load More HTML unchanged.
+     *
+     * @since 6.9.0
+     *
+     * @param string $load_more_html Escaped Load More markup (may be empty).
+     * @return string
+     */
+    protected function compose_feed_footer( string $load_more_html ) : string {
+        return $load_more_html;
     }
 
     /**
@@ -303,6 +323,24 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
     }
 
     /**
+     * Resolve the pagination mode for Load More.
+     *
+     * `button` (default) or `infinite` (auto-fetch on scroll). Requires an
+     * active Pro plan; sites without one are always forced back to `button`.
+     *
+     * @since 6.16.0
+     *
+     * @param array<string,mixed> $feed_cfg Feed-level settings.
+     * @return string `button` or `infinite`.
+     */
+    protected function resolve_load_more_mode( array $feed_cfg ) : string {
+        if ( !$this->has_pro_plan() ) {
+            return 'button';
+        }
+        return ( isset( $feed_cfg['load_more_mode'] ) && 'infinite' === $feed_cfg['load_more_mode'] ? 'infinite' : 'button' );
+    }
+
+    /**
      * Build wrapper class + CSS variables.
      *
      * @since 6.9.0
@@ -323,6 +361,10 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
         }
         $aspect_ratio = $this->resolve_stacked_media_aspect_ratio();
         $parts[] = '--esf-stacked-media-ratio:' . $this->stacked_media_aspect_ratio_to_css( $aspect_ratio );
+        $ratio_modifier_class = $this->get_media_ratio_modifier_class( $aspect_ratio );
+        if ( '' !== $ratio_modifier_class ) {
+            $class .= ' ' . $ratio_modifier_class;
+        }
         $style = implode( ';', $parts );
         if ( $card_shadow ) {
             $class .= ' ' . $this->get_card_shadow_modifier_class() . ' esf-' . $this->module . '-feed__stacked--card-shadow';
@@ -413,13 +455,14 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
         $see_more = ( function_exists( 'esf_get_translated_string' ) ? __( esf_get_translated_string( 'see_more' ), 'easy-facebook-likebox' ) : __( 'See more', 'easy-facebook-likebox' ) );
         $see_less = ( function_exists( 'esf_get_translated_string' ) ? __( esf_get_translated_string( 'see_less' ), 'easy-facebook-likebox' ) : __( 'See less', 'easy-facebook-likebox' ) );
         $share = ( function_exists( 'esf_get_translated_string' ) ? __( esf_get_translated_string( 'share' ), 'easy-facebook-likebox' ) : __( 'Share', 'easy-facebook-likebox' ) );
-        return array(
+        $options = array(
             'show_header'    => (bool) $this->setting( 'layout.' . $slug . '.show_post_header', true ),
             'show_time'      => (bool) $this->setting( 'layout.' . $slug . '.show_post_time', true ),
             'show_caption'   => !isset( $this->get_settings()['post']['show_caption'] ) || (bool) $this->setting( 'post.show_caption', true ),
             'caption_words'  => $caption_words,
             'show_likes'     => !isset( $this->get_settings()['post']['show_likes'] ) || (bool) $this->setting( 'post.show_likes', true ),
             'show_comments'  => !isset( $this->get_settings()['post']['show_comments'] ) || (bool) $this->setting( 'post.show_comments', true ),
+            'show_shares'    => !isset( $this->get_settings()['post']['show_shares'] ) || (bool) $this->setting( 'post.show_shares', true ),
             'show_share'     => (bool) $this->setting( 'layout.' . $slug . '.show_share', true ),
             'new_tab'        => (bool) $this->setting( 'feed.links_new_tab', true ),
             'see_more_label' => $see_more,
@@ -428,6 +471,7 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
             'metric_labels'  => array(
                 'likes'    => __( 'Likes', 'easy-facebook-likebox' ),
                 'comments' => __( 'Comments', 'easy-facebook-likebox' ),
+                'shares'   => __( 'Shares', 'easy-facebook-likebox' ),
             ),
             'media_options'  => array(
                 'new_tab'              => (bool) $this->setting( 'feed.links_new_tab', true ),
@@ -441,6 +485,13 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
             ),
             'media_position' => $this->resolve_stacked_media_position(),
         );
+        // "Original (no cropping)" sizes tiles to each image's natural ratio up to
+        // the card width. The 600px grid thumb is too narrow on wide cards and
+        // would pillarbox; load the full local file instead (CSS scales it down).
+        if ( 'auto' === $this->resolve_stacked_media_aspect_ratio() ) {
+            $options['media_options']['prefer_preview'] = false;
+        }
+        return $options;
     }
 
     /**
@@ -450,6 +501,9 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
      * @return string `header_first` or `media_first`
      */
     protected function resolve_stacked_media_position() : string {
+        if ( !$this->has_pro_plan() ) {
+            return 'header_first';
+        }
         $raw = (string) $this->setting( 'layout.' . $this->get_layout_settings_slug() . '.media_position', 'header_first' );
         return ( 'media_first' === $raw ? 'media_first' : 'header_first' );
     }
@@ -491,6 +545,23 @@ abstract class AbstractStackedLayout extends AbstractLayout implements RendersTi
             default:
                 return '4 / 5';
         }
+    }
+
+    /**
+     * Optional BEM modifier class for the resolved media aspect ratio.
+     *
+     * Base implementation adds nothing; subclasses that support an
+     * "original / no cropping" ratio (a value outside the fixed-ratio set
+     * above) can override this to flag the shell so layout CSS can size
+     * tiles to their own natural ratio instead of a fixed cropped box.
+     *
+     * @since 6.11.0
+     *
+     * @param string $ratio Resolved aspect ratio slug.
+     * @return string BEM modifier class, or '' for none.
+     */
+    protected function get_media_ratio_modifier_class( string $ratio ) : string {
+        return '';
     }
 
 }

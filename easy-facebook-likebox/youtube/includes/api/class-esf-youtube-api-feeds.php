@@ -178,6 +178,16 @@ class ESF_YouTube_API_Feeds {
 				),
 			)
 		);
+
+		register_rest_route(
+			'esf/v1',
+			'/youtube/feeds/(?P<id>[\d]+)/pin-cache',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( __CLASS__, 'pin_feed_cache' ),
+				'permission_callback' => array( __CLASS__, 'mutate_permissions_check' ),
+			)
+		);
 	}
 
 	/**
@@ -362,14 +372,24 @@ class ESF_YouTube_API_Feeds {
 
 		$feed_type = $request->get_param( 'feed_type' );
 		$feed_type = ( '' !== (string) $feed_type ) ? $feed_type : 'channel';
-		$status    = $request->get_param( 'status' );
-		$status    = ( '' !== (string) $status ) ? $status : 'active';
+		$source_id = $request->get_param( 'source_id' );
+		$validated = self::validate_pro_feed_type_payload( $feed_type, $source_id );
+		if ( is_wp_error( $validated ) ) {
+			return $validated;
+		}
+		if ( is_array( $validated ) ) {
+			$feed_type = $validated['feed_type'];
+			$source_id = $validated['source_id'];
+		}
+
+		$status = $request->get_param( 'status' );
+		$status = ( '' !== (string) $status ) ? $status : 'active';
 
 		$data = array(
 			'name'       => trim( (string) $request['name'] ),
 			'account_id' => $account_id,
 			'feed_type'  => $feed_type,
-			'source_id'  => $request->get_param( 'source_id' ),
+			'source_id'  => $source_id,
 			'settings'   => $request->get_param( 'settings' ),
 			'status'     => $status,
 		);
@@ -440,10 +460,46 @@ class ESF_YouTube_API_Feeds {
 			$data['source_id'] = $request['source_id'];
 		}
 		if ( $request->has_param( 'settings' ) ) {
-			$data['settings'] = $request['settings'];
+			$incoming_settings = $request['settings'];
+			if ( is_array( $incoming_settings ) ) {
+				$current_settings = self::decode_feed_settings( $feed );
+				$data['settings'] = self::preserve_rest_managed_settings( $current_settings, $incoming_settings );
+			}
 		}
 		if ( $request->has_param( 'status' ) ) {
 			$data['status'] = $request['status'];
+		}
+
+		$next_feed_type = array_key_exists( 'feed_type', $data )
+			? $data['feed_type']
+			: ( isset( $feed->feed_type ) ? $feed->feed_type : 'channel' );
+		$next_source_id = array_key_exists( 'source_id', $data )
+			? $data['source_id']
+			: ( isset( $feed->source_id ) ? $feed->source_id : '' );
+
+		$validated = self::validate_pro_feed_type_payload( $next_feed_type, $next_source_id );
+		if ( is_wp_error( $validated ) ) {
+			return $validated;
+		}
+		if ( is_array( $validated ) ) {
+			$data['feed_type'] = $validated['feed_type'];
+			$data['source_id'] = $validated['source_id'];
+		}
+
+		$source_changed = (
+			( array_key_exists( 'feed_type', $data ) && (string) ( isset( $feed->feed_type ) ? $feed->feed_type : '' ) !== (string) $data['feed_type'] )
+			|| ( array_key_exists( 'source_id', $data ) && (string) ( isset( $feed->source_id ) ? $feed->source_id : '' ) !== (string) $data['source_id'] )
+			|| ( array_key_exists( 'account_id', $data ) && (int) ( isset( $feed->account_id ) ? $feed->account_id : 0 ) !== (int) $data['account_id'] )
+		);
+
+		// Clear the previous shared source cache before the row changes.
+		if ( $source_changed && class_exists( 'ESF_YouTube_Cache' ) ) {
+			ESF_YouTube_Cache::flush_videos_cache_for_source(
+				isset( $feed->account_id ) ? (int) $feed->account_id : 0,
+				isset( $feed->feed_type ) ? (string) $feed->feed_type : 'channel',
+				isset( $feed->source_id ) ? (string) $feed->source_id : '',
+				$feed_id
+			);
 		}
 
 		$updated = $repo->update( $feed_id, $data );
@@ -519,6 +575,17 @@ class ESF_YouTube_API_Feeds {
 			);
 		}
 
+		$feed_type = isset( $feed->feed_type ) ? (string) $feed->feed_type : 'channel';
+		if ( function_exists( 'esf_youtube_is_pro_feed_type' ) && esf_youtube_is_pro_feed_type( $feed_type ) ) {
+			if ( ! function_exists( 'esf_youtube_has_youtube_plan' ) || ! esf_youtube_has_youtube_plan() ) {
+				return new WP_Error(
+					'rest_forbidden',
+					__( 'Playlist and search feeds are premium features.', 'easy-facebook-likebox' ),
+					array( 'status' => 403 )
+				);
+			}
+		}
+
 		$new_id = $repo->duplicate( $feed_id );
 		if ( false === $new_id ) {
 			return new WP_Error(
@@ -563,6 +630,174 @@ class ESF_YouTube_API_Feeds {
 	}
 
 	/**
+	 * Pin a disconnected feed's cached videos permanently (no TTL expiry).
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function pin_feed_cache( $request ) {
+		$id   = (int) $request['id'];
+		$feed = ESF_YouTube_Feed_Repository::get_instance()->get_by_id( $id );
+		if ( ! $feed ) {
+			return new WP_Error(
+				'feed_not_found',
+				__( 'Feed not found.', 'easy-facebook-likebox' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		if ( empty( $feed->account_id ) ) {
+			return new WP_Error(
+				'no_account',
+				__( 'This feed has no linked account to pin cache for.', 'easy-facebook-likebox' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$pinned = class_exists( 'ESF_Feed_Disconnected_Cache' )
+			? ESF_Feed_Disconnected_Cache::pin_feed_cache_for_module( 'youtube', $id )
+			: ( class_exists( 'ESF_YouTube_Cache' ) && false !== ESF_YouTube_Cache::pin_feed_cache( $id ) );
+
+		if ( ! $pinned ) {
+			return new WP_Error(
+				'pin_failed',
+				__( 'Could not pin feed cache.', 'easy-facebook-likebox' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		$updated = ESF_YouTube_Feed_Repository::get_instance()->get_by_id( $id );
+
+		return rest_ensure_response(
+			array(
+				'pinned' => true,
+				'feed'   => $updated ? self::format_feed_for_response( $updated ) : null,
+			)
+		);
+	}
+
+	/**
+	 * Validate and normalize playlist/search feed payloads (Pro-gated).
+	 *
+	 * Channel feeds pass through with an empty source_id.
+	 *
+	 * @since 6.7.6
+	 *
+	 * @param mixed $feed_type Raw feed type.
+	 * @param mixed $source_id Raw source id / query.
+	 * @return array{feed_type:string,source_id:string}|WP_Error
+	 */
+	private static function validate_pro_feed_type_payload( $feed_type, $source_id ) {
+		$feed_type = sanitize_key( (string) $feed_type );
+		if ( '' === $feed_type ) {
+			$feed_type = 'channel';
+		}
+
+		if ( 'channel' === $feed_type ) {
+			return array(
+				'feed_type' => 'channel',
+				'source_id' => '',
+			);
+		}
+
+		if ( ! function_exists( 'esf_youtube_is_pro_feed_type' ) || ! esf_youtube_is_pro_feed_type( $feed_type ) ) {
+			return array(
+				'feed_type' => 'channel',
+				'source_id' => '',
+			);
+		}
+
+		if ( ! function_exists( 'esf_youtube_has_youtube_plan' ) || ! esf_youtube_has_youtube_plan() ) {
+			return new WP_Error(
+				'rest_forbidden',
+				__( 'Playlist and search feeds are premium features.', 'easy-facebook-likebox' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		if ( 'playlist' === $feed_type ) {
+			$normalized = function_exists( 'esf_youtube_normalize_playlist_id' )
+				? esf_youtube_normalize_playlist_id( $source_id )
+				: sanitize_text_field( (string) $source_id );
+
+			return array(
+				'feed_type' => 'playlist',
+				'source_id' => $normalized,
+			);
+		}
+
+		$normalized = function_exists( 'esf_youtube_normalize_search_query' )
+			? esf_youtube_normalize_search_query( $source_id )
+			: sanitize_text_field( (string) $source_id );
+
+		return array(
+			'feed_type' => 'search',
+			'source_id' => $normalized,
+		);
+	}
+
+	/**
+	 * Decode stored feed settings for internal update logic.
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param object $feed Feed DB row.
+	 * @return array<string,mixed>
+	 */
+	private static function decode_feed_settings( $feed ) {
+		$decoded = json_decode( isset( $feed->settings ) ? (string) $feed->settings : '', true );
+		if ( ! is_array( $decoded ) ) {
+			return ESF_YouTube_Feed_Repository::get_default_settings();
+		}
+
+		return ESF_YouTube_Feed_Repository::merge_settings_with_defaults( $decoded );
+	}
+
+	/**
+	 * Preserve settings owned by dedicated REST controllers during feed autosave.
+	 *
+	 * Moderation is written by the shared moderation REST controller; feed
+	 * editor autosave must not overwrite it with stale React state.
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param array<string,mixed> $current_settings  Stored feed settings.
+	 * @param array<string,mixed> $incoming_settings Incoming settings payload.
+	 * @return array<string,mixed>
+	 */
+	private static function preserve_rest_managed_settings( array $current_settings, array $incoming_settings ) {
+		/**
+		 * Settings keys owned by dedicated REST controllers (not feed autosave).
+		 *
+		 * @since 6.7.9
+		 *
+		 * @param array<int,string> $keys Keys to preserve from the stored feed.
+		 */
+		$managed_keys = apply_filters(
+			'esf_feed_settings_rest_managed_keys',
+			array( 'moderation' )
+		);
+
+		if ( ! is_array( $managed_keys ) ) {
+			return $incoming_settings;
+		}
+
+		foreach ( $managed_keys as $managed_key ) {
+			$managed_key = sanitize_key( (string) $managed_key );
+			if ( '' === $managed_key ) {
+				continue;
+			}
+			if ( isset( $current_settings[ $managed_key ] ) && is_array( $current_settings[ $managed_key ] ) ) {
+				$incoming_settings[ $managed_key ] = $current_settings[ $managed_key ];
+			}
+		}
+
+		return $incoming_settings;
+	}
+
+	/**
 	 * Format a feed row for REST response (decode settings JSON only when included).
 	 *
 	 * @since 6.7.5
@@ -572,33 +807,43 @@ class ESF_YouTube_API_Feeds {
 	 * @return array
 	 */
 	private static function format_feed_for_response( $feed, $keys = null ) {
+		$settings = json_decode( $feed->settings, true );
+		if ( ! is_array( $settings ) ) {
+			$settings = ESF_YouTube_Feed_Repository::get_default_settings();
+		}
+
+		$preview_is_cold = function_exists( 'esf_youtube_feed_preview_is_cold' )
+			? esf_youtube_feed_preview_is_cold(
+				(int) $feed->account_id,
+				(string) $feed->feed_type,
+				null !== $feed->source_id ? (string) $feed->source_id : '',
+				$settings
+			)
+			: true;
+
 		$full = array(
-			'id'         => (int) $feed->id,
-			'name'       => $feed->name,
-			'account_id' => (int) $feed->account_id,
-			'feed_type'  => $feed->feed_type,
-			'source_id'  => $feed->source_id,
-			'settings'   => null, // Filled below only when needed.
-			'status'     => $feed->status,
-			'created_at' => $feed->created_at,
-			'updated_at' => $feed->updated_at,
+			'id'              => (int) $feed->id,
+			'name'            => $feed->name,
+			'account_id'      => (int) $feed->account_id,
+			'feed_type'       => $feed->feed_type,
+			'source_id'       => $feed->source_id,
+			'settings'        => $settings,
+			'status'          => $feed->status,
+			'created_at'      => $feed->created_at,
+			'updated_at'      => $feed->updated_at,
+			'preview_is_cold' => (bool) $preview_is_cold,
 		);
 
 		if ( null !== $keys ) {
 			$out = array();
 			foreach ( $keys as $key ) {
-				if ( 'settings' === $key ) {
-					$settings    = json_decode( $feed->settings, true );
-					$out[ $key ] = is_array( $settings ) ? $settings : ESF_YouTube_Feed_Repository::get_default_settings();
-				} else {
+				if ( array_key_exists( $key, $full ) ) {
 					$out[ $key ] = $full[ $key ];
 				}
 			}
 			return $out;
 		}
 
-		$settings         = json_decode( $feed->settings, true );
-		$full['settings'] = is_array( $settings ) ? $settings : ESF_YouTube_Feed_Repository::get_default_settings();
 		return $full;
 	}
 }

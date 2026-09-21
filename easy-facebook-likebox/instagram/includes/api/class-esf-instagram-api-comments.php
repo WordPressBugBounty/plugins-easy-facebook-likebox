@@ -110,7 +110,7 @@ class ESF_Instagram_API_Comments {
 			);
 		}
 
-		$limit = $this->clamp_limit( $limit );
+		$limit                 = $this->clamp_limit( $limit );
 		$replies_preview_limit = max( 1, min( self::MAX_LIMIT, (int) $replies_preview_limit ) );
 
 		$field_attempts = array(
@@ -128,7 +128,7 @@ class ESF_Instagram_API_Comments {
 			),
 		);
 
-		$result  = null;
+		$result   = null;
 		$last_url = '';
 
 		foreach ( $field_attempts as $attempt ) {
@@ -418,7 +418,7 @@ class ESF_Instagram_API_Comments {
 			);
 		}
 
-		$nodes = isset( $decoded['data'] ) && is_array( $decoded['data'] ) ? array_values( $decoded['data'] ) : array();
+		$nodes  = isset( $decoded['data'] ) && is_array( $decoded['data'] ) ? array_values( $decoded['data'] ) : array();
 		$cursor = isset( $decoded['paging']['cursors']['after'] ) ? (string) $decoded['paging']['cursors']['after'] : '';
 
 		return array(

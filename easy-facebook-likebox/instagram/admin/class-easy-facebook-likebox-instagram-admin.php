@@ -292,7 +292,7 @@ if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
             }
             // Reuse a shared set of HTTP arguments for all remote requests.
             $http_args = $this->http_args;
-            $pages_api_url = 'https://graph.facebook.com/me/accounts?fields=access_token,username,id,name,fan_count,category,about&access_token=' . $access_token;
+            $pages_api_url = 'https://graph.facebook.com/me/accounts?fields=access_token,username,id,name,fan_count,category&access_token=' . $access_token;
             $pages_api_response = wp_remote_get( $pages_api_url, $http_args );
             if ( is_wp_error( $pages_api_response ) ) {
                 $error_msg = $pages_api_response->get_error_message();
@@ -411,17 +411,27 @@ if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
                         );
                     }
                 }
-                // Store raw data for settings so other parts of the plugin keep working.
-                $page_array = (array) $page;
+                // Curated page fields only; keep IG account payloads needed by legacy helpers.
+                $page_array = array(
+                    'id'                          => (string) $page_id,
+                    'name'                        => ( isset( $page->name ) ? (string) $page->name : '' ),
+                    'username'                    => ( isset( $page->username ) ? (string) $page->username : '' ),
+                    'access_token'                => (string) $page_token,
+                    'category'                    => ( isset( $page->category ) ? (string) $page->category : '' ),
+                    'fan_count'                   => ( isset( $page->fan_count ) ? (int) $page->fan_count : 0 ),
+                    'instagram_accounts'          => ( isset( $instagram_accounts ) ? $instagram_accounts : null ),
+                    'instagram_connected_account' => ( isset( $instagram_business_account ) ? $instagram_business_account : null ),
+                );
                 $approved_pages[$page_array['id']] = $page_array;
-                $approved_pages[$page_array['id']]['instagram_accounts'] = ( isset( $instagram_accounts ) ? $instagram_accounts : null );
-                $approved_pages[$page_array['id']]['instagram_connected_account'] = ( isset( $instagram_business_account ) ? $instagram_business_account : null );
             }
             // Append any collected list items to the wrapper.
             if ( !empty( $efbl_list_items ) ) {
                 $efbl_all_pages_html .= implode( '', $efbl_list_items );
             }
             $efbl_all_pages_html .= '</ul>';
+            if ( function_exists( 'esf_db_safe_text' ) ) {
+                $approved_pages = esf_db_safe_text( $approved_pages );
+            }
             $feed_them_all = new Feed_Them_All();
             $settings = $feed_them_all->fta_get_settings();
             $settings['plugins']['facebook']['approved_pages'] = $approved_pages;
@@ -432,11 +442,20 @@ if ( !class_exists( 'ESF_Instagram_Admin' ) ) {
                 $author_body = wp_remote_retrieve_body( $author_api_response );
                 if ( '' !== $author_body ) {
                     $author_data = json_decode( $author_body );
+                    if ( function_exists( 'esf_db_safe_text' ) ) {
+                        $author_data = esf_db_safe_text( $author_data );
+                    }
                     $settings['plugins']['facebook']['author'] = $author_data;
                 }
             }
             $settings['plugins']['instagram']['selected_type'] = 'business';
-            update_option( 'fta_settings', $settings );
+            $saved = update_option( 'fta_settings', $settings );
+            $persisted = get_option( 'fta_settings', array() );
+            $token_ok = isset( $persisted['plugins']['facebook']['access_token'] ) && (string) $persisted['plugins']['facebook']['access_token'] === (string) $access_token;
+            $pages_ok = isset( $persisted['plugins']['facebook']['approved_pages'] ) && is_array( $persisted['plugins']['facebook']['approved_pages'] ) && count( $persisted['plugins']['facebook']['approved_pages'] ) === count( $approved_pages );
+            if ( !($saved || $token_ok && $pages_ok) ) {
+                wp_send_json_error( __( 'Something went wrong! Refresh the page and try again', 'easy-facebook-likebox' ) );
+            }
             wp_send_json_success( array(__( 'Successfully Authenticated!', 'easy-facebook-likebox' ), $efbl_all_pages_html) );
         }
 

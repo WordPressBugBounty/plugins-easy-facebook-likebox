@@ -82,8 +82,8 @@ class ESF_Instagram_Facebook_Graph {
 	 * @return array<int,array<string,mixed>> Candidate rows; empty if none with Instagram.
 	 */
 	public static function parse_me_accounts_response( array $decoded ) {
-		$rows   = isset( $decoded['data'] ) && is_array( $decoded['data'] ) ? $decoded['data'] : array();
-		$out    = array();
+		$rows = isset( $decoded['data'] ) && is_array( $decoded['data'] ) ? $decoded['data'] : array();
+		$out  = array();
 		foreach ( $rows as $page ) {
 			if ( ! is_array( $page ) ) {
 				continue;
@@ -109,14 +109,14 @@ class ESF_Instagram_Facebook_Graph {
 			$pic      = isset( $ig['profile_picture_url'] ) ? esc_url_raw( (string) $ig['profile_picture_url'] ) : '';
 
 			$out[] = array(
-				'page_id'             => $page_id,
-				'page_name'           => $page_name,
-				'page_access_token'   => $page_token,
-				'instagram_user_id'   => $ig_id,
-				'username'            => $username,
-				'display_name'        => $display,
-				'profile_image_url'   => $pic,
-				'instagram_account'   => $ig,
+				'page_id'           => $page_id,
+				'page_name'         => $page_name,
+				'page_access_token' => $page_token,
+				'instagram_user_id' => $ig_id,
+				'username'          => $username,
+				'display_name'      => $display,
+				'profile_image_url' => $pic,
+				'instagram_account' => $ig,
 			);
 		}
 
@@ -181,11 +181,11 @@ class ESF_Instagram_Facebook_Graph {
 			return new WP_Error( 'esf_ig_fb_empty_token', __( 'Missing Facebook user token.', 'easy-facebook-likebox' ) );
 		}
 
-		$candidates         = self::get_me_accounts_field_candidates();
-		$field_index        = 0;
-		$allow_field_retry  = true;
-		$merged             = array();
-		$url                = self::build_me_accounts_url( $user_access_token, $candidates[0] );
+		$candidates        = self::get_me_accounts_field_candidates();
+		$field_index       = 0;
+		$allow_field_retry = true;
+		$merged            = array();
+		$url               = self::build_me_accounts_url( $user_access_token, $candidates[0] );
 
 		while ( '' !== $url ) {
 			$response = wp_remote_get( $url, array( 'timeout' => 25 ) );
@@ -288,8 +288,8 @@ class ESF_Instagram_Facebook_Graph {
 		if ( ! is_array( $decoded ) || empty( $decoded['error'] ) || ! is_array( $decoded['error'] ) ) {
 			return '';
 		}
-		$e   = $decoded['error'];
-		$msg = isset( $e['message'] ) ? sanitize_text_field( (string) $e['message'] ) : '';
+		$e    = $decoded['error'];
+		$msg  = isset( $e['message'] ) ? sanitize_text_field( (string) $e['message'] ) : '';
 		$code = isset( $e['code'] ) ? (string) $e['code'] : '';
 		if ( '' !== $msg && '' !== $code ) {
 			return $msg . ' (Graph ' . $code . ')';
