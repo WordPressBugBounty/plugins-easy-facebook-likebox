@@ -419,6 +419,36 @@ class ESF_Translation_Strings {
 					),
 				),
 			),
+			'social_wall_feed'  => array(
+				'label'   => __( 'Social Wall', 'easy-facebook-likebox' ),
+				'strings' => array(
+					array(
+						'key'     => 'sw_filter_all',
+						'default' => 'All',
+						'context' => __( 'Social Wall frontend filter tab that shows every network.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'sw_filter_aria',
+						'default' => 'Filter by network',
+						'context' => __( 'ARIA label for the Social Wall network filter bar.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'sw_no_posts',
+						'default' => 'Select at least one account to display feeds.',
+						'context' => __( 'Shown when a Social Wall has no connected sources or posts to render.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'sw_no_posts_filter',
+						'default' => 'No posts found for this network.',
+						'context' => __( 'Shown when a Social Wall network filter tab has no posts to display.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'sw_load_more_aria',
+						'default' => 'Load more posts',
+						'context' => __( 'ARIA label for the Social Wall Load More button.', 'easy-facebook-likebox' ),
+					),
+				),
+			),
 			'facebook_feed'     => array(
 				'label'   => __( 'Facebook Feed', 'easy-facebook-likebox' ),
 				'strings' => array(

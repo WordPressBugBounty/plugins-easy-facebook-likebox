@@ -1,381 +1,486 @@
-=== Easy Social Feed - Social Photos Gallery and Post Feed for WordPress ===
+=== Easy Social Feed - Social Wall, Photos Gallery and Post Feed for WordPress ===
 Contributors: DaNish Ali, maltathemes, sjaved, freemius
-Tags: Instagram feed, Facebook feed, YouTube feed, X feed, TikTok feed
+Tags: Instagram feed, Facebook feed, YouTube feed, social wall, TikTok feed
 Requires at least: 3.3
 Tested up to: 7.1
-Stable tag: 6.7.10
+Stable tag: 6.8.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Display Instagram, Facebook, YouTube, X & TikTok feeds with photos, videos, reels, events & galleries. SEO/AEO friendly, fast & easy to set up.
+Display Instagram, Facebook, YouTube, X and TikTok feeds using blocks, widgets or shortcodes. Combine them all in one Social Wall (Pro).
 
 == Description ==
 
-Easy Social Feed helps you display your latest **Instagram photos and videos, Facebook page posts and events, YouTube videos, X/Twitter timeline posts, and TikTok videos** on your website. It is responsive, **SEO, AEO and GEO friendly**, easy to set up and offers live preview customization for appearance and layout.
+Easy Social Feed lets you display **Instagram**, **Facebook**, **YouTube**, **X** and **TikTok** content on your WordPress website, and combine every network into a single **Social Wall** with Pro.
 
+Create responsive social media feeds and a unified social wall with live customization, configurable layouts and simple embedding. Keep your website fresh with the latest content from your social accounts, showcase your work and encourage visitors to follow you.
 
-Connect your account using the latest secure oAuth login and get a shortcode auto-generated. No app review required. Manual access token support is also available for Personal or Business accounts.
+https://www.youtube.com/watch?v=VB_qRtmXS6A
 
-You can enable only the module you need (Facebook, Instagram, YouTube, X/Twitter or TikTok) so unrelated code is not loaded, improving performance.
+**Instagram** is supported prominently for professional Business and Creator accounts, with photos, videos, Reels and gallery content displayed directly on your website.
 
-After connecting your account, **simply copy and paste the shortcode, or use a block or widget**, to embed your feed anywhere on your site.
+Each social module can be enabled or disabled independently, helping you load only the integrations your website uses.
 
-## Watch how Easy Social Feed works:  
-[youtube https://www.youtube.com/watch?v=9ZvHmlozcHA]
+### Get started in three steps
 
-*"**This Plugin Rocks!** I have tried a few other plugins, which either didn’t work right out of the box, or failed to work after a week.
-THIS plugin is like magic. It was simple to install, activate, connect my Facebook pages, and add the widget.
-And, it looks beautiful as can be seen on my page.
-Thank you for making this plugin!"* - [sayhi2lonnie](https://wordpress.org/support/topic/this-plugin-rocks-61/)
+1. **Connect your account** — choose **Instagram**, **Facebook**, **YouTube**, **X** or **TikTok** and follow the connection flow.
+2. **Customize your feed** — select a layout, adjust columns and spacing, and preview your changes.
+3. **Add it to your website** — copy the generated shortcode and paste it into any compatible page, post, widget or page-builder element.
 
-See what hundreds of users say, reviews on [WordPress.org:](https://wordpress.org/support/plugin/easy-facebook-likebox/reviews/?filter=5)
+No coding is required for the setup.
 
-## Instagram Feed
+[Instagram Feed Demo](https://easysocialfeed.com/my-instagram-feed-demo/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=instagram_feed_demo) | [Facebook Feed Demo](https://easysocialfeed.com/custom-facebook-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=facebook_feed_demo) | [YouTube Feed Demo](https://easysocialfeed.com/custom-youtube-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=youtube_feed_demo) | [X/Twitter Feed Demo](https://easysocialfeed.com/custom-twitter-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=twitter_feed_demo) | [TikTok Feed Demo](https://easysocialfeed.com/custom-tiktok-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=tiktok_feed_demo)
 
-Display photos, videos, reels, stories and gallery posts from your Instagram account in multiple designs with full control over styling.
+### Why use Easy Social Feed?
 
-### Features
-- **One minute** setup. Easy setup flow to configure and go live in minutes
-- Quick secure oAuth connection (no app review needed)
-- Manual access token support (Personal & Business)
-- Multiple layouts: **Grid, Masonry, Full-width, Half-width, Row, Carousel**
-- **SEO, AEO & GEO friendly** server-rendered feeds with structured data for search and AI discovery
-- Live preview customization of colors, spacing, borders, font sizes, etc 
-- **Load More** button for unlimited posts (Pro) 
-- Header display and Follow button toggle
-- Auto-generated shortcode after connection
-- Powerful **shortcode generator**, you don't need to mess up with shortcode attributes
-- **Multiple-feeds** - There is no limitation to display the number of feeds on your site. Our shortcode and blocks work independently.
-- Popup lightbox for media with navigation (Pro)
-- **Hashtag feed** support (Pro)
-- Featured posts option (Pro)
-- Images and Videos gallery - Display multiple images in a gallery carousel (Pro)
-- Custom links (shoppable posts) option (Pro)
-- **Visual moderation** show or hide posts from feed (Pro)
-- Likes and Comment display in popup (Pro) 
-- Priority support (pro)- Above all, We stand firmly behind our plugin and provide top-notch priority support to the premium plan users via email.
-- And much more in the pack!
-- Many more features to come
+- **Instagram**, **Facebook**, **YouTube**, **X** and **TikTok** feeds in one plugin
+- **Social Wall** (Pro) to merge all your networks into one responsive wall
+- Responsive layouts for desktop, tablet and mobile
+- Live feed customization and preview
+- Automatically keep your website content fresh when you publish on social media
+- Showcase your latest work, products, videos and updates
+- Encourage visitors to follow your social accounts
+- Add social proof and real-time content to your website
+- Keep visitors engaged without sending them away from your site
+- Server-rendered social content for better accessibility and discoverability
+- Semantic markup, crawlable links and structured data where supported
+- Database caching to reduce repeated API requests
+- Conditional loading of module assets
+- Shortcode embedding for all modern feed modules
+- **Facebook** block and widget support
+- **Instagram** widget support
+- Custom CSS controls for supported feeds
+- Multiple feeds on different pages using separate feed shortcodes
+- Consent-aware controls for remote media and embeds
+- Free modules with clearly defined Pro upgrades
 
-[Demo](https://easysocialfeed.com/my-instagram-feed-demo)
+### Reviews
 
-*"**Much better than the others** - I’m really happy with this – and it’s better than the other plugins I’ve tried that offer the same thing. Thank you!" [sarahtaylor777](https://wordpress.org/support/topic/much-better-than-the-others-2/)
+*"**This Plugin Rocks!** It was simple to install, connect my **Facebook** pages and add the widget. It looks beautiful on my page."* — [sayhi2lonnie](https://wordpress.org/support/topic/this-plugin-rocks-61/)
 
-## Facebook Feed
-Display Facebook page posts including images, videos, links, status, albums, events and more - fully styled and responsive.
+*"Easy to use as the description — awesome plugin and excellent support. It’s easy to set up and won’t affect the page speed."* — [WordPress.org review](https://wordpress.org/support/topic/easy-to-use-as-the-description/)
 
-### Features
-- Support for posts, photos, videos, links, status updates and albums
-- Event feed display with details (Pro)
-- **Responsive** layouts for all devices
-- **Live preview** customization for styles
-- Multiple layout options: Full-width, Half-width, Thumbnail, Row, Grid, Masonry, Carousel
-- Caption words limit - Limit the number of words to display in the story on your site
-- **PopUp** - Display images, videos, and albums in the advanced popup so your users never leave your site again. Also, navigate between post images using next and previous links in the popup
-- **Super fast** - Cache - It caches the posts, images and other content from Facebook and Instagram to minimize external requests to load the page faster.
-- **Multiple-feeds** - There is no limitation to display the number of feeds on your site. Our shortcode and widgets work independently.
-- **Merged Feed** - Display multiple pages feed in a single feed using shortcode or block
-- **Visual moderation** show or hide posts from feed (Pro)
-- Post-type filtering (photos, videos, events, etc.) (Pro)  
-- Auto-generated shortcode + block/widget support
-- Share - Share buttons with each post in your feed to make it even more viral on social media.
-- Read more - Read more button to read the full story on Facebook.
-- Powerful **shortcode generator**, you don't need to mess up with shortcode attributes
-- Post images & videos gallery - Display all images and videos in the gallery carousel in PopUp (Pro)
-- Advanced PopUp (pro)- Replaces the current PopUp with advanced and super-fast PopUp. Give your feed a look like FB so your users do not leave your site ever
-- Display Likes and Comments
-- Featured posts option (Pro)
-- And much more in the pack!
-- Many more features to come
+See more [Easy Social Feed reviews](https://wordpress.org/support/plugin/easy-facebook-likebox/reviews/?filter=5).
 
-[Demo](https://easysocialfeed.com/custom-facebook-feed/)
+### Perfect for
 
-## YouTube Feed
+Easy Social Feed is useful for:
 
-Display your latest YouTube videos in a clean, responsive YouTube channel feed that fits your theme. Connect your channel, create a feed, and embed it anywhere using shortcode (a PHP snippet is also included).
+- Businesses and local businesses
+- **Instagram** creators and influencers
+- Photographers, artists and portfolios
+- Restaurants, hotels and events
+- Online stores and product brands
+- Bloggers and publishers
+- Agencies managing client websites
+- Brands, events and campaigns that want a social wall of all their networks in one place
 
-You can customize the layout and header, add per‑feed custom CSS, and control caching from the same Easy Social Feed interface for Facebook and Instagram.
+### What is included in Free and Pro?
 
-[Demo](https://easysocialfeed.com/custom-youtube-feed/)
+**Free features**
 
-### Features
-- Secure Google OAuth connection to connect your YouTube channel
-- **SEO, AEO & GEO friendly** server-rendered video feeds with structured data for search and AI discovery
-- Accounts dashboard to manage connected channels (reconnect/refresh and disconnect)
-- Bulk actions for managing accounts (when multiple accounts are available)
-- Create unlimited feeds and embed each feed using a unique shortcode(Pro)
-- Feed editor with Connect, Customize and Embed panels and a live preview workflow
-- Responsive grid layout with control over columns and spacing for desktop, tablet and mobile
-- Header controls for channel branding and key channel details
-- Per‑feed settings for what to show on video cards (thumbnail, title, date and more)
-- Smart caching with configurable refresh duration for faster loading and fewer external requests
-- Clear all caches from settings and clear cache for a single feed from the feeds list
-- Per‑feed Custom CSS with helper selectors so advanced styling stays easy and organized
-- Pro: **Load More** button to show more videos without reloading the page
-- Pro: **Popup / Lightbox** video gallery with rich details and stats (views, likes, comments)
-- Pro: Popup options for autoplay, mute, and showing description and stats
+The free plugin includes:
 
-## X / Twitter Feed
+- **Instagram** feeds from connected professional accounts
+- **Facebook** Page feeds
+- **YouTube** channel feeds
+- **X/Twitter** account timelines
+- **TikTok** feeds from your connected account
+- Responsive Grid and Row layouts where available
+- Feed headers and profile information where supported
+- Captions, titles and post metadata
+- Live feed customization
+- Configurable post counts
+- Caching and configurable refresh intervals
+- Shortcode embedding
+- **Facebook** blocks and widgets
+- **Instagram** widgets
+- Custom CSS controls where supported
 
-Display an X (Twitter) feed on your site with a clean, responsive design and live customization controls. Connect your own account with OAuth, or add public accounts by username and embed feeds anywhere with shortcode.
+**Pro features**
 
-[Demo](https://easysocialfeed.com/custom-twitter-feed/)
+Pro features vary by module and plan and may include:
 
-### Features
-- Secure OAuth connection for your own X/Twitter account
-- **SEO, AEO & GEO friendly** server-rendered timeline with structured data for search and AI discovery
-- Pro: Add public X accounts by username (no app setup on your site)
-- Feed editor with Connect, Customize and Embed panels and live preview
-- Responsive timeline layout with header, stats and tweet card controls
-- Auto-generated shortcode for quick embedding in posts, pages and widgets
-- Smart caching with configurable cache duration for faster page load
-- Per-feed Custom CSS support for advanced styling
-- Pro: **Load More** pagination for progressive tweet loading
-- Pro: **Popup / Lightbox** for tweet media with gallery and video support
-- Pro: Multiple accounts
+- Additional layouts such as Masonry, Carousel, Full-width and Half-width
+- Load More and infinite scrolling
+- Popup and lightbox media viewing
+- Video playback options
+- Stories and hashtag feeds for eligible **Instagram** connections
+- Playlist and search feeds for **YouTube**
+- Public **X/Twitter** accounts by username
+- Multiple connected accounts and multifeed support where available
+- Post-type filtering
+- Visual moderation
+- Shoppable links and custom post links
+- Engagement statistics and comments
+- Advanced popup galleries
+- Additional **TikTok** row styles
+- **Social Wall** (Combo Pro) to combine multiple networks in one wall
 
-## TikTok Feed
+### Instagram Feed
 
-Display videos from your TikTok account in a clean, responsive feed with live customization. Connect with secure OAuth, create a feed, and embed it anywhere with shortcode (block and widget support included).
+Display **Instagram** photos, videos, reels and gallery posts in a responsive WordPress feed.
 
-### Features
-- Secure TikTok Login Kit OAuth connection
-- Accounts dashboard to manage connected accounts (reconnect/refresh and disconnect)
-- Create feeds and embed each feed using a unique shortcode
-- Feed editor with Connect, Customize and Embed panels and a live preview workflow
-- Responsive **Grid** layout with control over columns and spacing
-- Header controls for profile branding and key account details
-- Local cover images so thumbnails stay reliable when CDN links expire
-- Smart caching with configurable refresh duration for faster loading and fewer external requests
-- Per-feed Custom CSS with helper selectors for advanced styling
-- Pro: **Row** layout (more layouts coming)
-- Pro: **Load More** and infinite scroll to show more videos without reloading
-- Pro: **Popup / Lightbox** to watch videos without leaving your site
-- Pro: **Multifeed** to combine videos from multiple TikTok accounts in one feed
+Easy Social Feed supports **Instagram** Business and Creator accounts through supported Instagram and **Facebook** connection methods. You can customize the feed, generate a shortcode and display it anywhere on your website.
 
-## Facebook Page Plugin (Like Box)
-Embed the Facebook Page Plugin to display page likes, faces, timeline or events using shortcode and widget.
+**Instagram Free features**
 
-### Features:
-- Responsive and mobile friendly  
-- Show or hide faces and header  
-- Custom width and height settings  
-- Support for 75+ locales  
+- Connect an eligible Instagram Business or Creator account
+- Display photos, videos, reels and gallery content
+- Responsive Grid layout
+- Responsive Row layout
+- Profile header and account information
+- Follow button
+- Captions and post metadata
+- Configurable number of posts
+- Live preview customization
+- Separate feeds with individual shortcodes
+- Caching and configurable refresh intervals
+- Instagram widget support
+- Custom CSS controls where supported
+
+**Instagram Pro features**
+
+- Masonry layout
+- Carousel layout
+- Full-width layout
+- Half-width layout
+- Load More pagination
+- Popup and lightbox viewing
+- Stories support for eligible connections
+- Hashtag feeds
+- Top and Recent hashtag content
+- Visual moderation
+- Shoppable links and custom post links
+- Comments and replies in the lightbox where available
+- Multifeed support
+- Wave Row style with staggered posts
+- Local media support where available
+
+Instagram advanced features depend on the connection type and Meta API availability. Hashtag feeds and some advanced features require the Facebook Page-backed connection method.
+
+[Instagram Feed Demo](https://easysocialfeed.com/my-instagram-feed-demo/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=instagram_feed_demo)
+
+*"**Much better than the others** — I’m really happy with this. It’s better than the other plugins I’ve tried that offer the same thing."* — [sarahtaylor777](https://wordpress.org/support/plugin/easy-facebook-likebox/reviews/?filter=5)
+
+### Facebook Feed
+
+Display posts from your **Facebook** Page, including text, images, videos, links, albums and supported events.
+
+**Facebook Free features**
+
+- Connect Facebook Pages through the supported Meta connection flow
+- Display Page posts
+- Half-width layout
+- Full-width layout
+- Thumbnail layout
+- Row layout
+- Feed header controls
+- Caption and post content controls
+- Share buttons where supported
+- Read More links
+- Caching
+- Shortcodes
+- Facebook blocks
+- Facebook widgets
+
+**Facebook Pro features**
+
+- Grid layout
+- Masonry layout
+- Carousel layout
+- Load More pagination
+- Post-type filtering
+- Event feed features
+- Visual moderation
+- Multiple-page multifeed
+- Advanced popup and media gallery
+- Featured post controls
+- Additional media and engagement features
+
+Facebook features depend on the permissions provided by Meta and the connected Page.
+
+[Facebook Feed Demo](https://easysocialfeed.com/custom-facebook-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=facebook_feed_demo)
+
+### Facebook Page Plugin
+
+Embed the official **Facebook** Page Plugin on your website using a shortcode.
+
+**Facebook Page Plugin features**
+
+- Responsive Facebook Page display
+- Custom width and height
+- Page header and profile information
+- Optional profile photos
 - Timeline, Events and Messages tabs (Pro)
+- Multiple language and localization options
+- Shortcode-generated configuration
 
-[Demo](https://easysocialfeed.com/faceook-page-plugin)
+The Facebook Page Plugin loads Facebook content in an official iframe. Unlike the modern Facebook Feed, it does not add server-rendered feed content for SEO, AEO or GEO.
 
----
+### YouTube Feed
 
-*"**Easy to use as the description** - awesome plugin and excellent support, easy to set up and more function, won't affect the page speed, GREAT JOB!"* [alexwee88](https://wordpress.org/support/topic/easy-to-use-as-the-description/)
+Display videos from your connected **YouTube** channel in a responsive feed.
 
-## Performance & Settings
-- Smart caching for posts & media to minimize API calls and improve speed  
-- Lazy loading support
-- Option to load only active modules (disable unused modules for performance)  
-- Configurable feed refresh intervals
-- AI translation autofill on the Translation tab (Pro) to translate and fill feed labels into your selected language with one click  
-- **SEO, AEO & GEO optimized** - Server-rendered feeds with semantic markup and JSON-LD structured data (Instagram, YouTube & X/Twitter) for search engines and AI crawlers  
+Connect your channel through Google OAuth, create a feed and embed it using a shortcode.
 
----
+**YouTube Free features**
 
-## Embedding Options
-- Gutenberg blocks
-- Shortcodes  
-- WordPress widget  
-- Compatible with major page builders (Elementor, Divi, WPBakery, etc.)
+- Secure Google OAuth connection
+- Connected channel feeds
+- Grid layout
+- Row layout
+- Channel header controls
+- Video thumbnails, titles and dates
+- Responsive column and spacing controls
+- Caching with configurable refresh intervals
+- Per-feed Custom CSS
+- Shortcode embedding
+- Local thumbnail handling where available
 
----
+**YouTube Pro features**
 
-## Compatibility
-- GDPR compliant, only publicly authorized data is displayed  
-- Compatible with all major themes  
-- Multilingual support  
-- Priority support for Pro users
+- Playlist feeds
+- Search feeds
+- Carousel layout
+- Full-width layout
+- Half-width layout
+- Masonry layout
+- Load More pagination
+- Popup and lightbox video gallery
+- Autoplay and mute controls
+- Video descriptions and statistics
+- Comments in the popup where available
+- Multiple-account and multifeed features where supported
+- Visual moderation
 
-### GDPR & cookie consent compatibility
+[YouTube Feed Demo](https://easysocialfeed.com/custom-youtube-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=youtube_feed_demo)
 
-Easy Social Feed includes a global GDPR mode that works automatically with the most popular **WordPress cookie consent and GDPR banner plugins**. When a supported cookie plugin is active, the feed will respect your visitors’ consent before loading Facebook or Instagram media, helping you stay compliant with privacy regulations.
+### X/Twitter Feed
 
-Out of the box, the plugin integrates seamlessly with these top cookie / GDPR solutions:
+Display an **X/Twitter** timeline on your WordPress website with responsive layouts and customizable post cards.
 
-- Real Cookie Banner by devowl.io  
-- GDPR Cookie Compliance by Moove Agency  
-- Cookie Notice by dFactory  
-- GDPR Cookie Consent by WebToffee  
-- CookieYes | GDPR Cookie Consent by CookieYes  
-- Cookiebot by Cybot A/S  
-- Complianz by Really Simple Plugins  
-- Borlabs Cookie by Borlabs  
-- WPConsent by the WPConsent team  
+Connect your own account through OAuth. Pro users can also add eligible public **X** accounts by username.
 
-Whether you search for an **“Instagram GDPR feed”**, **“Facebook GDPR feed”**, or **“cookie consent friendly social feed plugin”**, Easy Social Feed is built to plug into your existing consent setup instead of replacing it.
+**X/Twitter Free features**
+
+- OAuth connection for your own account
+- Timeline layout
+- Row layout
+- Responsive feed controls
+- Account header and statistics
+- Tweet content and media
+- Caching
+- Shortcode embedding
+- Per-feed Custom CSS
+
+**X/Twitter Pro features**
+
+- Public X accounts by username
+- Grid layout
+- Masonry layout
+- Carousel layout
+- Full-width and Half-width layouts
+- Wave row style
+- Load More pagination
+- Popup and media lightbox
+- Video and image galleries
+- Multiple connected accounts
+- Multifeed support
+- Visual moderation where available
+
+Public-account support depends on the X API and the availability of the configured service.
+
+[X/Twitter Feed Demo](https://easysocialfeed.com/custom-twitter-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=twitter_feed_demo)
+
+### TikTok Feed
+
+Display videos from your connected **TikTok** account in responsive Grid and Row layouts.
+
+**TikTok** feeds use the supported TikTok Login Kit and Display API connection flow and display videos belonging to the connected account.
+
+**TikTok Free features**
+
+- Secure TikTok account connection
+- Connected-account video feeds
+- Grid layout
+- Row layout
+- Profile header controls
+- Video covers and metadata
+- Responsive column and spacing controls
+- Local cover images where available
+- Caching with configurable refresh intervals
+- Per-feed Custom CSS
+- Shortcode embedding
+
+**TikTok Pro features**
+
+- Wave row style
+- Load More pagination
+- Infinite scrolling
+- Popup and lightbox video viewing
+- Engagement information where available
+- Additional premium feed controls
+
+TikTok availability depends on TikTok account eligibility, API access and approved permissions. Public TikTok username feeds are not included.
+
+[TikTok Feed Demo](https://easysocialfeed.com/custom-tiktok-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=tiktok_feed_demo)
+
+### Social Wall (Pro)
+
+Combine **Facebook**, **Instagram**, **YouTube**, **X/Twitter** and **TikTok** posts in one Social Wall.
+
+Social Wall is a Combo Pro feature. Connect the networks you already use, pick sources for the wall, choose a layout and embed it with a shortcode.
+
+**Social Wall Pro features**
+
+- Combine posts from Facebook, Instagram, YouTube, X/Twitter and TikTok
+- Grid layout
+- Row layout
+- Masonry layout
+- Carousel layout
+- Network filters
+- Load More pagination
+- Popup and lightbox media viewing
+- Live wall customization and preview
+- Shortcode embedding with `[esf_social_wall]`
+
+
+### Embedding options
+
+Modern Easy Social Feed modules can be embedded using shortcodes: `[esf_facebook_feed]`, `[esf_instagram_feed]`, `[esf_youtube_feed]`, `[esf_twitter_feed]`, `[esf_tiktok_feed]`, `[esf_social_wall]`.
+
+The plugin also supports Facebook Gutenberg blocks, Facebook widgets, the Facebook Page Plugin shortcode, Instagram widgets, shortcode fields in compatible page builders, and PHP embedding for supported modules.
+
+Generate the shortcode from the feed editor, copy it and paste it into a page, post, widget or compatible page-builder shortcode element.
+
+### Performance, caching and privacy
+
+Easy Social Feed uses database caching and configurable refresh intervals to reduce repeated requests to social platform APIs.
+
+Depending on the module and settings:
+
+- Feed assets load only when a feed is displayed
+- Media may be served locally
+- Remote media and embeds can be delayed until consent
+- Zero-third-party options can prevent remote media or embed requests
+- You can clear the cache globally or for individual feeds where supported
+
+Social platforms may still receive requests when their content or official embeds are loaded. Website owners are responsible for configuring their consent tools, privacy policy and regional compliance settings.
+
+The plugin includes integrations for several consent and cookie-management plugins, including: Real Cookie Banner, GDPR Cookie Compliance, Cookie Notice, GDPR Cookie Consent, CookieYes, Cookiebot, Complianz, Borlabs Cookie, and WPConsent.
 
 == Installation ==
+1. Install Easy Social Feed from the WordPress Plugins screen.
+2. Activate the plugin.
+3. Open Easy Social Feed in the WordPress dashboard.
+4. Enable the modules you want to use.
+5. Connect the relevant social account.
+6. Create and customize a feed.
+7. Copy the generated shortcode.
+8. Paste the shortcode into a page, post, widget or compatible page-builder element.
 
-1. Upload the plugin folder to `/wp-content/plugins/`  
-2. Activate the plugin via the WordPress Plugins page  
-3. Go to Easy Social Feed > Facebook / Instagram / YouTube / X-Twitter / TikTok to connect your account  
-4. Copy the generated shortcode and paste into posts, pages, CPT or anywhere in PHP templates
-
----
+Connection requirements vary by platform. Instagram requires an eligible professional account. Facebook requires an eligible Page and Meta permissions. YouTube requires Google account authorization. X and TikTok require supported OAuth/API access.
 
 == Frequently Asked Questions ==
+= Which social platforms does Easy Social Feed support? =
 
-= How do I connect my Facebook account to the plugin? =
-Navigate to Easy Social Feed > Facebook in your WordPress dashboard. Click on "Connect My Facebook Account" button. A modal will appear explaining the required permissions. Click "Connect to Facebook" and follow the authorization process. Make sure to select your Business Manager and grant all requested permissions for the plugin to work properly.
+Easy Social Feed supports Instagram, Facebook, YouTube, X/Twitter and TikTok through separate modules.
 
-= How do I connect my Instagram account? =
-Go to Easy Social Feed > Instagram in your WordPress dashboard. Click "Connect My Instagram Account" and choose between two connection types:
-- **Business Basic**: For simple Instagram feeds from professional accounts
-- **Business Advanced**: For advanced features like hashtag feeds, mentions, and multiple account management
+= Can I use only one social network? =
 
-Follow the connection wizard to complete the setup.
+Yes. Each module can be enabled or disabled independently from the Easy Social Feed hub.
 
-= What's the difference between Instagram Business Basic and Business Advanced? =
-**Business Basic** is perfect for displaying your Instagram posts and stories with basic permissions. **Business Advanced** requires connecting your Instagram account to a Facebook Page and provides access to hashtag feeds, mentions feeds, multiple accounts, and advanced insights. Choose based on your needs.
+= How do I display an Instagram feed? =
 
-= Why is my feed not displaying or showing "No posts available"? =
-This usually happens when:
-- Your access token has expired. Reconnect your account from the plugin settings.
-- Required permissions were not granted during connection. Reconnect and ensure all permissions are enabled.
-- Your Instagram account is not a Professional (Business or Creator) account for Business connections.
-- Cache needs to be cleared. Go to plugin settings and clear the cache.
+Connect an eligible Instagram Business or Creator account, create a feed, customize it and paste the generated Instagram shortcode into your website.
 
-= How do I display the feed on my website? =
-After connecting your account:
-1. Go to the "Use (Display)" tab in the plugin settings
-2. Use the shortcode generator to create your custom shortcode
-3. Copy the generated shortcode
-4. Paste it into any page, post, or widget area
-You can also use the dedicated widget from Appearance > Widgets or use WordPress blocks.
+= How do I add an Instagram feed to a WordPress page? =
 
-= Can I customize the look and feel of my feed? =
-Yes! The plugin includes a powerful real-time customizer. Navigate to the "Customize" or "Skins" section where you can:
-- Change colors, fonts, and spacing
-- Adjust number of columns and layout
-- Enable/disable specific elements
-- Create multiple skins for different pages
-All changes are previewed in real-time using WordPress Customizer.
+Create an Instagram feed in Easy Social Feed, copy its shortcode and paste it into a WordPress page or post. You can also use the Instagram widget in a widget-ready area.
 
-= How do I display multiple feeds on my site? =
-Simply generate different shortcodes for each feed you want to display. You can:
-- Use different Instagram accounts
-- Display different Facebook pages
-- Apply different skins/layouts
-- Place feeds on multiple pages
-There's no limitation on the number of feeds you can create.
+= Can I display Instagram Reels and gallery posts? =
 
-= Why do I need to connect my Instagram to a Facebook Page? =
-For Business Advanced connections, Facebook requires Instagram Business accounts to be connected to a Facebook Page. This is a Meta/Facebook requirement, not a plugin limitation. This connection enables advanced features like hashtag feeds and better API access.
+Yes. Eligible Instagram photos, videos, Reels and gallery posts can be displayed in your feed. Content availability depends on Instagram permissions and API rules.
 
-= How often does the feed update? =
-The plugin uses smart caching to optimize performance. You can configure the cache duration in the settings:
-- Minimum recommended: 6 hours
-- Default: 12-24 hours
-- You can manually clear cache anytime from the settings
-This helps reduce API calls and improves your site's loading speed.
+= Can I display multiple Instagram accounts? =
 
-= Can I display feeds from accounts I don't own? =
-- No only feeds from accounts you own and have connected
+Separate Instagram feeds can be created for connected accounts. Combining multiple accounts into one feed is available in Pro where supported.
 
-= What permissions does the plugin need and why? =
-**Facebook Permissions:**
-- pages_read_engagement: To read posts and content
-- pages_read_user_content: To display your page content
-- business_management: To access Business Manager accounts
-- pages_show_list: To list available pages
+= Does Easy Social Feed include an Instagram Gutenberg block? =
 
-**Instagram Permissions:**
-- instagram_business_basic: Basic profile and posts access
-- instagram_basic: Profile information
-- instagram_manage_insights: Account metrics and statistics
-- pages_show_list: To list connected Instagram accounts
+The modern Instagram module currently uses shortcodes and the Instagram widget for embedding. Facebook has dedicated block support. Use the generated shortcode in the WordPress editor or a compatible page builder.
 
-These permissions are read-only and don't allow the plugin to post or modify your content.
+= Do I need an Instagram Business or Creator account? =
 
-= The feed is loading slowly. How can I fix this? =
-1. Enable caching in the plugin settings (recommended: 12-24 hours)
-2. Optimize the number of posts loaded initially
-3. Use "Load More" button instead of displaying all posts at once
-4. Ensure your hosting has good performance
+Yes. The supported modern Instagram connection methods require an eligible professional Instagram account.
+
+= Can I display Instagram hashtag feeds? =
+
+Hashtag feeds are available in Pro for eligible Facebook Page-backed Instagram connections. Availability depends on Meta permissions and API access.
 
 = Can I display Instagram Stories? =
-Yes! Instagram Stories are supported. Make sure you're using a Business connection and have the necessary permissions. Stories are automatically included in your feed and will be displayed for 24 hours as per Instagram's policy.
 
-= How do I display Instagram Hashtag or Mentions feeds? =
-Hashtag and Mentions feeds require the Business Advanced connection. After connecting:
-1. Go to the Moderate or Feeds section
-2. Select "Hashtag" or "Mentions" as the feed type
-3. Enter your hashtag or mentions
-4. Generate and use the shortcode
+Stories are available in Pro for eligible connections. Story availability and expiry are controlled by Instagram and Meta API rules.
 
-= Is the plugin GDPR compliant? =
-Yes, the plugin is GDPR compliant. It only fetches public data that you've authorized. No personal data from your site visitors is collected or sent to third parties. The plugin caches content on your server to minimize external API calls.
+= Can I display Facebook Page posts? =
 
-= Does the plugin work with page builders? =
-Yes! The plugin works with all major page builders including:
-- Gutenberg (WordPress Block Editor)
-- Elementor
-- WPBakery
-- Divi
-- Beaver Builder
-Simply paste the shortcode in a text/shortcode widget or use the dedicated blocks if available.
+Yes. Connect an eligible Facebook Page and create a Facebook feed using the modern Facebook module.
 
-= Why am I getting "API Rate Limit" errors? =
-API rate limits are set by Facebook/Instagram. To minimize this:
-- Increase cache duration in settings
-- Reduce the frequency of feed updates
-- Don't use too many feeds from the same account
-- The plugin uses smart caching to help prevent rate limit issues
+= Can I display a YouTube playlist or search feed? =
 
-= How do I display the feed in a popup? =
-The plugin includes built-in popup functionality:
-- Posts automatically open in an elegant popup when clicked
-- Navigate between posts using next/previous arrows
-- Pro version includes advanced popup with Instagram-like experience
-No additional configuration needed - it works out of the box!
+Playlist and search feeds are Pro features. Free accounts can display connected YouTube channel feeds.
 
-= Can I filter posts by type (photos, videos, etc.)? =
-Yes, with the Pro version you can filter Facebook posts by:
-- Photos only
-- Videos only
-- Events only
-- Status updates only
-Use the shortcode generator to select your preferred post types.
+= Can I display a public X/Twitter account? =
+
+Public X/Twitter account feeds are available in Pro where the required API service is available. Free accounts can connect and display their own eligible account.
+
+= Can I display any TikTok username? =
+
+No. TikTok feeds currently display videos from the connected TikTok account and do not provide arbitrary public username feeds.
+
+= Can I combine multiple social networks in one feed? =
+
+Yes. Social Wall (Combo Pro) lets you combine Facebook, Instagram, YouTube, X/Twitter and TikTok posts in one wall with Grid, Row, Masonry and Carousel layouts, network filters, Load More and popups.
+
+= Does the plugin support multiple feeds? =
+
+Yes. You can create separate feeds and place them on different pages using their generated shortcodes. Feature and account limits vary by module and plan.
+
+= Does the plugin support page builders? =
+
+Shortcodes can be used in compatible page-builder shortcode or text elements. Exact support depends on the page builder and module.
+
+= Does the plugin cache social content? =
+
+Yes. Feed responses are cached to reduce repeated API requests. Cache duration can be configured where supported, and caches can be cleared from the plugin settings.
+
+= Is Easy Social Feed GDPR compliant? =
+
+The plugin provides consent-aware controls, supported consent-plugin integrations and optional zero-third-party behavior. Website owners remain responsible for configuring consent settings and maintaining their privacy notices.
+
+= Will social feeds improve my SEO? =
+
+The plugin provides server-rendered markup, semantic content, crawlable links and structured data where supported. These features can improve content discoverability, but no plugin can guarantee search rankings or AI visibility.
 
 == Screenshots ==
-1. Custom Facebook Feed with thumbnail
-2. Custom Instagram Feed in Grid layout
-3. Responsive Facebook Like Box(page plugin)
-4. Custom Facebook feed in advanced PopUp
-5. Custom Instagram feed in advanced PopUp
-6. Instagram Hashtag feed
-7. Custom Facebook Feed in Carousel layout
-8. Custom Instagram Feed in Carousel layout
-9. Custom Facebook Feed in Masonry layout
-10. Custom Instagram Feed in Masonry layout
-11. Custom Facebook Feed in Full Width layout
-12. Instagram Feed customisation options
-13. Facebook Feed customisation options
-14. Facebook Feed customisation in real time
-15. Instagram Feed customisation in real time
-16. Custom Facebook Feed widget
-17. Facebook Like Box(page plugin) widget
-18. Easy Facebook authentication with few clicks
-19. Easy Instagram authentication with personal and business accounts
-20. Easy Facebook shortcode generator
-21. Easy Instagram shortcode generator
-22. Facebook skins/layouts panel
-23. Instagram skins/layouts panel
 
 == Changelog ==
+
+= 6.8.1 =
+* Added: Social Wall (Combo Pro) — combine Facebook, Instagram, YouTube, X/Twitter, and TikTok posts in one wall with Grid, Row, Masonry, and Carousel layouts, network filters, load more, and popups.
+* Fixed: Legacy Facebook feed and page-plugin widgets no longer fatal when the global renderer is missing (e.g. widget preload).
+* Fixed: YouTube admin and frontend branding now use the official YouTube icon to meet YouTube API branding guidelines.
+* Fixed: Facebook feed cache auto-refresh cron now rewarms expired posts from Graph instead of sticking on stale cache.
+* Fixed: Clear All Caches safely refreshes from the live API and keeps existing cache when the API fails or returns empty, with an optional Forcefully clear action (all modules).
+* Fixed: Disconnecting a YouTube account no longer empties frontend feeds by wiping local media/cache.
+* Updated: Freemius SDK to 2.13.5.
 
 = 6.7.10 =
 * Fixed: WordPress.org package was missing required shared frontend files, which caused a fatal error on install.
 
 = 6.7.9 =
-* Added: TikTok Feed module — connect your account, create feeds (Grid; Row & popup lightbox in Pro), and embed with shortcode.
+* Added: TikTok Feed module — connect your account, create feeds (Grid & Row free; Wave style & popup lightbox in Pro), and embed with shortcode.
 * Added: Modern Facebook Feed module with a new dashboard (accounts, feeds, live preview) and a migration path from the legacy module.
 * Added: Visual moderation (Pro) for Facebook, YouTube, and X/Twitter feeds to show or hide posts.
 * Added: Row layout for YouTube and X/Twitter feeds.
@@ -408,7 +513,6 @@ Use the shortcode generator to select your preferred post types.
 * Fixed: When a connected account assigned to a feed is deleted, the plugin now shows a notice and auto-assigns another available account where possible.
 * Added: New first-run onboarding wizard to simplify setup across modules.
 * Improved: Connection handoff now redirects users to module pages, with auto-open connect flow for Facebook and Instagram.
-
 
 = 6.7.5 =
 * Added: Feed language setting in General settings so you can choose which language Facebook and Instagram use for their built‑in text (e.g. “X created an event”, “X shared a link”). Default uses your site language; feed cache is cleared when you change the language
@@ -465,8 +569,5 @@ https://easysocialfeed.com/changelog
 
 == Upgrade Notice ==
 
-= 6.7.10 =
-Fixes a fatal error in the WordPress.org package caused by missing shared frontend files. Recommended for all users.
-
-= 6.7.9 =
-Major update: TikTok module, modern Facebook, Multifeed & moderation (Pro), new layouts for YouTube/X, and many UX/stability fixes. Recommended for all users.
+= 6.8.1 =
+Adds Social Wall (Combo Pro) and fixes Facebook feed cache auto-refresh so expired posts rewarm from Graph instead of sticking on stale cache. Recommended for all users.

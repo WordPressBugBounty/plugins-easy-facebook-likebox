@@ -73,6 +73,7 @@ class ESF_TikTok_Main {
         require_once ESF_TIKTOK_DIR . 'includes/helpers/tiktok-helper-functions.php';
         require_once ESF_TIKTOK_DIR . 'includes/database/class-esf-tiktok-db-installer.php';
         require_once ESF_TIKTOK_DIR . 'includes/class-esf-tiktok-cache.php';
+        require_once ESF_TIKTOK_DIR . 'includes/cache/class-esf-tiktok-cache-refresher.php';
         require_once ESF_TIKTOK_DIR . 'includes/class-esf-tiktok-local-media.php';
         require_once ESF_TIKTOK_DIR . 'includes/class-esf-tiktok-api-error.php';
         require_once ESF_TIKTOK_DIR . 'includes/models/class-esf-tiktok-account-repository.php';
@@ -94,6 +95,9 @@ class ESF_TikTok_Main {
         }
         if ( is_admin() ) {
             require_once ESF_TIKTOK_DIR . 'admin/classes/class-esf-tiktok-admin.php';
+        }
+        if ( class_exists( 'ESF_Safe_Cache_Refresh' ) && class_exists( 'ESF_TikTok_Cache_Refresher' ) ) {
+            ESF_Safe_Cache_Refresh::register( new ESF_TikTok_Cache_Refresher() );
         }
     }
 
@@ -270,6 +274,14 @@ class ESF_TikTok_Main {
      * @return array<string,array<string,mixed>>
      */
     public function add_cron_schedules( $schedules ) {
+        if ( function_exists( 'esf_feed_cache_add_cron_schedules' ) ) {
+            // TikTok Settings currently expose 12h / 24h / 7d (no 1h option).
+            return esf_feed_cache_add_cron_schedules( $schedules, 'tiktok', array(
+                43200  => '12h',
+                86400  => '24h',
+                604800 => '7d',
+            ) );
+        }
         if ( !is_array( $schedules ) ) {
             $schedules = array();
         }
@@ -300,6 +312,10 @@ class ESF_TikTok_Main {
     private function maybe_schedule_feed_cache_refresh() {
         $ttl = (int) esf_get_tiktok_settings( 'cache_duration' );
         $schedule_slug = $this->get_cache_refresh_schedule_slug( $ttl );
+        if ( function_exists( 'esf_feed_cache_maybe_schedule_refresh' ) ) {
+            esf_feed_cache_maybe_schedule_refresh( self::CRON_CACHE_REFRESH_HOOK, $schedule_slug );
+            return;
+        }
         $event = ( function_exists( 'wp_get_scheduled_event' ) ? wp_get_scheduled_event( self::CRON_CACHE_REFRESH_HOOK ) : false );
         if ( is_object( $event ) && isset( $event->schedule ) && $event->schedule === $schedule_slug ) {
             return;
@@ -318,6 +334,12 @@ class ESF_TikTok_Main {
      * @return void
      */
     public function reschedule_feed_cache_refresh() {
+        $ttl = (int) esf_get_tiktok_settings( 'cache_duration' );
+        $schedule_slug = $this->get_cache_refresh_schedule_slug( $ttl );
+        if ( function_exists( 'esf_feed_cache_reschedule_refresh' ) ) {
+            esf_feed_cache_reschedule_refresh( self::CRON_CACHE_REFRESH_HOOK, $schedule_slug );
+            return;
+        }
         $timestamp = wp_next_scheduled( self::CRON_CACHE_REFRESH_HOOK );
         if ( $timestamp ) {
             wp_unschedule_event( $timestamp, self::CRON_CACHE_REFRESH_HOOK );
@@ -333,12 +355,20 @@ class ESF_TikTok_Main {
      * @return string
      */
     private function get_cache_refresh_schedule_slug( $cache_duration_secs ) {
-        $map = array(
-            43200  => 'esf_tiktok_12h',
-            86400  => 'esf_tiktok_24h',
-            604800 => 'esf_tiktok_7d',
+        $suffixes = array(
+            43200  => '12h',
+            86400  => '24h',
+            604800 => '7d',
         );
-        return ( isset( $map[(int) $cache_duration_secs] ) ? $map[(int) $cache_duration_secs] : 'esf_tiktok_12h' );
+        if ( function_exists( 'esf_feed_cache_cron_schedule_slug' ) ) {
+            return esf_feed_cache_cron_schedule_slug(
+                $cache_duration_secs,
+                'tiktok',
+                43200,
+                $suffixes
+            );
+        }
+        return 'esf_tiktok_12h';
     }
 
     /**

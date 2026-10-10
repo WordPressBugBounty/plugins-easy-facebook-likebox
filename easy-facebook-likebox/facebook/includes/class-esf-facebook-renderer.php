@@ -182,6 +182,83 @@ class ESF_Facebook_Renderer {
     }
 
     /**
+     * Return mapped Post objects for a feed by ID (cron warm / Social Wall / external callers).
+     *
+     * Wraps {@see fetch_posts()} after loading the feed row and page account.
+     *
+     * @since 6.7.9
+     *
+     * @param int                 $feed_id Feed ID.
+     * @param array<string,mixed> $args    Optional: limit (int), media_context (preview|frontend), cache_only (bool), force_refresh (bool).
+     * @return array<int,\EasySocialFeed\Layouts\ValueObjects\Post>
+     */
+    public function get_posts_for_feed_by_id( $feed_id, $args = array() ) {
+        $feed_id = (int) $feed_id;
+        if ( $feed_id <= 0 || !class_exists( 'ESF_Facebook_Feed_Repository' ) ) {
+            return array();
+        }
+        $args = ( is_array( $args ) ? $args : array() );
+        $media_context = ( isset( $args['media_context'] ) ? sanitize_key( (string) $args['media_context'] ) : 'frontend' );
+        if ( !in_array( $media_context, array('preview', 'frontend'), true ) ) {
+            $media_context = 'frontend';
+        }
+        $cache_only = !empty( $args['cache_only'] );
+        $force_refresh = !empty( $args['force_refresh'] );
+        $feed_row = ESF_Facebook_Feed_Repository::get_instance()->get_by_id( $feed_id );
+        if ( !$feed_row ) {
+            return array();
+        }
+        $content_type = ( isset( $feed_row->content_type ) ? sanitize_key( (string) $feed_row->content_type ) : 'feed' );
+        if ( 'likebox' === $content_type ) {
+            return array();
+        }
+        $page_row_id = ( isset( $feed_row->page_id ) ? (int) $feed_row->page_id : 0 );
+        $settings = ( isset( $feed_row->settings ) && is_array( $feed_row->settings ) ? $feed_row->settings : ESF_Facebook_Feed_Repository::get_default_settings() );
+        $settings = ESF_Facebook_Feed_Repository::normalize_settings( $settings );
+        $status = ( isset( $feed_row->status ) ? sanitize_key( (string) $feed_row->status ) : 'active' );
+        $page_row = null;
+        if ( class_exists( 'ESF_Facebook_Page_Repository' ) && $page_row_id > 0 ) {
+            $page_row = ESF_Facebook_Page_Repository::get_instance()->get_by_id( $page_row_id );
+        }
+        $seed = (object) array(
+            'id'        => (int) $feed_row->id,
+            'page_id'   => $page_row_id,
+            'feed_type' => ( isset( $feed_row->feed_type ) ? (string) $feed_row->feed_type : 'timeline' ),
+            'settings'  => $settings,
+        );
+        $query = ( class_exists( 'ESF_Facebook_Feed_Query' ) ? ESF_Facebook_Feed_Query::from_feed( $seed ) : null );
+        $feed_type = ( $query ? $query->get_feed_type() : (( isset( $feed_row->feed_type ) ? (string) $feed_row->feed_type : 'timeline' )) );
+        $feed_obj = (object) array(
+            'id'           => (int) $feed_row->id,
+            'name'         => ( isset( $feed_row->name ) ? (string) $feed_row->name : '' ),
+            'page_id'      => $page_row_id,
+            'content_type' => 'feed',
+            'feed_type'    => $feed_type,
+            'source_id'    => ( isset( $feed_row->source_id ) ? (string) $feed_row->source_id : '' ),
+            'settings'     => $settings,
+            'status'       => $status,
+        );
+        if ( $query ) {
+            $feed_obj = $query->apply_to_feed_object( $feed_obj );
+            $feed_obj->page_id = $page_row_id;
+        }
+        $account = self::resolve_page_account( $page_row_id, $page_row, $feed_obj );
+        $result = $this->fetch_posts(
+            $feed_obj,
+            $account,
+            $media_context,
+            $cache_only,
+            $force_refresh
+        );
+        $posts = ( isset( $result['posts'] ) && is_array( $result['posts'] ) ? $result['posts'] : array() );
+        $limit = ( isset( $args['limit'] ) ? (int) $args['limit'] : 0 );
+        if ( $limit > 0 && count( $posts ) > $limit ) {
+            $posts = array_slice( $posts, 0, $limit );
+        }
+        return $posts;
+    }
+
+    /**
      * Resolve posts + meta cache keys for a feed.
      *
      * @param object $feed_obj Feed object.
@@ -808,14 +885,17 @@ class ESF_Facebook_Renderer {
      *
      * @param object              $feed_obj      Feed object.
      * @param AccountSummary|null $account       Primary page summary.
-     * @param string              $media_context `preview` or `frontend`.
+     * @param string              $media_context  `preview` or `frontend`.
+     * @param bool                $cache_only       Serve cache only (disconnected / invalid).
+     * @param bool                $force_refresh    Skip stale fallback and fetch from Graph when cache is expired.
      * @return array{posts:array<int,\EasySocialFeed\Layouts\ValueObjects\Post>,has_local_cache:bool,nodes:array<int,array>,cursor:string}
      */
     public function fetch_posts(
         $feed_obj,
         ?AccountSummary $account = null,
         string $media_context = 'frontend',
-        bool $cache_only = false
+        bool $cache_only = false,
+        bool $force_refresh = false
     ) : array {
         $result = array(
             'posts'           => array(),
@@ -823,89 +903,131 @@ class ESF_Facebook_Renderer {
             'nodes'           => array(),
             'cursor'          => '',
         );
-        if ( !$cache_only ) {
-            $page_row_id = ( is_object( $feed_obj ) && isset( $feed_obj->page_id ) ? (int) $feed_obj->page_id : 0 );
-            $feed_status = ( is_object( $feed_obj ) && isset( $feed_obj->status ) ? sanitize_key( (string) $feed_obj->status ) : 'active' );
-            if ( 'invalid' === $feed_status ) {
-                $cache_only = true;
-            } elseif ( $page_row_id > 0 && class_exists( 'ESF_Facebook_Page_Repository' ) ) {
-                $page_row = ESF_Facebook_Page_Repository::get_instance()->get_by_id( $page_row_id );
-                if ( !$page_row ) {
-                    $cache_only = true;
-                }
+        $preset = array(
+            'posts'           => array(),
+            'has_local_cache' => false,
+            'nodes'           => array(),
+            'cursor'          => '',
+        );
+        /**
+         * Filter the Facebook post payload before cache/API fetch.
+         *
+         * Returning posts/nodes short-circuits the Graph fetch. Prefer Graph node
+         * arrays in `posts` or `nodes` (same shape as the posts cache `data` key).
+         *
+         * @since 6.7.9
+         *
+         * @param array               $value         Default empty payload.
+         * @param object              $feed_obj      Feed object.
+         * @param AccountSummary|null $account       Primary page summary.
+         * @param string              $media_context Display context (`frontend`|`preview`).
+         */
+        $payload = apply_filters(
+            'esf_facebook_render_posts_payload',
+            $preset,
+            $feed_obj,
+            $account,
+            $media_context
+        );
+        $nodes = array();
+        $cursor = '';
+        $fetched_limit = 0;
+        $short_circuited = false;
+        $settings = ( isset( $feed_obj->settings ) && is_array( $feed_obj->settings ) ? $feed_obj->settings : array() );
+        $feed_cfg = ( isset( $settings['feed'] ) && is_array( $settings['feed'] ) ? $settings['feed'] : array() );
+        $per_page = ( isset( $feed_cfg['per_page'] ) ? max( 1, min( 50, (int) $feed_cfg['per_page'] ) ) : 9 );
+        if ( function_exists( 'esf_resolve_render_payload_override' ) ) {
+            $override = esf_resolve_render_payload_override( $payload, 'posts' );
+            if ( !$override['short_circuited'] && is_array( $payload ) && (isset( $payload['nodes'] ) || array_key_exists( 'has_local_cache', $payload )) ) {
+                $override = esf_resolve_render_payload_override( $payload, 'nodes' );
+            }
+            if ( $override['short_circuited'] ) {
+                $nodes = $override['items'];
+                $result['has_local_cache'] = !empty( $override['has_local_cache'] ) || !empty( $nodes );
+                $cursor = ( is_array( $payload ) && isset( $payload['cursor'] ) ? (string) $payload['cursor'] : '' );
+                $fetched_limit = count( $nodes );
+                $short_circuited = true;
             }
         }
-        $keys = self::resolve_posts_cache_keys( $feed_obj );
-        $cache_key = $keys['cache_key'];
-        $meta_key = $keys['meta_key'];
-        $cached = ( class_exists( 'ESF_Facebook_Cache' ) ? ESF_Facebook_Cache::get( $cache_key ) : null );
-        if ( !is_array( $cached ) && class_exists( 'ESF_Facebook_Cache' ) ) {
-            $cached = ESF_Facebook_Cache::get_stale( $cache_key );
-        }
-        // Specific-album feeds must contain photos, not album-list cards. Discard
-        // poisoned cache rows left from when album_id was ignored at Graph fetch.
-        if ( is_array( $cached ) && isset( $cached['data'] ) && is_array( $cached['data'] ) ) {
-            $feed_cfg_check = ( isset( $feed_obj->settings['feed'] ) && is_array( $feed_obj->settings['feed'] ) ? $feed_obj->settings['feed'] : array() );
-            $selected_album = ( isset( $feed_cfg_check['album_id'] ) ? sanitize_text_field( (string) $feed_cfg_check['album_id'] ) : '' );
-            $feed_type_check = ( isset( $feed_obj->feed_type ) ? sanitize_key( (string) $feed_obj->feed_type ) : '' );
-            if ( 'albums' === $feed_type_check && '' !== $selected_album && self::cached_nodes_look_like_album_list( $cached['data'] ) ) {
-                $cached = null;
+        if ( !$short_circuited ) {
+            if ( !$cache_only ) {
+                $page_row_id = ( is_object( $feed_obj ) && isset( $feed_obj->page_id ) ? (int) $feed_obj->page_id : 0 );
+                $feed_status = ( is_object( $feed_obj ) && isset( $feed_obj->status ) ? sanitize_key( (string) $feed_obj->status ) : 'active' );
+                if ( 'invalid' === $feed_status ) {
+                    $cache_only = true;
+                } elseif ( $page_row_id > 0 && class_exists( 'ESF_Facebook_Page_Repository' ) ) {
+                    $page_row = ESF_Facebook_Page_Repository::get_instance()->get_by_id( $page_row_id );
+                    if ( !$page_row ) {
+                        $cache_only = true;
+                    }
+                }
+            }
+            $keys = self::resolve_posts_cache_keys( $feed_obj );
+            $cache_key = $keys['cache_key'];
+            $meta_key = $keys['meta_key'];
+            $cached = ( class_exists( 'ESF_Facebook_Cache' ) ? ESF_Facebook_Cache::get( $cache_key ) : null );
+            if ( !is_array( $cached ) && !$force_refresh && class_exists( 'ESF_Facebook_Cache' ) ) {
+                $cached = ESF_Facebook_Cache::get_stale( $cache_key );
+            }
+            // Specific-album feeds must contain photos, not album-list cards. Discard
+            // poisoned cache rows left from when album_id was ignored at Graph fetch.
+            if ( is_array( $cached ) && isset( $cached['data'] ) && is_array( $cached['data'] ) ) {
+                $feed_cfg_check = ( isset( $feed_obj->settings['feed'] ) && is_array( $feed_obj->settings['feed'] ) ? $feed_obj->settings['feed'] : array() );
+                $selected_album = ( isset( $feed_cfg_check['album_id'] ) ? sanitize_text_field( (string) $feed_cfg_check['album_id'] ) : '' );
+                $feed_type_check = ( isset( $feed_obj->feed_type ) ? sanitize_key( (string) $feed_obj->feed_type ) : '' );
+                if ( 'albums' === $feed_type_check && '' !== $selected_album && self::cached_nodes_look_like_album_list( $cached['data'] ) ) {
+                    $cached = null;
+                    if ( class_exists( 'ESF_Facebook_Cache' ) ) {
+                        ESF_Facebook_Cache::delete_by_key( $cache_key );
+                        ESF_Facebook_Cache::delete_by_key( $meta_key );
+                    }
+                }
+            }
+            if ( is_array( $cached ) && isset( $cached['data'] ) && is_array( $cached['data'] ) ) {
+                $nodes = $cached['data'];
+                $result['has_local_cache'] = true;
+                if ( !empty( $cached['pagination']['next'] ) ) {
+                    $cursor = (string) $cached['pagination']['next'];
+                }
+                if ( isset( $cached['fetched_limit'] ) ) {
+                    $fetched_limit = max( 0, (int) $cached['fetched_limit'] );
+                } else {
+                    // Legacy thin caches were fetched at display per_page (often 9).
+                    $fetched_limit = count( $nodes );
+                }
+            } elseif ( !$cache_only ) {
+                $fetched = $this->fetch_and_cache_posts( $feed_obj );
+                $nodes = ( isset( $fetched['nodes'] ) ? $fetched['nodes'] : array() );
+                $cursor = ( isset( $fetched['cursor'] ) ? (string) $fetched['cursor'] : '' );
+                $fetched_limit = ( isset( $fetched['fetched_limit'] ) ? (int) $fetched['fetched_limit'] : count( $nodes ) );
+                if ( !empty( $fetched['events_setup_required'] ) ) {
+                    $result['events_setup_required'] = true;
+                }
+            }
+            $meta = ( class_exists( 'ESF_Facebook_Cache' ) ? ESF_Facebook_Cache::get( $meta_key ) : null );
+            if ( is_array( $meta ) && !empty( $meta['cursor'] ) ) {
+                $cursor = (string) $meta['cursor'];
+            }
+            if ( is_array( $meta ) && isset( $meta['fetched_limit'] ) ) {
+                $fetched_limit = max( $fetched_limit, (int) $meta['fetched_limit'] );
+            }
+            /*
+             * Thin legacy caches were stored at the old Graph page size (== per_page,
+             * often 9). When Posts per page is raised above that buffer, refetch with
+             * the Instagram-parity prefetch limit so the first page can grow.
+             */
+            if ( !$cache_only && count( $nodes ) < $per_page && $fetched_limit < $per_page ) {
                 if ( class_exists( 'ESF_Facebook_Cache' ) ) {
                     ESF_Facebook_Cache::delete_by_key( $cache_key );
                     ESF_Facebook_Cache::delete_by_key( $meta_key );
                 }
-            }
-        }
-        $nodes = array();
-        $cursor = '';
-        $fetched_limit = 0;
-        if ( is_array( $cached ) && isset( $cached['data'] ) && is_array( $cached['data'] ) ) {
-            $nodes = $cached['data'];
-            $result['has_local_cache'] = true;
-            if ( !empty( $cached['pagination']['next'] ) ) {
-                $cursor = (string) $cached['pagination']['next'];
-            }
-            if ( isset( $cached['fetched_limit'] ) ) {
-                $fetched_limit = max( 0, (int) $cached['fetched_limit'] );
-            } else {
-                // Legacy thin caches were fetched at display per_page (often 9).
-                $fetched_limit = count( $nodes );
-            }
-        } elseif ( !$cache_only ) {
-            $fetched = $this->fetch_and_cache_posts( $feed_obj );
-            $nodes = ( isset( $fetched['nodes'] ) ? $fetched['nodes'] : array() );
-            $cursor = ( isset( $fetched['cursor'] ) ? (string) $fetched['cursor'] : '' );
-            $fetched_limit = ( isset( $fetched['fetched_limit'] ) ? (int) $fetched['fetched_limit'] : count( $nodes ) );
-            if ( !empty( $fetched['events_setup_required'] ) ) {
-                $result['events_setup_required'] = true;
-            }
-        }
-        $meta = ( class_exists( 'ESF_Facebook_Cache' ) ? ESF_Facebook_Cache::get( $meta_key ) : null );
-        if ( is_array( $meta ) && !empty( $meta['cursor'] ) ) {
-            $cursor = (string) $meta['cursor'];
-        }
-        if ( is_array( $meta ) && isset( $meta['fetched_limit'] ) ) {
-            $fetched_limit = max( $fetched_limit, (int) $meta['fetched_limit'] );
-        }
-        $settings = ( isset( $feed_obj->settings ) && is_array( $feed_obj->settings ) ? $feed_obj->settings : array() );
-        $feed_cfg = ( isset( $settings['feed'] ) && is_array( $settings['feed'] ) ? $settings['feed'] : array() );
-        $per_page = ( isset( $feed_cfg['per_page'] ) ? max( 1, min( 50, (int) $feed_cfg['per_page'] ) ) : 9 );
-        /*
-         * Thin legacy caches were stored at the old Graph page size (== per_page,
-         * often 9). When Posts per page is raised above that buffer, refetch with
-         * the Instagram-parity prefetch limit so the first page can grow.
-         */
-        if ( !$cache_only && count( $nodes ) < $per_page && $fetched_limit < $per_page ) {
-            if ( class_exists( 'ESF_Facebook_Cache' ) ) {
-                ESF_Facebook_Cache::delete_by_key( $cache_key );
-                ESF_Facebook_Cache::delete_by_key( $meta_key );
-            }
-            $fetched = $this->fetch_and_cache_posts( $feed_obj );
-            $nodes = ( isset( $fetched['nodes'] ) ? $fetched['nodes'] : array() );
-            $cursor = ( isset( $fetched['cursor'] ) ? (string) $fetched['cursor'] : '' );
-            $result['has_local_cache'] = !empty( $nodes );
-            if ( !empty( $fetched['events_setup_required'] ) ) {
-                $result['events_setup_required'] = true;
+                $fetched = $this->fetch_and_cache_posts( $feed_obj );
+                $nodes = ( isset( $fetched['nodes'] ) ? $fetched['nodes'] : array() );
+                $cursor = ( isset( $fetched['cursor'] ) ? (string) $fetched['cursor'] : '' );
+                $result['has_local_cache'] = !empty( $nodes );
+                if ( !empty( $fetched['events_setup_required'] ) ) {
+                    $result['events_setup_required'] = true;
+                }
             }
         }
         $feed_id = ( isset( $feed_obj->id ) ? (int) $feed_obj->id : 0 );
@@ -963,6 +1085,39 @@ class ESF_Facebook_Renderer {
         $result['nodes'] = $nodes;
         $result['cursor'] = $cursor;
         return $result;
+    }
+
+    /**
+     * Force-refresh one feed from Graph, bypassing warm cache.
+     *
+     * Writes cache only when Graph returns posts. On failure/empty, existing
+     * cache rows are left untouched.
+     *
+     * @since 6.8.2
+     *
+     * @param object $feed_obj Feed object.
+     * @return true|WP_Error
+     */
+    public function force_refresh_feed_posts( $feed_obj ) {
+        if ( !is_object( $feed_obj ) ) {
+            return new WP_Error('invalid_feed', __( 'Invalid Facebook feed.', 'easy-facebook-likebox' ), array(
+                'status' => 400,
+            ));
+        }
+        $content_type = ( isset( $feed_obj->content_type ) ? sanitize_key( (string) $feed_obj->content_type ) : 'feed' );
+        if ( 'likebox' === $content_type ) {
+            return new WP_Error('skipped_likebox', __( 'Likebox feeds do not use post cache.', 'easy-facebook-likebox' ), array(
+                'status' => 400,
+            ));
+        }
+        $fetched = $this->fetch_and_cache_posts( $feed_obj );
+        $nodes = ( isset( $fetched['nodes'] ) && is_array( $fetched['nodes'] ) ? $fetched['nodes'] : array() );
+        if ( empty( $nodes ) ) {
+            return new WP_Error('empty_feed', __( 'No Facebook posts were returned. Existing cache was kept.', 'easy-facebook-likebox' ), array(
+                'status' => 502,
+            ));
+        }
+        return true;
     }
 
     /**

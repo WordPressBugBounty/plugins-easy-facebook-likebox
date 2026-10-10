@@ -29,6 +29,14 @@ class ESF_Facebook_Main {
     const DB_SCHEMA_VERSION = '1.6';
 
     /**
+     * Cron hook for feed posts cache refresh (pre-warm before TTL expiry).
+     *
+     * @since 6.7.9
+     * @var string
+     */
+    const CRON_CACHE_REFRESH_HOOK = 'esf_facebook_refresh_feed_cache';
+
+    /**
      * Constructor.
      *
      * @since 6.7.9
@@ -57,6 +65,8 @@ class ESF_Facebook_Main {
      * @return void
      */
     private function init_hooks() {
+        add_filter( 'cron_schedules', array($this, 'add_cron_schedules') );
+        add_action( self::CRON_CACHE_REFRESH_HOOK, array($this, 'run_feed_cache_refresh') );
         /*
          * Parent Feed_Them_All::includes() loads this module on init (priority 10).
          * Token manager / migration follow-ups must run after that pass completes.
@@ -128,6 +138,7 @@ class ESF_Facebook_Main {
         require_once $dir . 'includes/helpers/facebook-helper-functions.php';
         require_once $dir . 'includes/database/class-esf-facebook-db-installer.php';
         require_once $dir . 'includes/class-esf-facebook-cache.php';
+        require_once $dir . 'includes/cache/class-esf-facebook-cache-refresher.php';
         require_once $dir . 'includes/models/class-esf-facebook-account-repository.php';
         require_once $dir . 'includes/models/class-esf-facebook-page-repository.php';
         require_once $dir . 'includes/models/class-esf-facebook-feed-repository.php';
@@ -185,6 +196,9 @@ class ESF_Facebook_Main {
         if ( is_admin() ) {
             require_once $dir . 'admin/classes/class-esf-facebook-admin.php';
         }
+        if ( class_exists( 'ESF_Safe_Cache_Refresh' ) && class_exists( 'ESF_Facebook_Cache_Refresher' ) ) {
+            ESF_Safe_Cache_Refresh::register( new ESF_Facebook_Cache_Refresher() );
+        }
     }
 
     /**
@@ -198,6 +212,7 @@ class ESF_Facebook_Main {
             return;
         }
         $this->maybe_migrate_db_schema();
+        $this->maybe_schedule_feed_cache_refresh();
         if ( is_admin() && class_exists( 'ESF_Facebook_Admin' ) ) {
             ESF_Facebook_Admin::get_instance();
         }
@@ -218,6 +233,172 @@ class ESF_Facebook_Main {
             return;
         }
         ESF_Facebook_DB_Installer::create_tables();
+    }
+
+    /**
+     * Add custom WP-Cron schedules for feed cache refresh.
+     *
+     * @since 6.7.9
+     *
+     * @param array<string,array<string,mixed>> $schedules Existing schedules.
+     * @return array<string,array<string,mixed>>
+     */
+    public function add_cron_schedules( $schedules ) {
+        if ( function_exists( 'esf_cron_schedules_add_thirty_minutes' ) ) {
+            $schedules = esf_cron_schedules_add_thirty_minutes( $schedules );
+        }
+        if ( function_exists( 'esf_feed_cache_add_cron_schedules' ) ) {
+            return esf_feed_cache_add_cron_schedules( $schedules, 'facebook' );
+        }
+        return ( is_array( $schedules ) ? $schedules : array() );
+    }
+
+    /**
+     * Schedule feed cache refresh cron based on Settings → cache duration.
+     *
+     * @since 6.7.9
+     * @return void
+     */
+    private function maybe_schedule_feed_cache_refresh() {
+        if ( function_exists( 'esf_is_facebook_active' ) && !esf_is_facebook_active() ) {
+            return;
+        }
+        if ( !function_exists( 'esf_feed_cache_maybe_schedule_refresh' ) ) {
+            return;
+        }
+        $cache_duration = ( function_exists( 'esf_get_facebook_settings' ) ? (int) esf_get_facebook_settings( 'cache_duration' ) : 43200 );
+        $schedule_slug = $this->get_cache_refresh_schedule_slug( $cache_duration );
+        esf_feed_cache_maybe_schedule_refresh( self::CRON_CACHE_REFRESH_HOOK, $schedule_slug );
+    }
+
+    /**
+     * Reschedule feed cache refresh after Settings cache duration changes.
+     *
+     * @since 6.7.9
+     * @return void
+     */
+    public function reschedule_feed_cache_refresh() {
+        $cache_duration = ( function_exists( 'esf_get_facebook_settings' ) ? (int) esf_get_facebook_settings( 'cache_duration' ) : 43200 );
+        $schedule_slug = $this->get_cache_refresh_schedule_slug( $cache_duration );
+        if ( function_exists( 'esf_feed_cache_reschedule_refresh' ) ) {
+            esf_feed_cache_reschedule_refresh( self::CRON_CACHE_REFRESH_HOOK, $schedule_slug );
+            return;
+        }
+        $timestamp = wp_next_scheduled( self::CRON_CACHE_REFRESH_HOOK );
+        if ( $timestamp ) {
+            wp_unschedule_event( $timestamp, self::CRON_CACHE_REFRESH_HOOK );
+        }
+        $this->maybe_schedule_feed_cache_refresh();
+    }
+
+    /**
+     * Map cache duration (seconds) to a Facebook cron schedule slug.
+     *
+     * @since 6.7.9
+     *
+     * @param int $cache_duration_secs Cache duration in seconds.
+     * @return string
+     */
+    private function get_cache_refresh_schedule_slug( $cache_duration_secs ) {
+        if ( function_exists( 'esf_feed_cache_cron_schedule_slug' ) ) {
+            return esf_feed_cache_cron_schedule_slug( $cache_duration_secs, 'facebook' );
+        }
+        return 'esf_facebook_12h';
+    }
+
+    /**
+     * Cron: re-warm expired Facebook posts caches for active feeds.
+     *
+     * Uses {@see ESF_Facebook_Renderer::get_posts_for_feed_by_id()} with force_refresh so
+     * stale rows do not block Graph fetches (visitor requests still use stale-while-revalidate).
+     *
+     * @since 6.7.9
+     * @return void
+     */
+    public function run_feed_cache_refresh() {
+        if ( !class_exists( 'ESF_Facebook_Feed_Repository' ) || !class_exists( 'ESF_Facebook_Cache' ) ) {
+            return;
+        }
+        if ( function_exists( 'esf_is_facebook_active' ) && !esf_is_facebook_active() ) {
+            return;
+        }
+        $feeds = ESF_Facebook_Feed_Repository::get_instance()->get_all( array(
+            'status' => 'active',
+        ) );
+        if ( empty( $feeds ) || !is_array( $feeds ) ) {
+            return;
+        }
+        if ( !class_exists( 'ESF_Facebook_Renderer' ) ) {
+            return;
+        }
+        $renderer = new ESF_Facebook_Renderer();
+        $page_repo = ( class_exists( 'ESF_Facebook_Page_Repository' ) ? ESF_Facebook_Page_Repository::get_instance() : null );
+        $seen_keys = array();
+        foreach ( $feeds as $feed ) {
+            $feed_id = ( isset( $feed->id ) ? (int) $feed->id : 0 );
+            if ( $feed_id <= 0 ) {
+                continue;
+            }
+            $content_type = ( isset( $feed->content_type ) ? sanitize_key( (string) $feed->content_type ) : 'feed' );
+            if ( 'likebox' === $content_type ) {
+                continue;
+            }
+            $feed_status = ( isset( $feed->status ) ? sanitize_key( (string) $feed->status ) : 'active' );
+            if ( 'active' !== $feed_status ) {
+                continue;
+            }
+            if ( ESF_Facebook_Cache::feed_has_pinned_cache_rows( $feed_id ) ) {
+                continue;
+            }
+            $page_row_id = ( isset( $feed->page_id ) ? (int) $feed->page_id : 0 );
+            $page_row = ( $page_repo && $page_row_id > 0 ? $page_repo->get_by_id( $page_row_id ) : null );
+            if ( class_exists( 'ESF_Feed_Disconnected_Cache' ) && ESF_Feed_Disconnected_Cache::facebook_source_is_disconnected( $feed, $page_row ) ) {
+                continue;
+            }
+            $settings = ( isset( $feed->settings ) && is_array( $feed->settings ) ? $feed->settings : (( function_exists( 'ESF_Facebook_Feed_Repository' ) ? ESF_Facebook_Feed_Repository::get_default_settings() : array() )) );
+            $feed_obj = (object) array(
+                'id'           => $feed_id,
+                'page_id'      => $page_row_id,
+                'feed_type'    => ( isset( $feed->feed_type ) ? (string) $feed->feed_type : 'timeline' ),
+                'settings'     => $settings,
+                'content_type' => 'feed',
+                'status'       => $feed_status,
+            );
+            if ( class_exists( 'ESF_Facebook_Feed_Query' ) ) {
+                $feed_obj = ESF_Facebook_Feed_Query::from_feed( $feed_obj )->apply_to_feed_object( $feed_obj );
+                $feed_obj->page_id = $page_row_id;
+            }
+            $keys = ESF_Facebook_Renderer::resolve_posts_cache_keys( $feed_obj );
+            $cache_key = ( isset( $keys['cache_key'] ) ? (string) $keys['cache_key'] : '' );
+            if ( '' === $cache_key || isset( $seen_keys[$cache_key] ) ) {
+                continue;
+            }
+            $expires_at = ESF_Facebook_Cache::get_expires_at( $cache_key );
+            if ( function_exists( 'esf_feed_cache_is_due_for_refresh' ) && !esf_feed_cache_is_due_for_refresh( $expires_at ) ) {
+                $seen_keys[$cache_key] = true;
+                continue;
+            }
+            $renderer->get_posts_for_feed_by_id( $feed_id, array(
+                'force_refresh' => true,
+            ) );
+            $seen_keys[$cache_key] = true;
+        }
+    }
+
+    /**
+     * Clear scheduled cron jobs when the module or plugin is deactivated.
+     *
+     * @since 6.7.9
+     * @return void
+     */
+    public static function on_deactivation() {
+        $timestamp = wp_next_scheduled( self::CRON_CACHE_REFRESH_HOOK );
+        if ( $timestamp ) {
+            wp_unschedule_event( $timestamp, self::CRON_CACHE_REFRESH_HOOK );
+        }
+        if ( class_exists( 'ESF_Facebook_Token_Manager' ) && function_exists( 'esf_cron_unschedule_recurring_job' ) ) {
+            esf_cron_unschedule_recurring_job( ESF_Facebook_Token_Manager::CRON_HOOK );
+        }
     }
 
     /**

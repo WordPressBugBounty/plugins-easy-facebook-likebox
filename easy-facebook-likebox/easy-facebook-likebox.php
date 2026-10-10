@@ -3,8 +3,8 @@
 /**
  * Plugin Name: Easy Social Feed
  * Plugin URI:        https://wordpress.org/plugins/easy-facebook-likebox
- * Description:       Formerly "Easy Facebook Like Box and Custom Facebook Feed" plugin allows you to easily display custom facebook feed, custom Instagram photos and videos feed, page plugin (like box) on your website using either widget or shortcode to increase facbook fan page likes. You can use the shortcode generator. Additionally, it also now allows you to display the customized facebook feed on your website using the same color scheme of your website. Its completely customizable with lots of optional settings. Its also responsive facebook like box at the same time.
- * Version:           6.7.10
+ * Description:       Display Instagram, Facebook, YouTube, X and TikTok feeds on your website using blocks, widgets or shortcodes, with responsive layouts and live customization. Combine all networks in one Social Wall with Pro. Formerly "Easy Facebook Like Box and Custom Facebook Feed".
+ * Version:           6.8.1
  * Author:            Easy Social Feed
  * Author URI:        https://easysocialfeed.com/
  * Text Domain:       easy-facebook-likebox
@@ -270,6 +270,8 @@ if ( function_exists( 'efl_fs' ) ) {
     // Shared cron / Graph helpers must load before module bootstraps that schedule token refresh jobs.
     require_once __DIR__ . '/includes/class-esf-token-cron-helpers.php';
     require_once __DIR__ . '/includes/class-esf-feed-cache-helpers.php';
+    require_once __DIR__ . '/includes/contracts/interface-esf-module-cache-refresher.php';
+    require_once __DIR__ . '/includes/class-esf-safe-cache-refresh.php';
     require_once __DIR__ . '/includes/class-esf-oauth-token-helpers.php';
     require_once __DIR__ . '/includes/class-esf-manual-access-token.php';
     require_once __DIR__ . '/includes/class-esf-meta-graph-error.php';
@@ -304,7 +306,7 @@ if ( function_exists( 'efl_fs' ) ) {
     }
     if ( !class_exists( 'Feed_Them_All' ) ) {
         class Feed_Them_All {
-            public $version = '6.7.10';
+            public $version = '6.8.1';
 
             public $fta_slug = 'easy-facebook-likebox';
 
@@ -382,6 +384,11 @@ if ( function_exists( 'efl_fs' ) ) {
             public function includes() {
                 include FTA_PLUGIN_DIR . '/includes/class-module-search.php';
                 include FTA_PLUGIN_DIR . '/includes/core-functions.php';
+                // Social Wall helpers must load before Pro bootstrap (plan gate).
+                $social_wall_helpers = FTA_PLUGIN_DIR . '/includes/social-wall/helpers/social-wall-helper-functions.php';
+                if ( file_exists( $social_wall_helpers ) ) {
+                    require_once $social_wall_helpers;
+                }
                 if ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() ) {
                     $moderation_file = FTA_PLUGIN_DIR . '/includes/premium/class-esf-moderation.php';
                     if ( file_exists( $moderation_file ) ) {
@@ -394,6 +401,13 @@ if ( function_exists( 'efl_fs' ) ) {
                     $shoppable_file = FTA_PLUGIN_DIR . '/includes/premium/class-esf-shoppable.php';
                     if ( file_exists( $shoppable_file ) ) {
                         require_once $shoppable_file;
+                    }
+                    $social_wall_file = FTA_PLUGIN_DIR . '/includes/premium/social-wall/class-esf-social-wall.php';
+                    if ( file_exists( $social_wall_file ) ) {
+                        require_once $social_wall_file;
+                        if ( class_exists( 'ESF_Social_Wall' ) ) {
+                            ESF_Social_Wall::init__premium_only();
+                        }
                     }
                 }
                 require_once FTA_PLUGIN_DIR . '/includes/class-esf-feed-name.php';
@@ -419,6 +433,21 @@ if ( function_exists( 'efl_fs' ) ) {
                     ESF_Feed_Disconnected_Cache::init();
                 }
                 include FTA_PLUGIN_DIR . 'admin/class-esf-admin.php';
+                $social_wall_db = FTA_PLUGIN_DIR . '/includes/social-wall/database/class-esf-social-wall-db-installer.php';
+                if ( file_exists( $social_wall_db ) ) {
+                    require_once $social_wall_db;
+                }
+                $social_wall_repo = FTA_PLUGIN_DIR . '/includes/social-wall/models/class-esf-social-wall-feed-repository.php';
+                if ( file_exists( $social_wall_repo ) ) {
+                    require_once $social_wall_repo;
+                }
+                $social_wall_admin = FTA_PLUGIN_DIR . '/includes/social-wall/class-esf-social-wall-admin.php';
+                if ( file_exists( $social_wall_admin ) ) {
+                    require_once $social_wall_admin;
+                    if ( class_exists( 'ESF_Social_Wall_Admin' ) ) {
+                        ESF_Social_Wall_Admin::get_instance();
+                    }
+                }
                 $fta_plugins = $this->fta_plugins();
                 $instagram_status = $fta_plugins['instagram']['status'];
                 if ( $instagram_status == 'activated' ) {

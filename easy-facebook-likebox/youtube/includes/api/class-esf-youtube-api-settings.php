@@ -167,14 +167,20 @@ class ESF_YouTube_API_Settings {
 	}
 
 	/**
-	 * Clear YouTube feed cache (API video caches).
+	 * Safely refresh YouTube feed caches from the YouTube API.
+	 *
+	 * Fetches first; existing cache is kept when the API fails or returns empty.
 	 *
 	 * @since 6.7.5
 	 *
 	 * @param WP_REST_Request $request Request object (unused; required by REST API signature).
-	 * @return WP_REST_Response
+	 * @return WP_REST_Response|WP_Error
 	 */
-	public static function clear_cache( $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+	public static function clear_cache( $request ) {
+		if ( class_exists( 'ESF_Safe_Cache_Refresh' ) ) {
+			return ESF_Safe_Cache_Refresh::handle_clear_cache_request( 'youtube', $request );
+		}
+
 		$deleted = ESF_YouTube_Cache::flush_api_cache();
 		return rest_ensure_response(
 			array(

@@ -164,6 +164,7 @@ if ( ! class_exists( 'ESF_Admin_Paths' ) ) {
 				self::submenu_screen_id( 'esf-twitter' ),
 				self::submenu_screen_id( 'esf-youtube' ),
 				self::submenu_screen_id( 'esf-tiktok' ),
+				self::submenu_screen_id( 'esf-social-wall' ),
 			);
 		}
 	}

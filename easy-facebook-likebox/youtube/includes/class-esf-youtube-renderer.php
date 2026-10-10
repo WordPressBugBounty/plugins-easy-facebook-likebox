@@ -476,6 +476,96 @@ class ESF_YouTube_Renderer {
 	}
 
 	/**
+	 * Return mapped Post objects for a feed by ID (Social Wall / aggregation).
+	 *
+	 * @since 6.7.5
+	 *
+	 * @param int                 $feed_id Feed ID.
+	 * @param array<string,mixed> $args    Optional: limit (int), media_context (preview|frontend), cache_only (bool).
+	 * @return array<int,\EasySocialFeed\Layouts\ValueObjects\Post>
+	 */
+	public function get_posts_for_feed_by_id( $feed_id, $args = array() ) {
+		$feed_id = (int) $feed_id;
+		if ( $feed_id <= 0 || ! class_exists( 'ESF_YouTube_Feed_Repository' ) ) {
+			return array();
+		}
+
+		$args       = is_array( $args ) ? $args : array();
+		$cache_only = ! empty( $args['cache_only'] );
+
+		$feed_repo = ESF_YouTube_Feed_Repository::get_instance();
+		$feed_row  = $feed_repo->get_by_id( $feed_id );
+		if ( ! $feed_row ) {
+			return array();
+		}
+
+		$saved_settings = isset( $feed_row->settings ) ? json_decode( (string) $feed_row->settings, true ) : array();
+		$settings       = ESF_YouTube_Feed_Repository::merge_settings_with_defaults( is_array( $saved_settings ) ? $saved_settings : array() );
+
+		$feed_obj = (object) array(
+			'id'         => (int) $feed_row->id,
+			'name'       => isset( $feed_row->name ) ? (string) $feed_row->name : '',
+			'account_id' => (int) $feed_row->account_id,
+			'feed_type'  => isset( $feed_row->feed_type ) ? (string) $feed_row->feed_type : 'channel',
+			'source_id'  => isset( $feed_row->source_id ) ? (string) $feed_row->source_id : '',
+			'settings'   => $settings,
+		);
+
+		$account_repo        = ESF_YouTube_Account_Repository::get_instance();
+		$account_row         = $account_repo->get_by_id( (int) $feed_obj->account_id );
+		$source_disconnected = $feed_obj->account_id > 0 && null === $account_row;
+
+		if ( ( $cache_only || $source_disconnected ) && ! self::feed_has_videos_cache( $feed_obj ) ) {
+			return array();
+		}
+
+		$videos = $this->get_videos_for_feed( $feed_id, $feed_obj );
+		if ( is_wp_error( $videos ) || ! is_array( $videos ) ) {
+			return array();
+		}
+
+		if ( function_exists( 'esf_youtube_apply_moderation_filter' ) ) {
+			$videos = esf_youtube_apply_moderation_filter( $videos, $feed_id, $settings );
+		}
+
+		$account       = self::resolve_youtube_account( (int) $feed_obj->account_id, $account_row );
+		$is_multifeed  = function_exists( 'esf_youtube_feed_is_multifeed' ) && esf_youtube_feed_is_multifeed( $feed_obj );
+		$posts         = array();
+		$account_cache = array();
+
+		if ( $is_multifeed && function_exists( 'esf_youtube_resolve_account_ids' ) ) {
+			foreach ( esf_youtube_resolve_account_ids( $feed_obj ) as $aid ) {
+				$aid = (int) $aid;
+				if ( $aid <= 0 || array_key_exists( $aid, $account_cache ) ) {
+					continue;
+				}
+				$row                   = $account_repo->get_by_id( $aid );
+				$account_cache[ $aid ] = self::resolve_youtube_account( $aid, $row );
+			}
+		}
+
+		foreach ( $videos as $video ) {
+			if ( ! is_array( $video ) ) {
+				continue;
+			}
+			$node_account = function_exists( 'esf_youtube_account_for_video' )
+				? esf_youtube_account_for_video( $video, $account, $account_cache )
+				: $account;
+			$post         = PostMapper::from_api_node( $video, $node_account );
+			if ( null !== $post ) {
+				$posts[] = $post;
+			}
+		}
+
+		$limit = isset( $args['limit'] ) ? (int) $args['limit'] : 0;
+		if ( $limit > 0 && count( $posts ) > $limit ) {
+			$posts = array_slice( $posts, 0, $limit );
+		}
+
+		return $posts;
+	}
+
+	/**
 	 * Get videos for a feed by ID (from cache or API).
 	 *
 	 * Used by Load More REST endpoint. Returns raw list; caller applies moderation and slice.
@@ -520,6 +610,63 @@ class ESF_YouTube_Renderer {
 		}
 
 		return is_array( $videos ) ? $videos : array();
+	}
+
+	/**
+	 * Force-refresh one feed's video cache from the YouTube API.
+	 *
+	 * Bypasses warm cache. Existing rows are kept when the API errors or
+	 * returns an empty payload.
+	 *
+	 * @since 6.8.2
+	 *
+	 * @param int $feed_id Feed ID.
+	 * @return true|WP_Error
+	 */
+	public function force_refresh_feed_videos( $feed_id ) {
+		$feed_id = (int) $feed_id;
+		if ( $feed_id <= 0 ) {
+			return new WP_Error(
+				'invalid_feed',
+				__( 'Invalid YouTube feed.', 'easy-facebook-likebox' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$feed_repo = ESF_YouTube_Feed_Repository::get_instance();
+		$feed_row  = $feed_repo->get_by_id( $feed_id );
+		if ( ! $feed_row ) {
+			return new WP_Error(
+				'feed_not_found',
+				__( 'YouTube feed not found.', 'easy-facebook-likebox' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$feed_obj = (object) array(
+			'id'         => $feed_row->id,
+			'account_id' => (int) $feed_row->account_id,
+			'feed_type'  => $feed_row->feed_type,
+			'source_id'  => $feed_row->source_id,
+		);
+
+		$saved_settings     = json_decode( $feed_row->settings, true );
+		$feed_obj->settings = ESF_YouTube_Feed_Repository::merge_settings_with_defaults( is_array( $saved_settings ) ? $saved_settings : array() );
+
+		$videos = $this->get_videos_for_single_account( $feed_id, $feed_obj, null, true );
+		if ( is_wp_error( $videos ) ) {
+			return $videos;
+		}
+
+		if ( ! is_array( $videos ) || empty( $videos ) ) {
+			return new WP_Error(
+				'empty_videos',
+				__( 'No YouTube videos were returned. Existing cache was kept.', 'easy-facebook-likebox' ),
+				array( 'status' => 502 )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -652,12 +799,13 @@ class ESF_YouTube_Renderer {
 	 *
 	 * @since 6.14.0
 	 *
-	 * @param int         $feed_id      Feed ID.
-	 * @param object      $feed_obj     Feed object.
-	 * @param string|null $access_token Optional access token.
+	 * @param int         $feed_id       Feed ID.
+	 * @param object      $feed_obj      Feed object.
+	 * @param string|null $access_token  Optional access token.
+	 * @param bool        $force_refresh When true, bypass warm cache and skip empty writes.
 	 * @return array|WP_Error Video items or WP_Error.
 	 */
-	protected function get_videos_for_single_account( $feed_id, $feed_obj, $access_token = null ) {
+	protected function get_videos_for_single_account( $feed_id, $feed_obj, $access_token = null, $force_refresh = false ) {
 		$account_id = isset( $feed_obj->account_id ) ? (int) $feed_obj->account_id : 0;
 		$feed_type  = isset( $feed_obj->feed_type ) ? (string) $feed_obj->feed_type : 'channel';
 		$source_id  = isset( $feed_obj->source_id ) ? trim( (string) $feed_obj->source_id ) : '';
@@ -721,29 +869,33 @@ class ESF_YouTube_Renderer {
 		$cache_key   = function_exists( 'esf_youtube_videos_cache_key' )
 			? esf_youtube_videos_cache_key( $account_id, $feed_type, $source_id )
 			: 'esf_yt_videos_' . $account_id;
-		$cached      = '' !== $cache_key ? ESF_YouTube_Cache::get( $cache_key ) : null;
+		$cached      = null;
 		$from_legacy = false;
 
-		if ( ! is_array( $cached ) && method_exists( 'ESF_YouTube_Cache', 'get_stale' ) && '' !== $cache_key ) {
-			$cached = ESF_YouTube_Cache::get_stale( $cache_key );
-		}
+		if ( ! $force_refresh ) {
+			$cached = '' !== $cache_key ? ESF_YouTube_Cache::get( $cache_key ) : null;
 
-		// One-time fallback to older feed-scoped keys, then migrate on write.
-		if ( ! is_array( $cached ) && function_exists( 'esf_youtube_videos_cache_legacy_keys' ) ) {
-			foreach ( esf_youtube_videos_cache_legacy_keys( $feed_id, $account_id, $feed_type, $source_id ) as $legacy_key ) {
-				$legacy = ESF_YouTube_Cache::get( $legacy_key );
-				if ( ! is_array( $legacy ) && method_exists( 'ESF_YouTube_Cache', 'get_stale' ) ) {
-					$legacy = ESF_YouTube_Cache::get_stale( $legacy_key );
-				}
-				if ( is_array( $legacy ) ) {
-					$cached      = $legacy;
-					$from_legacy = true;
-					break;
+			if ( ! is_array( $cached ) && method_exists( 'ESF_YouTube_Cache', 'get_stale' ) && '' !== $cache_key ) {
+				$cached = ESF_YouTube_Cache::get_stale( $cache_key );
+			}
+
+			// One-time fallback to older feed-scoped keys, then migrate on write.
+			if ( ! is_array( $cached ) && function_exists( 'esf_youtube_videos_cache_legacy_keys' ) ) {
+				foreach ( esf_youtube_videos_cache_legacy_keys( $feed_id, $account_id, $feed_type, $source_id ) as $legacy_key ) {
+					$legacy = ESF_YouTube_Cache::get( $legacy_key );
+					if ( ! is_array( $legacy ) && method_exists( 'ESF_YouTube_Cache', 'get_stale' ) ) {
+						$legacy = ESF_YouTube_Cache::get_stale( $legacy_key );
+					}
+					if ( is_array( $legacy ) ) {
+						$cached      = $legacy;
+						$from_legacy = true;
+						break;
+					}
 				}
 			}
 		}
 
-		if ( is_array( $cached ) ) {
+		if ( ! $force_refresh && is_array( $cached ) ) {
 			$unpacked = function_exists( 'esf_youtube_unpack_videos_cache' )
 				? esf_youtube_unpack_videos_cache( $cached )
 				: array(
@@ -760,7 +912,19 @@ class ESF_YouTube_Renderer {
 
 			// Legacy caches stored localized upload URLs. Flush them so we can
 			// re-fetch remote CDN URLs after uploads are deleted or variants change.
+			// When the account is disconnected we cannot re-fetch — keep serving
+			// the cached items (same disconnect fallback as Instagram / X).
 			if ( $this->videos_cache_contains_localized_urls( $items ) ) {
+				if ( $source_disconnected ) {
+					return $this->finalize_feed_videos(
+						$items,
+						$account_id,
+						$content_filter,
+						$shorts_playlist,
+						$channel_id,
+						$access_token
+					);
+				}
 				if ( method_exists( 'ESF_YouTube_Cache', 'flush_videos_cache_for_source' ) ) {
 					ESF_YouTube_Cache::flush_videos_cache_for_source(
 						$account_id,
@@ -887,6 +1051,14 @@ class ESF_YouTube_Renderer {
 			$channel_id,
 			$access_token
 		);
+
+		if ( $force_refresh && empty( $videos ) ) {
+			return new WP_Error(
+				'empty_videos',
+				__( 'No YouTube videos were returned. Existing cache was kept.', 'easy-facebook-likebox' ),
+				array( 'status' => 502 )
+			);
+		}
 
 		// Cache the results.
 		$ttl = (int) esf_get_youtube_settings( 'cache_duration' );

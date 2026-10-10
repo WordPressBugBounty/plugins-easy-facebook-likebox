@@ -75,6 +75,7 @@ class ESF_Twitter_Main {
         require_once ESF_TWITTER_DIR . 'includes/helpers/twitter-helper-functions.php';
         require_once ESF_TWITTER_DIR . 'includes/database/class-esf-twitter-db-installer.php';
         require_once ESF_TWITTER_DIR . 'includes/class-esf-twitter-cache.php';
+        require_once ESF_TWITTER_DIR . 'includes/cache/class-esf-twitter-cache-refresher.php';
         require_once ESF_TWITTER_DIR . 'includes/class-esf-twitter-local-media.php';
         require_once ESF_TWITTER_DIR . 'includes/api/class-esf-twitter-api-warm-media.php';
         require_once ESF_TWITTER_DIR . 'includes/api/class-esf-twitter-api-video-proxy.php';
@@ -120,6 +121,9 @@ class ESF_Twitter_Main {
         }
         if ( is_admin() ) {
             require_once ESF_TWITTER_DIR . 'admin/classes/class-esf-twitter-admin.php';
+        }
+        if ( class_exists( 'ESF_Safe_Cache_Refresh' ) && class_exists( 'ESF_Twitter_Cache_Refresher' ) ) {
+            ESF_Safe_Cache_Refresh::register( new ESF_Twitter_Cache_Refresher() );
         }
     }
 
@@ -320,26 +324,15 @@ class ESF_Twitter_Main {
      */
     public function add_cron_schedules( $schedules ) {
         $schedules = esf_cron_schedules_add_thirty_minutes( $schedules );
-        $cache_schedules = array(
-            'esf_twitter_12h' => array(
-                'interval' => 43200,
-                'display'  => __( 'Every 12 Hours', 'easy-facebook-likebox' ),
-            ),
-            'esf_twitter_24h' => array(
-                'interval' => 86400,
-                'display'  => __( 'Every 24 Hours', 'easy-facebook-likebox' ),
-            ),
-            'esf_twitter_7d'  => array(
-                'interval' => 604800,
-                'display'  => __( 'Every 7 Days', 'easy-facebook-likebox' ),
-            ),
-        );
-        foreach ( $cache_schedules as $slug => $args ) {
-            if ( !isset( $schedules[$slug] ) ) {
-                $schedules[$slug] = $args;
-            }
+        if ( function_exists( 'esf_feed_cache_add_cron_schedules' ) ) {
+            // Twitter Settings currently expose 12h / 24h / 7d (no 1h option).
+            return esf_feed_cache_add_cron_schedules( $schedules, 'twitter', array(
+                43200  => '12h',
+                86400  => '24h',
+                604800 => '7d',
+            ) );
         }
-        return $schedules;
+        return ( is_array( $schedules ) ? $schedules : array() );
     }
 
     /**
@@ -351,6 +344,10 @@ class ESF_Twitter_Main {
     private function maybe_schedule_feed_cache_refresh() {
         $cache_duration = (int) esf_get_twitter_settings( 'cache_duration' );
         $schedule_slug = $this->get_cache_refresh_schedule_slug( $cache_duration );
+        if ( function_exists( 'esf_feed_cache_maybe_schedule_refresh' ) ) {
+            esf_feed_cache_maybe_schedule_refresh( self::CRON_CACHE_REFRESH_HOOK, $schedule_slug );
+            return;
+        }
         $event = wp_get_scheduled_event( self::CRON_CACHE_REFRESH_HOOK );
         if ( $event && $event->schedule === $schedule_slug ) {
             return;
@@ -369,6 +366,12 @@ class ESF_Twitter_Main {
      * @return void
      */
     public function reschedule_feed_cache_refresh() {
+        $cache_duration = (int) esf_get_twitter_settings( 'cache_duration' );
+        $schedule_slug = $this->get_cache_refresh_schedule_slug( $cache_duration );
+        if ( function_exists( 'esf_feed_cache_reschedule_refresh' ) ) {
+            esf_feed_cache_reschedule_refresh( self::CRON_CACHE_REFRESH_HOOK, $schedule_slug );
+            return;
+        }
         $timestamp = wp_next_scheduled( self::CRON_CACHE_REFRESH_HOOK );
         if ( $timestamp ) {
             wp_unschedule_event( $timestamp, self::CRON_CACHE_REFRESH_HOOK );
@@ -384,12 +387,20 @@ class ESF_Twitter_Main {
      * @return string
      */
     private function get_cache_refresh_schedule_slug( $cache_duration_secs ) {
-        $map = array(
-            43200  => 'esf_twitter_12h',
-            86400  => 'esf_twitter_24h',
-            604800 => 'esf_twitter_7d',
+        $suffixes = array(
+            43200  => '12h',
+            86400  => '24h',
+            604800 => '7d',
         );
-        return ( isset( $map[(int) $cache_duration_secs] ) ? $map[(int) $cache_duration_secs] : 'esf_twitter_12h' );
+        if ( function_exists( 'esf_feed_cache_cron_schedule_slug' ) ) {
+            return esf_feed_cache_cron_schedule_slug(
+                $cache_duration_secs,
+                'twitter',
+                43200,
+                $suffixes
+            );
+        }
+        return 'esf_twitter_12h';
     }
 
     /**

@@ -184,10 +184,97 @@ class ESF_Instagram_Renderer {
 	 * @return array<\EasySocialFeed\Layouts\ValueObjects\Post> Normalized posts (empty on failure).
 	 */
 	public function get_media_for_feed_by_id( $feed_id ) {
+		return $this->get_posts_for_feed_by_id( $feed_id );
+	}
+
+	/**
+	 * Force-refresh one feed's media cache from Graph, bypassing warm cache.
+	 *
+	 * Existing cache is kept when Graph errors or returns an empty payload.
+	 *
+	 * @since 6.8.2
+	 *
+	 * @param int $feed_id Feed ID.
+	 * @return true|WP_Error
+	 */
+	public function force_refresh_feed_media( $feed_id ) {
+		$feed_id = (int) $feed_id;
+		if ( $feed_id <= 0 || ! class_exists( 'ESF_Instagram_Feed_Repository' ) ) {
+			return new WP_Error(
+				'invalid_feed',
+				__( 'Invalid Instagram feed.', 'easy-facebook-likebox' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$feed_row = ESF_Instagram_Feed_Repository::get_instance()->get_by_id( $feed_id );
+		if ( ! $feed_row ) {
+			return new WP_Error(
+				'feed_not_found',
+				__( 'Instagram feed not found.', 'easy-facebook-likebox' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$saved = isset( $feed_row->settings ) ? json_decode( (string) $feed_row->settings, true ) : array();
+		if ( ! is_array( $saved ) ) {
+			$saved = array();
+		}
+		$settings = array_replace_recursive( ESF_Instagram_Feed_Repository::get_default_settings(), $saved );
+
+		$feed_obj = (object) array(
+			'id'         => (int) $feed_row->id,
+			'name'       => isset( $feed_row->name ) ? (string) $feed_row->name : '',
+			'account_id' => isset( $feed_row->account_id ) ? (int) $feed_row->account_id : 0,
+			'feed_type'  => isset( $feed_row->feed_type ) ? (string) $feed_row->feed_type : 'user_timeline',
+			'source_id'  => isset( $feed_row->source_id ) ? (string) $feed_row->source_id : '',
+			'settings'   => $settings,
+		);
+
+		$account = null;
+		if ( class_exists( 'ESF_Instagram_Account_Repository' ) && $feed_obj->account_id > 0 ) {
+			$account_row = ESF_Instagram_Account_Repository::get_instance()->get_by_id( (int) $feed_obj->account_id );
+			$account     = self::resolve_instagram_account( (int) $feed_obj->account_id, $account_row );
+		}
+
+		$result = $this->fetch_raw_nodes( $feed_obj, $account, 'preview', false, true );
+
+		if ( isset( $result['media_error'] ) && is_wp_error( $result['media_error'] ) ) {
+			return $result['media_error'];
+		}
+
+		$nodes = isset( $result['nodes'] ) && is_array( $result['nodes'] ) ? $result['nodes'] : array();
+		if ( empty( $nodes ) ) {
+			return new WP_Error(
+				'empty_media',
+				__( 'No Instagram media was returned. Existing cache was kept.', 'easy-facebook-likebox' ),
+				array( 'status' => 502 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Return mapped posts for a feed by ID (cron, Social Wall, cache warm).
+	 *
+	 * @since 6.9.5
+	 *
+	 * @param int                 $feed_id Feed ID.
+	 * @param array<string,mixed> $args    Optional: limit (int), media_context (preview|frontend), cache_only (bool).
+	 * @return array<int,\EasySocialFeed\Layouts\ValueObjects\Post>
+	 */
+	public function get_posts_for_feed_by_id( $feed_id, $args = array() ) {
 		$feed_id = (int) $feed_id;
 		if ( $feed_id <= 0 || ! class_exists( 'ESF_Instagram_Feed_Repository' ) ) {
 			return array();
 		}
+
+		$args          = is_array( $args ) ? $args : array();
+		$media_context = isset( $args['media_context'] ) && 'preview' === $args['media_context']
+			? 'preview'
+			: 'frontend';
+		$cache_only    = ! empty( $args['cache_only'] );
 
 		$feed_row = ESF_Instagram_Feed_Repository::get_instance()->get_by_id( $feed_id );
 		if ( ! $feed_row ) {
@@ -212,11 +299,18 @@ class ESF_Instagram_Renderer {
 		$account = null;
 		if ( class_exists( 'ESF_Instagram_Account_Repository' ) && $feed_obj->account_id > 0 ) {
 			$account_row = ESF_Instagram_Account_Repository::get_instance()->get_by_id( (int) $feed_obj->account_id );
-			$account     = $account_row ? AccountMapper::from_row( $account_row ) : null;
+			$account     = self::resolve_instagram_account( (int) $feed_obj->account_id, $account_row );
 		}
 
-		$result = $this->fetch_posts( $feed_obj, $account, 'frontend' );
-		return isset( $result['posts'] ) && is_array( $result['posts'] ) ? $result['posts'] : array();
+		$result = $this->fetch_posts( $feed_obj, $account, $media_context, $cache_only );
+		$posts  = isset( $result['posts'] ) && is_array( $result['posts'] ) ? $result['posts'] : array();
+
+		$limit = isset( $args['limit'] ) ? (int) $args['limit'] : 0;
+		if ( $limit > 0 && count( $posts ) > $limit ) {
+			$posts = array_slice( $posts, 0, $limit );
+		}
+
+		return $posts;
 	}
 
 	/**
@@ -593,12 +687,14 @@ class ESF_Instagram_Renderer {
 	 *   - `{ posts: array, has_local_cache: bool }` shape, or
 	 *   - a flat array of Graph nodes / Post arrays / Post objects.
 	 *
-	 * @param object              $feed_obj Feed object.
-	 * @param AccountSummary|null $account  Account.
+	 * @param object              $feed_obj      Feed object.
+	 * @param AccountSummary|null $account       Account.
+	 * @param string              $media_context Display context.
+	 * @param bool                $cache_only    When true, never hit Graph (cache / filter only).
 	 *
 	 * @return array{posts:array<int,\EasySocialFeed\Layouts\ValueObjects\Post>,has_local_cache:bool,debug:array<string,mixed>,media_error:\WP_Error|null,notice:string|null}
 	 */
-	private function fetch_posts( $feed_obj, ?AccountSummary $account, string $media_context = 'frontend' ): array {
+	private function fetch_posts( $feed_obj, ?AccountSummary $account, string $media_context = 'frontend', bool $cache_only = false ): array {
 		$preset = array(
 			'posts'           => array(),
 			'has_local_cache' => false,
@@ -643,7 +739,7 @@ class ESF_Instagram_Renderer {
 		}
 
 		if ( ! $short_circuited ) {
-			$fetched        = $this->fetch_raw_nodes( $feed_obj, $account, $media_context );
+			$fetched        = $this->fetch_raw_nodes( $feed_obj, $account, $media_context, $cache_only );
 			$candidates_raw = $fetched['nodes'];
 			// Preserve cache flag from the timeline/hashtag fetch — required for
 			// frontend admin disconnect banners (Keep cache permanently).
@@ -737,29 +833,34 @@ class ESF_Instagram_Renderer {
 	 * the WP_Error is forwarded to the `esf_instagram_media_fetch_failed` action
 	 * so admin UIs can surface it.
 	 *
-	 * @param object              $feed_obj Feed object.
-	 * @param AccountSummary|null $account  Owning account VO.
+	 * @param object              $feed_obj      Feed object.
+	 * @param AccountSummary|null $account       Owning account VO.
+	 * @param string              $media_context Display context.
+	 * @param bool                $cache_only    When true, never hit Graph.
+	 * @param bool                $force_refresh When true, bypass warm cache and skip empty writes.
 	 *
 	 * @return array{nodes:array<int,array<string,mixed>>,has_local_cache:bool,debug?:array<string,mixed>,media_error?:\WP_Error|null,notice?:string|null}
 	 */
-	private function fetch_raw_nodes( $feed_obj, ?AccountSummary $account, string $media_context = 'frontend' ): array {
+	private function fetch_raw_nodes( $feed_obj, ?AccountSummary $account, string $media_context = 'frontend', bool $cache_only = false, bool $force_refresh = false ): array {
 		if ( function_exists( 'esf_instagram_feed_is_hashtag' ) && esf_instagram_feed_is_hashtag( $feed_obj ) ) {
-			return $this->fetch_hashtag_raw_nodes( $feed_obj, $account, $media_context );
+			return $this->fetch_hashtag_raw_nodes( $feed_obj, $account, $media_context, $cache_only, $force_refresh );
 		}
 
-		return $this->fetch_timeline_raw_nodes( $feed_obj, $account, $media_context );
+		return $this->fetch_timeline_raw_nodes( $feed_obj, $account, $media_context, $cache_only, $force_refresh );
 	}
 
 	/**
 	 * Fetch raw Graph media nodes for a user timeline feed.
 	 *
-	 * @param object              $feed_obj Feed object.
-	 * @param AccountSummary|null $account  Owning account VO.
+	 * @param object              $feed_obj      Feed object.
+	 * @param AccountSummary|null $account       Owning account VO.
 	 * @param string              $media_context Display context.
+	 * @param bool                $cache_only    When true, never hit Graph.
+	 * @param bool                $force_refresh When true, bypass warm cache and skip empty writes.
 	 *
 	 * @return array{nodes:array<int,array<string,mixed>>,has_local_cache:bool,media_error?:\WP_Error|null}
 	 */
-	private function fetch_timeline_raw_nodes( $feed_obj, ?AccountSummary $account, string $media_context = 'frontend' ): array {
+	private function fetch_timeline_raw_nodes( $feed_obj, ?AccountSummary $account, string $media_context = 'frontend', bool $cache_only = false, bool $force_refresh = false ): array {
 		$result = array(
 			'nodes'           => array(),
 			'has_local_cache' => false,
@@ -781,9 +882,12 @@ class ESF_Instagram_Renderer {
 
 		$cache_key = self::media_cache_key( $account_id );
 		$meta_key  = $cache_key . '_meta';
-		$cached    = ESF_Instagram_Cache::get( $cache_key );
-		if ( ! is_array( $cached ) && method_exists( 'ESF_Instagram_Cache', 'get_stale' ) ) {
-			$cached = ESF_Instagram_Cache::get_stale( $cache_key );
+		$cached    = null;
+		if ( ! $force_refresh ) {
+			$cached = ESF_Instagram_Cache::get( $cache_key );
+			if ( ! is_array( $cached ) && method_exists( 'ESF_Instagram_Cache', 'get_stale' ) ) {
+				$cached = ESF_Instagram_Cache::get_stale( $cache_key );
+			}
 		}
 
 		$account_row = null;
@@ -792,7 +896,7 @@ class ESF_Instagram_Renderer {
 		}
 		$source_disconnected = null === $account_row;
 
-		if ( is_array( $cached ) && isset( $cached['data'] ) && is_array( $cached['data'] ) ) {
+		if ( ! $force_refresh && is_array( $cached ) && isset( $cached['data'] ) && is_array( $cached['data'] ) ) {
 			$nodes = $cached['data'];
 			if ( class_exists( 'ESF_Instagram_Local_Media' ) ) {
 				$nodes = ESF_Instagram_Local_Media::prepare_nodes_for_display( $nodes, $account_id, $media_context, $per_page );
@@ -808,6 +912,10 @@ class ESF_Instagram_Renderer {
 		}
 
 		if ( $source_disconnected ) {
+			return $result;
+		}
+
+		if ( $cache_only ) {
 			return $result;
 		}
 
@@ -837,6 +945,19 @@ class ESF_Instagram_Renderer {
 		}
 
 		$nodes = isset( $response['data'] ) && is_array( $response['data'] ) ? array_values( $response['data'] ) : array();
+
+		// Safe Clear All Caches: never overwrite a warm timeline with an empty API payload.
+		if ( $force_refresh && empty( $nodes ) ) {
+			return array(
+				'nodes'           => array(),
+				'has_local_cache' => false,
+				'media_error'     => new WP_Error(
+					'empty_media',
+					__( 'No Instagram media was returned. Existing cache was kept.', 'easy-facebook-likebox' ),
+					array( 'status' => 502 )
+				),
+			);
+		}
 
 		// Persist remote Graph nodes; localization runs at display time (preview: limited sync batch).
 		$pagination = isset( $response['pagination'] ) && is_array( $response['pagination'] ) ? $response['pagination'] : array();
@@ -879,13 +1000,15 @@ class ESF_Instagram_Renderer {
 	/**
 	 * Fetch raw Graph hashtag media nodes for a hashtag feed.
 	 *
-	 * @param object              $feed_obj Feed object.
-	 * @param AccountSummary|null $account  Linked account VO (for API auth).
+	 * @param object              $feed_obj      Feed object.
+	 * @param AccountSummary|null $account       Linked account VO (for API auth).
 	 * @param string              $media_context Display context.
+	 * @param bool                $cache_only    When true, never hit Graph.
+	 * @param bool                $force_refresh When true, bypass warm cache and skip empty writes.
 	 *
 	 * @return array{nodes:array<int,array<string,mixed>>,has_local_cache:bool,debug:array<string,mixed>,media_error?:\WP_Error|null,notice?:string|null}
 	 */
-	private function fetch_hashtag_raw_nodes( $feed_obj, ?AccountSummary $account, string $media_context = 'frontend' ): array {
+	private function fetch_hashtag_raw_nodes( $feed_obj, ?AccountSummary $account, string $media_context = 'frontend', bool $cache_only = false, bool $force_refresh = false ): array {
 		$result = array(
 			'nodes'           => array(),
 			'has_local_cache' => false,
@@ -943,13 +1066,16 @@ class ESF_Instagram_Renderer {
 		$media_context = in_array( $media_context, array( 'preview', 'frontend' ), true ) ? $media_context : 'frontend';
 		$fetch_limit   = ESF_Instagram_API_Hashtag::resolve_initial_fetch_limit( $per_page );
 
-		$cached     = ESF_Instagram_Cache::get( $cache_key );
+		$cached     = null;
 		$from_stale = false;
-		if ( ! is_array( $cached ) && method_exists( 'ESF_Instagram_Cache', 'get_stale' ) ) {
-			$cached     = ESF_Instagram_Cache::get_stale( $cache_key );
-			$from_stale = is_array( $cached );
+		if ( ! $force_refresh ) {
+			$cached = ESF_Instagram_Cache::get( $cache_key );
+			if ( ! is_array( $cached ) && method_exists( 'ESF_Instagram_Cache', 'get_stale' ) ) {
+				$cached     = ESF_Instagram_Cache::get_stale( $cache_key );
+				$from_stale = is_array( $cached );
+			}
 		}
-		if ( is_array( $cached ) && isset( $cached['data'] ) && is_array( $cached['data'] ) ) {
+		if ( ! $force_refresh && is_array( $cached ) && isset( $cached['data'] ) && is_array( $cached['data'] ) ) {
 			$buffer        = array_values( $cached['data'] );
 			$cached_cursor = isset( $cached['pagination']['cursor'] ) ? (string) $cached['pagination']['cursor'] : '';
 			$nodes         = $this->prepare_hashtag_nodes_for_display( $buffer, $account, $media_context, $per_page, $tag, $media_type );
@@ -978,6 +1104,11 @@ class ESF_Instagram_Renderer {
 		}
 
 		$log_step( 'cache_miss', array( 'fetch_limit' => $fetch_limit ) );
+
+		if ( $cache_only ) {
+			$log_step( 'cache_only_skip_api' );
+			return $result;
+		}
 
 		if ( null === $account || ! class_exists( 'ESF_Instagram_Account_Repository' ) ) {
 			$log_step( 'missing_account' );
@@ -1046,6 +1177,17 @@ class ESF_Instagram_Renderer {
 				'fetch_limit' => $fetch_limit,
 			)
 		);
+
+		if ( $force_refresh && empty( $nodes ) ) {
+			$result['media_error'] = new WP_Error(
+				'empty_media',
+				__( 'No Instagram media was returned. Existing cache was kept.', 'easy-facebook-likebox' ),
+				array( 'status' => 502 )
+			);
+			$log_step( 'empty_payload_kept_cache' );
+			return $result;
+		}
+
 		$pagination = isset( $response['pagination'] ) && is_array( $response['pagination'] ) ? $response['pagination'] : array();
 		$cursor     = isset( $pagination['cursor'] ) ? sanitize_text_field( (string) $pagination['cursor'] ) : '';
 		$ttl        = esf_instagram_get_cache_ttl_secs( $feed_obj, $account_id );

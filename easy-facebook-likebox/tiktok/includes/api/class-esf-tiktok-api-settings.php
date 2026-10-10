@@ -178,13 +178,19 @@ class ESF_TikTok_API_Settings {
 	}
 
 	/**
-	 * Clear TikTok API cache.
+	 * Safely refresh TikTok account caches from the TikTok API.
+	 *
+	 * Fetches first; existing cache is kept when the API fails or returns empty.
 	 *
 	 * @since 6.7.6
 	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response
+	 * @return WP_REST_Response|WP_Error
 	 */
-	public static function clear_cache( $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+	public static function clear_cache( $request ) {
+		if ( class_exists( 'ESF_Safe_Cache_Refresh' ) ) {
+			return ESF_Safe_Cache_Refresh::handle_clear_cache_request( 'tiktok', $request );
+		}
+
 		$deleted = ESF_TikTok_Cache::flush_all_cache();
 
 		return rest_ensure_response(

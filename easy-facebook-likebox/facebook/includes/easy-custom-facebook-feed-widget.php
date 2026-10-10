@@ -27,7 +27,14 @@ class Easy_Custom_Facebook_Feed_Widget extends WP_Widget {
      */
     public function widget( $args, $instance ) {
         global $efbl;
-        $title = apply_filters( 'widget_title', $instance['title'] );
+        // Legacy frontend assigns global $efbl; bail if missing (REST widget preload).
+        if ( !is_object( $efbl ) || !method_exists( $efbl, 'render_fbfeed_box' ) ) {
+            return;
+        }
+        $title = '';
+        if ( isset( $instance['title'] ) ) {
+            $title = apply_filters( 'widget_title', $instance['title'] );
+        }
         echo $args['before_widget'];
         if ( !empty( $title ) ) {
             echo $args['before_title'] . $title . $args['after_title'];

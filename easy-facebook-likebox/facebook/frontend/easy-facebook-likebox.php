@@ -580,4 +580,10 @@ class Easy_Facebook_Likebox {
 
 }
 
+/*
+ * Must be a true global: this file is required inside
+ * esf_load_legacy_facebook_module(), so a bare assignment would be local-only
+ * and legacy widgets (global $efbl) would fatal on null.
+ */
+global $efbl;
 $efbl = new Easy_Facebook_Likebox();

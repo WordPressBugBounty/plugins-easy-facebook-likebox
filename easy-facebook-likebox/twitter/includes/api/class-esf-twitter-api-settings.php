@@ -178,14 +178,16 @@ class ESF_Twitter_API_Settings {
 	}
 
 	/**
-	 * Clear Twitter API cache.
+	 * Safely refresh Twitter caches from the live API (Clear All Caches).
 	 *
-	 * Pro-gated: this bulk action wipes every account's cached timeline at
-	 * once, which would let free users bypass the 7‑day cache throttle on
-	 * demand and drive up ESF's shared X API spend. Free users who need a
-	 * lighter-weight, targeted refresh should use the per-account
+	 * Pro-gated: bulk on-demand refresh would let free users bypass the 7‑day
+	 * cache throttle and drive up ESF's shared X API spend. Free users who need
+	 * a lighter-weight, targeted refresh should use the per-account
 	 * "Refresh now" action instead ({@see ESF_Twitter_API_Accounts::refresh_cache()}),
 	 * which stays available for BYOK accounts on any plan. See `twitter/PLAN.md`.
+	 *
+	 * Does not wipe cache first — existing timelines are kept when the API
+	 * fails or returns empty for an account.
 	 *
 	 * @since 6.7.6
 	 * @param WP_REST_Request $request Request object.
@@ -198,6 +200,10 @@ class ESF_Twitter_API_Settings {
 				__( 'Clearing the cache on demand needs the X Pro plan. X charges for API access, so free sites refresh less often. Use Refresh now on the Accounts tab to update a single feed instead.', 'easy-facebook-likebox' ),
 				array( 'status' => 403 )
 			);
+		}
+
+		if ( class_exists( 'ESF_Safe_Cache_Refresh' ) ) {
+			return ESF_Safe_Cache_Refresh::handle_clear_cache_request( 'twitter', $request );
 		}
 
 		$deleted = ESF_Twitter_Cache::flush_all_cache();

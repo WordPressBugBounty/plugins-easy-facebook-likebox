@@ -582,8 +582,11 @@ if ( !class_exists( 'ESF_Admin' ) ) {
                 $esf_settings['plugins'][$module_name]['status'] = $module_status;
                 $status_updated = update_option( 'fta_settings', $esf_settings );
             }
-            if ( 'deactivated' === $module_status && 'twitter' === $module_name ) {
+            if ( 'deactivated' === $module_status && 'twitter' === $module_name && function_exists( 'esf_twitter_teardown_scheduled_jobs' ) ) {
                 esf_twitter_teardown_scheduled_jobs();
+            }
+            if ( 'deactivated' === $module_status && 'facebook' === $module_name && function_exists( 'esf_facebook_teardown_scheduled_jobs' ) ) {
+                esf_facebook_teardown_scheduled_jobs();
             }
             if ( $module_status === 'activated' ) {
                 $status = __( ' Activated', 'easy-facebook-likebox' );

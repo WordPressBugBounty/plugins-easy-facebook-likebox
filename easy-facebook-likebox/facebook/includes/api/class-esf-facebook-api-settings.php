@@ -144,13 +144,18 @@ class ESF_Facebook_API_Settings {
 	}
 
 	/**
-	 * Clear all Facebook cache rows.
+	 * Safely refresh all Facebook feed caches from Graph.
+	 *
+	 * Fetches from the API first and replaces cache only on a valid payload.
+	 * Existing cache is kept when Graph fails or returns empty.
 	 *
 	 * @param WP_REST_Request|null $request Request.
-	 * @return WP_REST_Response|array
+	 * @return WP_REST_Response|array|WP_Error
 	 */
 	public static function clear_cache( $request = null ) {
-		unset( $request );
+		if ( class_exists( 'ESF_Safe_Cache_Refresh' ) ) {
+			return ESF_Safe_Cache_Refresh::handle_clear_cache_request( 'facebook', $request );
+		}
 
 		$deleted = class_exists( 'ESF_Facebook_Cache' )
 			? ESF_Facebook_Cache::flush_all_cache()

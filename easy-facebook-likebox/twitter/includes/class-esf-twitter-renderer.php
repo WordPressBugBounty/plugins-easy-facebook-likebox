@@ -338,17 +338,19 @@ class ESF_Twitter_Renderer {
      * Public for use by the cron cache-refresh job and Load More REST endpoint.
      *
      * @since 6.7.6
-     * @param int    $feed_id           Feed ID (used in the cache key).
-     * @param object $feed_obj          Feed object.
-     * @param object $account           Account object.
-     * @param bool   $apply_moderation  Whether to apply hide/show rules (false for moderate grid).
+     * @param int         $feed_id          Feed ID (used in the cache key).
+     * @param object      $feed_obj         Feed object.
+     * @param object|null $account          Account object.
+     * @param bool        $apply_moderation Whether to apply hide/show rules (false for moderate grid).
+     * @param bool        $cache_only       When true, never hit the X API (cache / filter only).
      * @return array|WP_Error Normalized tweet array, or WP_Error.
      */
     public function get_tweets_for_feed(
         $feed_id,
         $feed_obj,
         $account,
-        $apply_moderation = true
+        $apply_moderation = true,
+        $cache_only = false
     ) {
         $preset = array(
             'tweets'          => array(),
@@ -414,7 +416,7 @@ class ESF_Twitter_Renderer {
                 );
             }
         }
-        if ( $source_disconnected ) {
+        if ( $source_disconnected || $cache_only ) {
             return array();
         }
         if ( !is_object( $account ) ) {
@@ -1098,6 +1100,97 @@ class ESF_Twitter_Renderer {
     }
 
     /**
+     * Return mapped Post objects for a feed by ID (Social Wall / aggregation).
+     *
+     * @since 6.7.6
+     *
+     * @param int                 $feed_id Feed ID.
+     * @param array<string,mixed> $args    Optional: limit (int), media_context (preview|frontend), cache_only (bool).
+     * @return array<int,\EasySocialFeed\Layouts\ValueObjects\Post>
+     */
+    public function get_posts_for_feed_by_id( $feed_id, $args = array() ) {
+        $feed_id = (int) $feed_id;
+        if ( $feed_id <= 0 || !class_exists( 'ESF_Twitter_Feed_Repository' ) ) {
+            return array();
+        }
+        $args = ( is_array( $args ) ? $args : array() );
+        $media_context = ( isset( $args['media_context'] ) && 'preview' === $args['media_context'] ? 'preview' : 'frontend' );
+        $cache_only = !empty( $args['cache_only'] );
+        $this->set_media_context( $media_context );
+        $feed_repo = ESF_Twitter_Feed_Repository::get_instance();
+        $feed_row = $feed_repo->get_by_id( $feed_id );
+        if ( !$feed_row ) {
+            return array();
+        }
+        $saved = ( isset( $feed_row->settings ) ? json_decode( (string) $feed_row->settings, true ) : array() );
+        $settings = ESF_Twitter_Feed_Repository::merge_settings_with_defaults( ( is_array( $saved ) ? $saved : array() ) );
+        $feed_obj = (object) array(
+            'id'         => (int) $feed_row->id,
+            'name'       => ( isset( $feed_row->name ) ? (string) $feed_row->name : '' ),
+            'account_id' => (int) $feed_row->account_id,
+            'feed_type'  => ( isset( $feed_row->feed_type ) ? (string) $feed_row->feed_type : '' ),
+            'source_id'  => ( isset( $feed_row->source_id ) ? (string) $feed_row->source_id : '' ),
+            'settings'   => $settings,
+        );
+        $account_repo = ESF_Twitter_Account_Repository::get_instance();
+        $is_multifeed = function_exists( 'esf_twitter_is_multifeed_feed__premium_only' ) && function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() && esf_twitter_is_multifeed_feed__premium_only( $feed_obj );
+        $tweets = array();
+        $account = null;
+        $posts = array();
+        if ( $is_multifeed ) {
+            $tweets = ( function_exists( 'efl_fs' ) && efl_fs()->can_use_premium_code__premium_only() && method_exists( $this, 'get_tweets_for_multifeed__premium_only' ) ? $this->get_tweets_for_multifeed__premium_only( $feed_id, $feed_obj ) : array() );
+            if ( !is_array( $tweets ) ) {
+                $tweets = array();
+            }
+            foreach ( $tweets as $tweet ) {
+                if ( !is_array( $tweet ) ) {
+                    continue;
+                }
+                $tweet_account_id = ( isset( $tweet['_esf_account_id'] ) ? (int) $tweet['_esf_account_id'] : 0 );
+                if ( $tweet_account_id <= 0 ) {
+                    continue;
+                }
+                $tweet_account_row = $account_repo->get_by_id( $tweet_account_id );
+                $tweet_account = self::resolve_twitter_account( $tweet_account_id, $tweet_account_row );
+                if ( null === $tweet_account ) {
+                    continue;
+                }
+                $post = PostMapper::from_api_node( $tweet, $tweet_account );
+                if ( null !== $post ) {
+                    $posts[] = $post;
+                }
+            }
+        } else {
+            $account_row = $account_repo->get_by_id( (int) $feed_obj->account_id );
+            $account = self::resolve_twitter_account( (int) $feed_obj->account_id, $account_row );
+            $tweets = $this->get_tweets_for_feed(
+                $feed_id,
+                $feed_obj,
+                ( $account_row ? $account_row : null ),
+                true,
+                $cache_only
+            );
+            if ( is_wp_error( $tweets ) || !is_array( $tweets ) ) {
+                return array();
+            }
+            foreach ( $tweets as $tweet ) {
+                if ( !is_array( $tweet ) ) {
+                    continue;
+                }
+                $post = PostMapper::from_api_node( $tweet, $account );
+                if ( null !== $post ) {
+                    $posts[] = $post;
+                }
+            }
+        }
+        $limit = ( isset( $args['limit'] ) ? (int) $args['limit'] : 0 );
+        if ( $limit > 0 && count( $posts ) > $limit ) {
+            $posts = array_slice( $posts, 0, $limit );
+        }
+        return $posts;
+    }
+
+    /**
      * Get tweets for a feed by ID only (used by cron and REST load-more).
      *
      * @since 6.7.6
@@ -1113,9 +1206,9 @@ class ESF_Twitter_Renderer {
         }
         $account_repo = ESF_Twitter_Account_Repository::get_instance();
         $account = $account_repo->get_by_id( (int) $feed_row->account_id );
-        if ( !$account ) {
-            return array();
-        }
+        // Allow a missing account row so integrator payload filters (e.g. marketing
+        // demos) can still short-circuit before cache/API. Without an account and
+        // without a payload override, get_tweets_for_feed returns empty/error.
         $saved = json_decode( $feed_row->settings, true );
         $feed_obj = (object) array(
             'id'         => $feed_row->id,
@@ -1124,7 +1217,7 @@ class ESF_Twitter_Renderer {
             'source_id'  => $feed_row->source_id,
             'settings'   => ESF_Twitter_Feed_Repository::merge_settings_with_defaults( ( is_array( $saved ) ? $saved : array() ) ),
         );
-        $tweets = $this->get_tweets_for_feed( $feed_id, $feed_obj, $account );
+        $tweets = $this->get_tweets_for_feed( $feed_id, $feed_obj, ( $account ? $account : null ) );
         if ( is_wp_error( $tweets ) ) {
             return array();
         }

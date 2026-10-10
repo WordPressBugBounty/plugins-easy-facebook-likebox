@@ -461,10 +461,14 @@ class ESF_YouTube_Account_Repository {
 	}
 
 	/**
-	 * Remove warm-cache transients tied to an account; preserve feeds and API cache.
+	 * Preserve feeds, API video cache, and local media on disconnect.
 	 *
-	 * Feeds keep their rows (with the orphaned account_id) so the public frontend
-	 * can continue serving cached videos until TTL expiry after disconnect.
+	 * Feeds keep their rows (orphaned `account_id`) so the public frontend can
+	 * keep serving cached videos after disconnect. Local thumbnails under
+	 * `uploads/esf-youtube/{id}/` stay on disk — same as Instagram / X.
+	 * Do not call `purge_account_media()` here: wiping local media causes the
+	 * renderer to flush video cache on the next view (localized URL detection),
+	 * which empties the frontend when no token remains to re-fetch.
 	 *
 	 * @since 6.7.9
 	 *
@@ -483,10 +487,6 @@ class ESF_YouTube_Account_Repository {
 
 			if ( class_exists( 'ESF_YouTube_Cache' ) ) {
 				ESF_YouTube_Cache::save_account_profile_snapshot( $account );
-			}
-
-			if ( class_exists( 'ESF_YouTube_Local_Media' ) ) {
-				ESF_YouTube_Local_Media::purge_account_media( (int) $account->id );
 			}
 		} catch ( \Throwable $e ) {
 			// Best-effort cleanup; account row deletion must still proceed.

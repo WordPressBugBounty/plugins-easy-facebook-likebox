@@ -152,13 +152,18 @@ class ESF_Instagram_API_Settings {
 	}
 
 	/**
-	 * Clear all Instagram module cache rows (API, account-scoped media, hashtags).
+	 * Safely refresh all Instagram media caches from Graph.
+	 *
+	 * Fetches from the API first and replaces cache only on a valid payload.
+	 * Existing cache is kept when Graph fails or returns empty.
 	 *
 	 * @param WP_REST_Request|null $request Request object.
-	 * @return WP_REST_Response
+	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function clear_cache( $request = null ) {
-		unset( $request );
+		if ( class_exists( 'ESF_Safe_Cache_Refresh' ) ) {
+			return ESF_Safe_Cache_Refresh::handle_clear_cache_request( 'instagram', $request );
+		}
 
 		$deleted = class_exists( 'ESF_Instagram_Cache' )
 			? ESF_Instagram_Cache::flush_all_cache()

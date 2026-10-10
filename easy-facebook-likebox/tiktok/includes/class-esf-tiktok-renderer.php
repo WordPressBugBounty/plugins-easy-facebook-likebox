@@ -195,32 +195,122 @@ class ESF_TikTok_Renderer {
 	}
 
 	/**
-	 * Warm / return posts for a feed (used by cron).
+	 * Warm / return posts for a feed (used by cron and Social Wall).
 	 *
-	 * @param int $feed_id Feed ID.
+	 * @since 6.9.0
+	 *
+	 * @param int                 $feed_id Feed ID.
+	 * @param array<string,mixed> $args    Optional: limit (int), media_context (preview|frontend), cache_only (bool).
 	 * @return array<int,\EasySocialFeed\Layouts\ValueObjects\Post>
 	 */
-	public function get_posts_for_feed_by_id( $feed_id ) {
+	public function get_posts_for_feed_by_id( $feed_id, $args = array() ) {
 		$feed_id = (int) $feed_id;
 		if ( $feed_id <= 0 || ! class_exists( 'ESF_TikTok_Feed_Repository' ) ) {
 			return array();
 		}
+
+		$args          = is_array( $args ) ? $args : array();
+		$media_context = isset( $args['media_context'] ) && 'preview' === $args['media_context']
+			? 'preview'
+			: 'frontend';
+		$cache_only    = ! empty( $args['cache_only'] );
+
 		$feed_row = ESF_TikTok_Feed_Repository::get_instance()->get_by_id( $feed_id );
 		if ( ! $feed_row ) {
 			return array();
 		}
-		$saved       = isset( $feed_row->settings ) ? json_decode( (string) $feed_row->settings, true ) : array();
-		$settings    = ESF_TikTok_Feed_Repository::merge_settings_with_defaults( is_array( $saved ) ? $saved : array() );
-		$feed_obj    = (object) array(
+
+		$saved    = isset( $feed_row->settings ) ? json_decode( (string) $feed_row->settings, true ) : array();
+		$settings = ESF_TikTok_Feed_Repository::merge_settings_with_defaults( is_array( $saved ) ? $saved : array() );
+		$feed_obj = (object) array(
 			'id'         => (int) $feed_row->id,
 			'account_id' => (int) $feed_row->account_id,
 			'feed_type'  => (string) $feed_row->feed_type,
 			'settings'   => $settings,
 		);
-		$account_row = ESF_TikTok_Account_Repository::get_instance()->get_by_id( (int) $feed_obj->account_id );
-		$account     = $account_row ? AccountMapper::from_row( $account_row ) : null;
-		$result      = $this->fetch_posts( $feed_obj, $account, 'frontend' );
-		return $result['posts'];
+
+		$account_row         = class_exists( 'ESF_TikTok_Account_Repository' )
+			? ESF_TikTok_Account_Repository::get_instance()->get_by_id( (int) $feed_obj->account_id )
+			: null;
+		$account             = $account_row ? AccountMapper::from_row( $account_row ) : null;
+		$source_disconnected = $cache_only || ( $feed_obj->account_id > 0 && null === $account_row );
+
+		$result = $this->fetch_posts( $feed_obj, $account, $media_context, $source_disconnected );
+		$posts  = isset( $result['posts'] ) && is_array( $result['posts'] ) ? $result['posts'] : array();
+
+		$limit = isset( $args['limit'] ) ? (int) $args['limit'] : 0;
+		if ( $limit > 0 && count( $posts ) > $limit ) {
+			$posts = array_slice( $posts, 0, $limit );
+		}
+
+		return $posts;
+	}
+
+	/**
+	 * Force-refresh one account's TikTok posts from the API.
+	 *
+	 * Existing cache is kept when the API errors or returns an empty payload.
+	 *
+	 * @since 6.8.2
+	 *
+	 * @param int $feed_id Any feed ID belonging to the account (drives settings/per_page).
+	 * @return true|WP_Error
+	 */
+	public function force_refresh_account_posts( $feed_id ) {
+		$feed_id = (int) $feed_id;
+		if ( $feed_id <= 0 || ! class_exists( 'ESF_TikTok_Feed_Repository' ) ) {
+			return new WP_Error(
+				'invalid_feed',
+				__( 'Invalid TikTok feed.', 'easy-facebook-likebox' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$feed_row = ESF_TikTok_Feed_Repository::get_instance()->get_by_id( $feed_id );
+		if ( ! $feed_row ) {
+			return new WP_Error(
+				'feed_not_found',
+				__( 'TikTok feed not found.', 'easy-facebook-likebox' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$saved    = isset( $feed_row->settings ) ? json_decode( (string) $feed_row->settings, true ) : array();
+		$settings = ESF_TikTok_Feed_Repository::merge_settings_with_defaults( is_array( $saved ) ? $saved : array() );
+		$feed_obj = (object) array(
+			'id'         => (int) $feed_row->id,
+			'account_id' => (int) $feed_row->account_id,
+			'feed_type'  => (string) $feed_row->feed_type,
+			'settings'   => $settings,
+		);
+
+		$account_id = (int) $feed_obj->account_id;
+		if ( $account_id <= 0 ) {
+			return new WP_Error(
+				'invalid_account',
+				__( 'Invalid TikTok account.', 'easy-facebook-likebox' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$feed_cfg = isset( $settings['feed'] ) && is_array( $settings['feed'] ) ? $settings['feed'] : array();
+		$per_page = isset( $feed_cfg['per_page'] ) ? max( 1, min( 50, (int) $feed_cfg['per_page'] ) ) : 9;
+
+		$fetched = $this->fetch_and_cache_posts( $feed_obj, $account_id, $per_page, true );
+		if ( isset( $fetched['media_error'] ) && $fetched['media_error'] instanceof WP_Error ) {
+			return $fetched['media_error'];
+		}
+
+		$posts = isset( $fetched['posts'] ) && is_array( $fetched['posts'] ) ? $fetched['posts'] : array();
+		if ( empty( $posts ) ) {
+			return new WP_Error(
+				'empty_timeline',
+				__( 'No TikTok videos were returned. Existing cache was kept.', 'easy-facebook-likebox' ),
+				array( 'status' => 502 )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -389,53 +479,84 @@ class ESF_TikTok_Renderer {
 			'media_error'     => null,
 		);
 
-		$account_id = $account instanceof AccountSummary
+		$preset = array(
+			'posts'           => array(),
+			'has_local_cache' => false,
+		);
+
+		/**
+		 * Filter the TikTok post payload before cache/API fetch.
+		 *
+		 * Returning posts short-circuits the API fetch. Prefer raw API video
+		 * nodes in `posts` (same shape as the account videos cache).
+		 *
+		 * @since 6.16.0
+		 *
+		 * @param array               $value         Default empty payload.
+		 * @param object              $feed_obj      Feed object.
+		 * @param AccountSummary|null $account       Owning account.
+		 * @param string              $media_context Display context (`frontend`|`preview`).
+		 */
+		$payload = apply_filters( 'esf_tiktok_render_posts_payload', $preset, $feed_obj, $account, $media_context );
+
+		$nodes           = array();
+		$short_circuited = false;
+		$account_id      = $account instanceof AccountSummary
 			? $account->get_id()
 			: ( is_object( $feed_obj ) && isset( $feed_obj->account_id ) ? (int) $feed_obj->account_id : 0 );
-		if ( $account_id <= 0 || ! class_exists( 'ESF_TikTok_Cache' ) ) {
-			return $result;
-		}
 
 		$settings = isset( $feed_obj->settings ) && is_array( $feed_obj->settings ) ? $feed_obj->settings : array();
 		$feed_cfg = isset( $settings['feed'] ) && is_array( $settings['feed'] ) ? $settings['feed'] : array();
 		$per_page = isset( $feed_cfg['per_page'] ) ? max( 1, min( 50, (int) $feed_cfg['per_page'] ) ) : 10;
 
-		$account_row = ESF_TikTok_Account_Repository::get_instance()->get_by_id( $account_id );
-		if (
-			! $source_disconnected
-			&& $account_row
-			&& function_exists( 'esf_tiktok_account_needs_reconnect' )
-			&& esf_tiktok_account_needs_reconnect( $account_row )
-		) {
-			$result['media_error'] = new WP_Error(
-				'reconnect_required',
-				class_exists( 'ESF_TikTok_API_Error' )
-					? ESF_TikTok_API_Error::reconnect_required_message()
-					: __( 'TikTok access was revoked or expired. Please reconnect your TikTok account.', 'easy-facebook-likebox' )
-			);
-			// Still try cache below so existing local posts can show until cache is cleared.
-		}
-
-		$cache_key = ESF_TikTok_Cache::posts_cache_key( $account_id );
-		$cached    = ESF_TikTok_Cache::get( $cache_key );
-		if ( ! is_array( $cached ) && method_exists( 'ESF_TikTok_Cache', 'get_stale' ) ) {
-			$cached = ESF_TikTok_Cache::get_stale( $cache_key );
-		}
-
-		$nodes = array();
-		if ( is_array( $cached ) && isset( $cached['posts'] ) && is_array( $cached['posts'] ) ) {
-			$nodes                     = $cached['posts'];
-			$result['has_local_cache'] = true;
-			if ( $source_disconnected && class_exists( 'ESF_Feed_Disconnected_Cache' ) ) {
-				$feed_settings    = isset( $feed_obj->settings ) && is_array( $feed_obj->settings ) ? $feed_obj->settings : array();
-				$feed_cfg         = isset( $feed_settings['feed'] ) && is_array( $feed_settings['feed'] ) ? $feed_settings['feed'] : array();
-				$result['notice'] = ESF_Feed_Disconnected_Cache::get_notice_message( ! empty( $feed_cfg['cache_pinned'] ) );
+		if ( function_exists( 'esf_resolve_render_payload_override' ) ) {
+			$override = esf_resolve_render_payload_override( $payload, 'posts' );
+			if ( $override['short_circuited'] ) {
+				$nodes                     = $override['items'];
+				$result['has_local_cache'] = ! empty( $override['has_local_cache'] ) || ! empty( $nodes );
+				$short_circuited           = true;
 			}
-		} elseif ( ! $source_disconnected ) {
-			$fetched = $this->fetch_and_cache_posts( $feed_obj, $account_id, $per_page );
-			$nodes   = isset( $fetched['posts'] ) && is_array( $fetched['posts'] ) ? $fetched['posts'] : array();
-			if ( isset( $fetched['media_error'] ) && $fetched['media_error'] instanceof WP_Error ) {
-				$result['media_error'] = $fetched['media_error'];
+		}
+
+		if ( ! $short_circuited ) {
+			if ( $account_id <= 0 || ! class_exists( 'ESF_TikTok_Cache' ) ) {
+				return $result;
+			}
+
+			$account_row = ESF_TikTok_Account_Repository::get_instance()->get_by_id( $account_id );
+			if (
+				! $source_disconnected
+				&& $account_row
+				&& function_exists( 'esf_tiktok_account_needs_reconnect' )
+				&& esf_tiktok_account_needs_reconnect( $account_row )
+			) {
+				$result['media_error'] = new WP_Error(
+					'reconnect_required',
+					class_exists( 'ESF_TikTok_API_Error' )
+						? ESF_TikTok_API_Error::reconnect_required_message()
+						: __( 'TikTok access was revoked or expired. Please reconnect your TikTok account.', 'easy-facebook-likebox' )
+				);
+				// Still try cache below so existing local posts can show until cache is cleared.
+			}
+
+			$cache_key = ESF_TikTok_Cache::posts_cache_key( $account_id );
+			$cached    = ESF_TikTok_Cache::get( $cache_key );
+			if ( ! is_array( $cached ) && method_exists( 'ESF_TikTok_Cache', 'get_stale' ) ) {
+				$cached = ESF_TikTok_Cache::get_stale( $cache_key );
+			}
+
+			if ( is_array( $cached ) && isset( $cached['posts'] ) && is_array( $cached['posts'] ) ) {
+				$nodes                     = $cached['posts'];
+				$result['has_local_cache'] = true;
+				if ( $source_disconnected && class_exists( 'ESF_Feed_Disconnected_Cache' ) ) {
+					$result['notice'] = ESF_Feed_Disconnected_Cache::get_notice_message( ! empty( $feed_cfg['cache_pinned'] ) );
+				}
+			} elseif ( ! $source_disconnected ) {
+				$fetched = $this->fetch_and_cache_posts( $feed_obj, $account_id, $per_page );
+				$nodes   = isset( $fetched['posts'] ) && is_array( $fetched['posts'] ) ? $fetched['posts'] : array();
+				if ( isset( $fetched['media_error'] ) && $fetched['media_error'] instanceof WP_Error ) {
+					$result['media_error'] = $fetched['media_error'];
+				}
 			}
 		}
 
@@ -481,12 +602,13 @@ class ESF_TikTok_Renderer {
 	/**
 	 * Call TikTok API and write account-scoped cache.
 	 *
-	 * @param object $feed_obj    Feed.
-	 * @param int    $account_id  Account ID.
-	 * @param int    $per_page    Desired page size (fetch at least this many).
+	 * @param object $feed_obj           Feed.
+	 * @param int    $account_id         Account ID.
+	 * @param int    $per_page           Desired page size (fetch at least this many).
+	 * @param bool   $preserve_on_empty  When true, skip writing empty API payloads.
 	 * @return array{posts:array<int,array<string,mixed>>,media_error:\WP_Error|null}
 	 */
-	private function fetch_and_cache_posts( $feed_obj, int $account_id, int $per_page ): array {
+	private function fetch_and_cache_posts( $feed_obj, int $account_id, int $per_page, bool $preserve_on_empty = false ): array {
 		$out = array(
 			'posts'       => array(),
 			'media_error' => null,
@@ -539,6 +661,15 @@ class ESF_TikTok_Renderer {
 			$posts = array_values( $result['videos'] );
 		} elseif ( isset( $result['posts'] ) && is_array( $result['posts'] ) ) {
 			$posts = array_values( $result['posts'] );
+		}
+
+		if ( $preserve_on_empty && empty( $posts ) ) {
+			$out['media_error'] = new WP_Error(
+				'empty_timeline',
+				__( 'No TikTok videos were returned. Existing cache was kept.', 'easy-facebook-likebox' ),
+				array( 'status' => 502 )
+			);
+			return $out;
 		}
 
 		$meta = array();

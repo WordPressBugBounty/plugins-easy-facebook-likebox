@@ -379,6 +379,21 @@ function esf_facebook_get_settings_defaults() {
 }
 
 /**
+ * Allowed Facebook Settings → cache duration values (seconds).
+ *
+ * @since 6.7.9
+ * @return int[]
+ */
+function esf_facebook_cache_duration_options() {
+    return array(
+        3600,
+        43200,
+        86400,
+        604800
+    );
+}
+
+/**
  * Merge saved Facebook settings with module defaults.
  *
  * @since 6.7.9
@@ -387,12 +402,7 @@ function esf_facebook_get_settings_defaults() {
  */
 function esf_facebook_normalize_settings(  array $saved  ) {
     $settings = array_merge( esf_facebook_get_settings_defaults(), $saved );
-    $allowed = array(
-        3600,
-        43200,
-        86400,
-        604800
-    );
+    $allowed = esf_facebook_cache_duration_options();
     if ( !in_array( (int) $settings['cache_duration'], $allowed, true ) ) {
         $settings['cache_duration'] = 43200;
     }

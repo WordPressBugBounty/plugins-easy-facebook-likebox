@@ -240,6 +240,9 @@ if ( ! class_exists( 'ESF_API_Welcome' ) ) {
 			if ( 'deactivated' === $status && 'twitter' === $slug && function_exists( 'esf_twitter_teardown_scheduled_jobs' ) ) {
 				esf_twitter_teardown_scheduled_jobs();
 			}
+			if ( 'deactivated' === $status && 'facebook' === $slug && function_exists( 'esf_facebook_teardown_scheduled_jobs' ) ) {
+				esf_facebook_teardown_scheduled_jobs();
+			}
 
 			return rest_ensure_response(
 				array(

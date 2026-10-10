@@ -87,3 +87,21 @@ function esf_twitter_teardown_scheduled_jobs() {
 	esf_cron_unschedule_recurring_job( 'esf_twitter_auto_refresh_tokens' );
 	esf_cron_unschedule_recurring_job( 'esf_twitter_refresh_feed_cache' );
 }
+
+/**
+ * Clear Facebook module cron jobs when the module is deactivated.
+ *
+ * Safe to call when Facebook classes are not loaded (uses hook names directly).
+ *
+ * @since 6.7.9
+ * @return void
+ */
+function esf_facebook_teardown_scheduled_jobs() {
+	if ( class_exists( 'ESF_Facebook_Main' ) ) {
+		ESF_Facebook_Main::on_deactivation();
+		return;
+	}
+
+	esf_cron_unschedule_recurring_job( 'esf_facebook_auto_refresh_tokens' );
+	esf_cron_unschedule_recurring_job( 'esf_facebook_refresh_feed_cache' );
+}

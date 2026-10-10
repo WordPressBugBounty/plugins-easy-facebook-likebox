@@ -161,6 +161,33 @@ class ESF_Facebook_Cache {
 	}
 
 	/**
+	 * Get the expires_at timestamp for a cache key (even if already expired).
+	 *
+	 * @since 6.7.9
+	 *
+	 * @param string $key Cache key.
+	 * @return string|null MySQL datetime string (UTC), or null if missing.
+	 */
+	public static function get_expires_at( $key ) {
+		global $wpdb;
+
+		$key = self::sanitize_key( $key );
+		if ( '' === $key ) {
+			return null;
+		}
+
+		$table_escaped = esc_sql( self::get_table_name() );
+		$row           = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT expires_at FROM `{$table_escaped}` WHERE cache_key = %s LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$key
+			)
+		);
+
+		return ( $row && ! empty( $row->expires_at ) ) ? (string) $row->expires_at : null;
+	}
+
+	/**
 	 * Store data in the cache.
 	 *
 	 * @param string   $key        Cache key.

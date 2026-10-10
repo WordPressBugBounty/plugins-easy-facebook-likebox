@@ -41,6 +41,9 @@ if ( ! class_exists( 'ESF_Admin_Menu_Order' ) ) {
 		const TIKTOK = 47;
 
 		/** @var int */
+		const SOCIAL_WALL = 48;
+
+		/** @var int */
 		const SETTINGS = 50;
 
 		/** @var int First slot for third-party items (Freemius, add-ons). */
@@ -64,6 +67,7 @@ if ( ! class_exists( 'ESF_Admin_Menu_Order' ) ) {
 				'mif'                   => self::INSTAGRAM,
 				'esf-twitter'           => self::TWITTER,
 				'esf-tiktok'            => self::TIKTOK,
+				'esf-social-wall'       => self::SOCIAL_WALL,
 				'esf-settings'          => self::SETTINGS,
 			);
 		}

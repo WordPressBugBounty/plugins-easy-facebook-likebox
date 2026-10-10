@@ -199,11 +199,15 @@ class ESF_Instagram_Main {
         require_once ESF_INSTAGRAM_DIR . 'includes/api/class-esf-instagram-api-comments.php';
         $post_comments_file = ESF_INSTAGRAM_DIR . 'includes/api/premium/class-esf-instagram-api-post-comments.php';
         require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-cache.php';
+        require_once ESF_INSTAGRAM_DIR . 'includes/cache/class-esf-instagram-cache-refresher.php';
         require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-local-media.php';
         require_once ESF_INSTAGRAM_DIR . 'includes/class-esf-instagram-renderer.php';
         require_once ESF_INSTAGRAM_DIR . 'frontend/class-esf-instagram-frontend.php';
         if ( is_admin() ) {
             require_once ESF_INSTAGRAM_DIR . 'admin/classes/class-esf-instagram-admin.php';
+        }
+        if ( class_exists( 'ESF_Safe_Cache_Refresh' ) && class_exists( 'ESF_Instagram_Cache_Refresher' ) ) {
+            ESF_Safe_Cache_Refresh::register( new ESF_Instagram_Cache_Refresher() );
         }
     }
 
@@ -396,30 +400,10 @@ class ESF_Instagram_Main {
      */
     public function add_cron_schedules( $schedules ) {
         $schedules = esf_cron_schedules_add_thirty_minutes( $schedules );
-        $cache_schedules = array(
-            'esf_instagram_1h'  => array(
-                'interval' => 3600,
-                'display'  => __( 'Every Hour', 'easy-facebook-likebox' ),
-            ),
-            'esf_instagram_12h' => array(
-                'interval' => 43200,
-                'display'  => __( 'Every 12 Hours', 'easy-facebook-likebox' ),
-            ),
-            'esf_instagram_24h' => array(
-                'interval' => 86400,
-                'display'  => __( 'Every 24 Hours', 'easy-facebook-likebox' ),
-            ),
-            'esf_instagram_7d'  => array(
-                'interval' => 604800,
-                'display'  => __( 'Every 7 Days', 'easy-facebook-likebox' ),
-            ),
-        );
-        foreach ( $cache_schedules as $slug => $args ) {
-            if ( !isset( $schedules[$slug] ) ) {
-                $schedules[$slug] = $args;
-            }
+        if ( function_exists( 'esf_feed_cache_add_cron_schedules' ) ) {
+            return esf_feed_cache_add_cron_schedules( $schedules, 'instagram' );
         }
-        return $schedules;
+        return ( is_array( $schedules ) ? $schedules : array() );
     }
 
     /**
@@ -431,6 +415,10 @@ class ESF_Instagram_Main {
     private function maybe_schedule_feed_cache_refresh() {
         $cache_duration = (int) esf_get_instagram_settings( 'cache_duration' );
         $schedule_slug = $this->get_cache_refresh_schedule_slug( $cache_duration );
+        if ( function_exists( 'esf_feed_cache_maybe_schedule_refresh' ) ) {
+            esf_feed_cache_maybe_schedule_refresh( self::CRON_CACHE_REFRESH_HOOK, $schedule_slug );
+            return;
+        }
         $event = wp_get_scheduled_event( self::CRON_CACHE_REFRESH_HOOK );
         if ( $event && $event->schedule === $schedule_slug ) {
             return;
@@ -449,6 +437,12 @@ class ESF_Instagram_Main {
      * @return void
      */
     public function reschedule_feed_cache_refresh() {
+        $cache_duration = (int) esf_get_instagram_settings( 'cache_duration' );
+        $schedule_slug = $this->get_cache_refresh_schedule_slug( $cache_duration );
+        if ( function_exists( 'esf_feed_cache_reschedule_refresh' ) ) {
+            esf_feed_cache_reschedule_refresh( self::CRON_CACHE_REFRESH_HOOK, $schedule_slug );
+            return;
+        }
         $timestamp = wp_next_scheduled( self::CRON_CACHE_REFRESH_HOOK );
         if ( $timestamp ) {
             wp_unschedule_event( $timestamp, self::CRON_CACHE_REFRESH_HOOK );
@@ -464,13 +458,10 @@ class ESF_Instagram_Main {
      * @return string
      */
     private function get_cache_refresh_schedule_slug( $cache_duration_secs ) {
-        $map = array(
-            3600   => 'esf_instagram_1h',
-            43200  => 'esf_instagram_12h',
-            86400  => 'esf_instagram_24h',
-            604800 => 'esf_instagram_7d',
-        );
-        return ( isset( $map[(int) $cache_duration_secs] ) ? $map[(int) $cache_duration_secs] : 'esf_instagram_12h' );
+        if ( function_exists( 'esf_feed_cache_cron_schedule_slug' ) ) {
+            return esf_feed_cache_cron_schedule_slug( $cache_duration_secs, 'instagram' );
+        }
+        return 'esf_instagram_12h';
     }
 
     /**
