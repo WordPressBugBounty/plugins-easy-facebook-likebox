@@ -1,17 +1,17 @@
-=== Easy Social Feed - Social Wall, Photos Gallery and Post Feed for WordPress ===
+=== Easy Social Feed – All In One Social Feed Plugin for WordPress ===
 Contributors: DaNish Ali, maltathemes, sjaved, freemius
-Tags: Instagram feed, Facebook feed, YouTube feed, social wall, TikTok feed
+Tags: all-in-one, social feed, Instagram feed, Facebook feed, social wall
 Requires at least: 3.3
 Tested up to: 7.1
 Stable tag: 6.8.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Display Instagram, Facebook, YouTube, X and TikTok feeds using blocks, widgets or shortcodes. Combine them all in one Social Wall (Pro).
+All-in-one social feed for Instagram, Facebook, YouTube, X & TikTok. Combine networks in one Social Wall.
 
 == Description ==
 
-Easy Social Feed lets you display **Instagram**, **Facebook**, **YouTube**, **X** and **TikTok** content on your WordPress website, and combine every network into a single **Social Wall** with Pro.
+Easy Social Feed is an all-in-one social feed plugin that lets you display **Instagram**, **Facebook**, **YouTube**, **X** and **TikTok** content on your WordPress website, and combine every network into a single **Social Wall** with Pro.
 
 Create responsive social media feeds and a unified social wall with live customization, configurable layouts and simple embedding. Keep your website fresh with the latest content from your social accounts, showcase your work and encourage visitors to follow you.
 
@@ -29,11 +29,11 @@ Each social module can be enabled or disabled independently, helping you load on
 
 No coding is required for the setup.
 
-[Instagram Feed Demo](https://easysocialfeed.com/my-instagram-feed-demo/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=instagram_feed_demo) | [Facebook Feed Demo](https://easysocialfeed.com/custom-facebook-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=facebook_feed_demo) | [YouTube Feed Demo](https://easysocialfeed.com/custom-youtube-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=youtube_feed_demo) | [X/Twitter Feed Demo](https://easysocialfeed.com/custom-twitter-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=twitter_feed_demo) | [TikTok Feed Demo](https://easysocialfeed.com/custom-tiktok-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=tiktok_feed_demo)
+[Instagram Feed Demo](https://easysocialfeed.com/my-instagram-feed-demo/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=instagram_feed_demo) | [Facebook Feed Demo](https://easysocialfeed.com/custom-facebook-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=facebook_feed_demo) | [YouTube Feed Demo](https://easysocialfeed.com/custom-youtube-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=youtube_feed_demo) | [X/Twitter Feed Demo](https://easysocialfeed.com/custom-twitter-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=twitter_feed_demo) | [TikTok Feed Demo](https://easysocialfeed.com/custom-tiktok-feed/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=tiktok_feed_demo) | [Social Wall Demo (Pro)](https://easysocialfeed.com/live-social-media-wall/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=social_wall_demo)
 
 ### Why use Easy Social Feed?
 
-- **Instagram**, **Facebook**, **YouTube**, **X** and **TikTok** feeds in one plugin
+- All-in-one **Instagram**, **Facebook**, **YouTube**, **X** and **TikTok** feeds in a single plugin
 - **Social Wall** (Pro) to merge all your networks into one responsive wall
 - Responsive layouts for desktop, tablet and mobile
 - Live feed customization and preview
@@ -345,6 +345,7 @@ Social Wall is a Combo Pro feature. Connect the networks you already use, pick s
 - Live wall customization and preview
 - Shortcode embedding with `[esf_social_wall]`
 
+[View Social Wall Live Demo](https://easysocialfeed.com/live-social-media-wall/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=social_wall_demo) | [Explore Social Wall Pro](https://easysocialfeed.com/wordpress-social-media-wall-plugin/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=social_wall_feature)
 
 ### Embedding options
 
