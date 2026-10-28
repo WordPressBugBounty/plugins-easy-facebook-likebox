@@ -179,15 +179,16 @@ class ESF_YouTube_API_Preview {
 			);
 		}
 
-		$feed_repo   = ESF_YouTube_Feed_Repository::get_instance();
-		$feed_row    = $feed_repo->get_by_id( $feed_id );
-		$layout_type = 'grid';
+		$feed_repo = ESF_YouTube_Feed_Repository::get_instance();
+		$feed_row  = $feed_repo->get_by_id( $feed_id );
+		$saved     = array();
 		if ( $feed_row && ! empty( $feed_row->settings ) ) {
-			$saved       = json_decode( $feed_row->settings, true );
-			$merged      = ESF_YouTube_Feed_Repository::merge_settings_with_defaults( is_array( $saved ) ? $saved : array() );
-			$merged      = array_merge( $merged, $settings_override );
-			$layout_type = isset( $merged['layout']['type'] ) ? $merged['layout']['type'] : 'grid';
+			$decoded = json_decode( (string) $feed_row->settings, true );
+			$saved   = is_array( $decoded ) ? $decoded : array();
 		}
+		$merged      = ESF_YouTube_Feed_Repository::merge_settings_with_defaults( $saved );
+		$merged      = array_merge( $merged, is_array( $settings_override ) ? $settings_override : array() );
+		$layout_type = isset( $merged['layout']['type'] ) ? (string) $merged['layout']['type'] : 'grid';
 
 		$css_url        = $renderer->get_base_css_url();
 		$layout_css_url = $renderer->get_layout_css_url( $layout_type );
@@ -196,6 +197,10 @@ class ESF_YouTube_API_Preview {
 			: null;
 
 		$js_urls = array();
+		$caption_js_path = ESF_YOUTUBE_DIR . 'frontend/assets/js/esf-youtube-caption.js';
+		if ( file_exists( $caption_js_path ) ) {
+			$js_urls[] = ESF_YOUTUBE_URL . 'frontend/assets/js/esf-youtube-caption.js';
+		}
 		if ( 'masonry' === $layout_type && function_exists( 'esf_get_masonry_pack_script_url' ) ) {
 			$pack_url = esf_get_masonry_pack_script_url();
 			if ( '' !== $pack_url ) {
@@ -204,6 +209,17 @@ class ESF_YouTube_API_Preview {
 		}
 		if ( is_string( $js_url ) && '' !== $js_url ) {
 			$js_urls[] = $js_url;
+		}
+
+		$playback_mode = function_exists( 'esf_youtube_resolve_playback_mode' )
+			? esf_youtube_resolve_playback_mode( $merged, $layout_type )
+			: 'new_tab';
+
+		if ( 'showcase' === $playback_mode && method_exists( $renderer, 'get_showcase_js_url' ) ) {
+			$showcase_js = $renderer->get_showcase_js_url();
+			if ( is_string( $showcase_js ) && '' !== $showcase_js ) {
+				$js_urls[] = $showcase_js;
+			}
 		}
 
 		$payload = array(
@@ -228,8 +244,14 @@ class ESF_YouTube_API_Preview {
 		if ( is_string( $layout_css_url ) && '' !== $layout_css_url ) {
 			$layout_css_urls[] = $layout_css_url;
 		}
-		if ( count( $layout_css_urls ) > 1 ) {
-			$payload['layout_css_urls'] = $layout_css_urls;
+		if ( 'showcase' === $playback_mode && method_exists( $renderer, 'get_showcase_css_url' ) ) {
+			$showcase_css = $renderer->get_showcase_css_url();
+			if ( is_string( $showcase_css ) && '' !== $showcase_css ) {
+				$layout_css_urls[] = $showcase_css;
+			}
+		}
+		if ( ! empty( $layout_css_urls ) ) {
+			$payload['layout_css_urls'] = array_values( array_unique( $layout_css_urls ) );
 		}
 
 		if ( method_exists( $renderer, 'get_last_search_total_results' ) ) {

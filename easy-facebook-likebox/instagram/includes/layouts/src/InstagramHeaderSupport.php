@@ -12,6 +12,8 @@
 
 namespace EasySocialFeed\Instagram\Layouts;
 
+use EasySocialFeed\Layouts\Primitives\ExpandableCaption;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -57,13 +59,15 @@ trait InstagramHeaderSupport {
 			'show_avatar'        => (bool) $this->setting( 'header.show_avatar', true ),
 			'show_name'          => (bool) $this->setting( 'header.show_name', true ),
 			'show_handle'        => (bool) $this->setting( 'header.show_handle', true ),
-			'show_bio'           => (bool) $this->setting( 'header.show_bio', true ),
+			// Bio is rendered below via ExpandableCaption (Facebook / TikTok pattern).
+			'show_bio'           => false,
 			'show_stats'         => $header_stats,
 			'stat_display'       => 'icons',
 			'stat_labels'        => array(
 				'followers' => esf_translate_registry_string( 'followers', 'Followers' ),
 				'media'     => esf_translate_registry_string( 'ig_posts', 'Posts' ),
 			),
+			'meta_html'          => $this->build_instagram_header_bio_html(),
 			'show_follow_button' => (bool) $this->setting( 'header.show_follow_button', true ),
 			'follow_label'       => esf_translate_registry_string( 'follow_on_instagram', 'Follow on Instagram' ),
 		);
@@ -114,6 +118,43 @@ trait InstagramHeaderSupport {
 		}
 
 		return $header_options;
+	}
+
+	/**
+	 * Expandable profile bio for the account header.
+	 *
+	 * @since 6.9.0
+	 * @return string
+	 */
+	protected function build_instagram_header_bio_html(): string {
+		if ( null === $this->account || ! (bool) $this->setting( 'header.show_bio', true ) ) {
+			return '';
+		}
+
+		$bio = trim( (string) $this->account->get_bio() );
+		if ( '' === $bio ) {
+			return '';
+		}
+
+		$see_more = function_exists( 'esf_translate_registry_string' )
+			? esf_translate_registry_string( 'see_more', 'See more' )
+			: __( 'See more', 'easy-facebook-likebox' );
+		$see_less = function_exists( 'esf_translate_registry_string' )
+			? esf_translate_registry_string( 'see_less', 'See less' )
+			: __( 'See less', 'easy-facebook-likebox' );
+
+		return '<div class="esf-instagram-feed__header-bio">'
+			. ExpandableCaption::render(
+				$this->module,
+				'<p>' . esc_html( $bio ) . '</p>',
+				array(
+					'words_limit'    => 28,
+					'post_id'        => 'header-bio-' . (string) $this->account->get_id(),
+					'see_more_label' => $see_more,
+					'see_less_label' => $see_less,
+				)
+			)
+			. '</div>';
 	}
 
 	/**

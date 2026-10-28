@@ -653,7 +653,9 @@ class ESF_YouTube_Renderer {
 		$saved_settings     = json_decode( $feed_row->settings, true );
 		$feed_obj->settings = ESF_YouTube_Feed_Repository::merge_settings_with_defaults( is_array( $saved_settings ) ? $saved_settings : array() );
 
-		$videos = $this->get_videos_for_single_account( $feed_id, $feed_obj, null, true );
+		// Raw list: a feed whose visible set is empty (e.g. only private videos
+		// on a free plan) must still refresh the shared cache.
+		$videos = $this->load_videos_for_single_account( $feed_id, $feed_obj, null, true );
 		if ( is_wp_error( $videos ) ) {
 			return $videos;
 		}
@@ -806,6 +808,59 @@ class ESF_YouTube_Renderer {
 	 * @return array|WP_Error Video items or WP_Error.
 	 */
 	protected function get_videos_for_single_account( $feed_id, $feed_obj, $access_token = null, $force_refresh = false ) {
+		$videos = $this->load_videos_for_single_account( $feed_id, $feed_obj, $access_token, $force_refresh );
+		if ( is_wp_error( $videos ) || ! is_array( $videos ) ) {
+			return $videos;
+		}
+
+		return $this->apply_video_visibility_to_videos( $videos, $feed_obj );
+	}
+
+	/**
+	 * Apply the feed's video visibility (public | all | unlisted | private).
+	 *
+	 * Runs after the shared cache is read/written so the cached list always
+	 * keeps every video; only the list handed to the feed is filtered. Free
+	 * sites are always limited to public videos.
+	 *
+	 * @since 6.8.3
+	 *
+	 * @param array  $videos   Normalized video items.
+	 * @param object $feed_obj Feed object (settings are read from `$feed_obj->settings`).
+	 * @return array
+	 */
+	protected function apply_video_visibility_to_videos( array $videos, $feed_obj ) {
+		if ( ! function_exists( 'esf_youtube_filter_videos_by_visibility' ) ) {
+			return $videos;
+		}
+
+		$settings = ( is_object( $feed_obj ) && isset( $feed_obj->settings ) && is_array( $feed_obj->settings ) )
+			? $feed_obj->settings
+			: array();
+
+		$visibility = function_exists( 'esf_youtube_video_visibility_from_settings' )
+			? esf_youtube_video_visibility_from_settings( $settings )
+			: 'public';
+
+		return esf_youtube_filter_videos_by_visibility( $videos, $visibility );
+	}
+
+	/**
+	 * Load the raw (visibility-unfiltered) videos for a single account.
+	 *
+	 * Cache read / API fetch / cache write. The result is what gets stored in
+	 * the shared videos cache, so it must not be visibility-filtered. Use
+	 * {@see self::get_videos_for_single_account()} for display.
+	 *
+	 * @since 6.8.3
+	 *
+	 * @param int         $feed_id       Feed ID.
+	 * @param object      $feed_obj      Feed object.
+	 * @param string|null $access_token  Optional access token.
+	 * @param bool        $force_refresh When true, bypass warm cache and skip empty writes.
+	 * @return array|WP_Error Video items or WP_Error.
+	 */
+	protected function load_videos_for_single_account( $feed_id, $feed_obj, $access_token = null, $force_refresh = false ) {
 		$account_id = isset( $feed_obj->account_id ) ? (int) $feed_obj->account_id : 0;
 		$feed_type  = isset( $feed_obj->feed_type ) ? (string) $feed_obj->feed_type : 'channel';
 		$source_id  = isset( $feed_obj->source_id ) ? trim( (string) $feed_obj->source_id ) : '';
@@ -960,7 +1015,20 @@ class ESF_YouTube_Renderer {
 					$access_token
 				);
 			} else {
-				if ( $from_legacy && '' !== $cache_key ) {
+				$needs_store = $from_legacy;
+
+				// Pre-privacy caches: enrich via videos.list (status part) so the
+				// visibility filter can tell public from unlisted/private videos.
+				// Skipped when disconnected (no token) — the cached list is served as-is.
+				if ( ! $source_disconnected && $this->videos_cache_missing_privacy( $items ) ) {
+					$backfilled = $this->backfill_cached_video_privacy( $items, $account_id, $access_token );
+					if ( is_array( $backfilled ) && ! $this->videos_cache_missing_privacy( $backfilled ) ) {
+						$items       = $backfilled;
+						$needs_store = true;
+					}
+				}
+
+				if ( $needs_store && '' !== $cache_key ) {
 					$ttl = (int) esf_get_youtube_settings( 'cache_duration' );
 					if ( $ttl <= 0 ) {
 						$ttl = 43200;
@@ -1353,6 +1421,57 @@ class ESF_YouTube_Renderer {
 	}
 
 	/**
+	 * Detect caches that pre-date the privacy_status field.
+	 *
+	 * @since 6.8.3
+	 * @param array $videos Cached video items.
+	 * @return bool True when the list is non-empty and no item carries privacy_status.
+	 */
+	protected function videos_cache_missing_privacy( array $videos ) {
+		if ( empty( $videos ) ) {
+			return false;
+		}
+
+		foreach ( $videos as $video ) {
+			if ( ! is_array( $video ) ) {
+				continue;
+			}
+			if ( array_key_exists( 'privacy_status', $video ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Backfill privacy_status on cached videos via videos.list (status part).
+	 *
+	 * A failed attempt is throttled for a few minutes so a broken token or API
+	 * outage cannot trigger one API call per page view.
+	 *
+	 * @since 6.8.3
+	 * @param array       $videos       Cached video items.
+	 * @param int         $account_id   Account ID.
+	 * @param string|null $access_token Optional token; resolved when empty.
+	 * @return array Enriched videos (or the original list on failure / throttle).
+	 */
+	protected function backfill_cached_video_privacy( array $videos, $account_id = 0, $access_token = null ) {
+		$throttle_key = 'esf_yt_privacy_bf_' . (int) $account_id;
+		if ( false !== get_transient( $throttle_key ) ) {
+			return $videos;
+		}
+
+		$enriched = $this->backfill_cached_video_duration( $videos, $account_id, $access_token );
+		if ( ! is_array( $enriched ) || $this->videos_cache_missing_privacy( $enriched ) ) {
+			set_transient( $throttle_key, 1, 5 * MINUTE_IN_SECONDS );
+			return $videos;
+		}
+
+		return $enriched;
+	}
+
+	/**
 	 * Detect legacy video caches that stored localized upload URLs.
 	 *
 	 * @since 6.9.5
@@ -1628,6 +1747,34 @@ class ESF_YouTube_Renderer {
 	 * @param string $layout_type Layout type (e.g. 'carousel').
 	 * @return string URL or empty string.
 	 */
+	/**
+	 * Shared Video Showcase CSS URL (preview + frontend).
+	 *
+	 * @since 6.18.0
+	 * @return string
+	 */
+	public function get_showcase_css_url() {
+		$plugin_dir = defined( 'FTA_PLUGIN_DIR' ) ? FTA_PLUGIN_DIR : dirname( ESF_YOUTUBE_DIR ) . '/';
+		$plugin_url = defined( 'FTA_PLUGIN_URL' ) ? FTA_PLUGIN_URL : trailingslashit( dirname( ESF_YOUTUBE_URL ) );
+		$path       = $plugin_dir . 'admin/shared/frontend/css/esf-showcase.css';
+
+		return file_exists( $path ) ? $plugin_url . 'admin/shared/frontend/css/esf-showcase.css' : '';
+	}
+
+	/**
+	 * Shared Video Showcase JS URL (preview + frontend).
+	 *
+	 * @since 6.18.0
+	 * @return string
+	 */
+	public function get_showcase_js_url() {
+		$plugin_dir = defined( 'FTA_PLUGIN_DIR' ) ? FTA_PLUGIN_DIR : dirname( ESF_YOUTUBE_DIR ) . '/';
+		$plugin_url = defined( 'FTA_PLUGIN_URL' ) ? FTA_PLUGIN_URL : trailingslashit( dirname( ESF_YOUTUBE_URL ) );
+		$path       = $plugin_dir . 'admin/shared/frontend/js/esf-showcase.js';
+
+		return file_exists( $path ) ? $plugin_url . 'admin/shared/frontend/js/esf-showcase.js' : '';
+	}
+
 	public function get_layout_js_url( $layout_type ) {
 		$layout_type = is_string( $layout_type ) ? trim( $layout_type ) : '';
 		if ( 'carousel' === $layout_type ) {
@@ -1717,11 +1864,30 @@ class ESF_YouTube_Renderer {
 	 * @return array<string,string>
 	 */
 	public static function filter_wrapper_attributes( $attrs, $feed = null, $definition = null ) {
-		if ( ! function_exists( 'esf_youtube_hover_overlay_wrapper_attributes' ) ) {
-			return is_array( $attrs ) ? $attrs : array();
+		$attrs = is_array( $attrs ) ? $attrs : array();
+
+		if ( function_exists( 'esf_youtube_hover_overlay_wrapper_attributes' ) ) {
+			$attrs = esf_youtube_hover_overlay_wrapper_attributes( $attrs, $feed );
 		}
 
-		return esf_youtube_hover_overlay_wrapper_attributes( is_array( $attrs ) ? $attrs : array(), $feed );
+		$settings = ( is_object( $feed ) && isset( $feed->settings ) && is_array( $feed->settings ) )
+			? $feed->settings
+			: array();
+		$slug     = '';
+		if ( is_object( $definition ) && method_exists( $definition, 'get_slug' ) ) {
+			$slug = (string) $definition->get_slug();
+		} elseif ( isset( $settings['layout']['type'] ) ) {
+			$slug = (string) $settings['layout']['type'];
+		}
+
+		if ( function_exists( 'esf_youtube_resolve_playback_mode' ) ) {
+			$mode = esf_youtube_resolve_playback_mode( $settings, $slug );
+			if ( 'showcase' === $mode ) {
+				$attrs['data-esf-playback'] = 'showcase';
+			}
+		}
+
+		return $attrs;
 	}
 
 	/**

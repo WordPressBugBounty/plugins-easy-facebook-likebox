@@ -304,7 +304,7 @@ class Easy_Custom_Facebook_Feed_Widget extends WP_Widget {
 					<a href="<?php 
         echo esc_url( esf_get_upgrade_url( 'facebook' ) );
         ?>"> <?php 
-        echo __( 'Upgrade to PRO', 'easy-facebook-likebox' );
+        echo __( 'Go Pro', 'easy-facebook-likebox' );
         ?> </a>
 					<?php 
         ?>
@@ -453,7 +453,7 @@ class Easy_Custom_Facebook_Feed_Widget extends WP_Widget {
 					<a href="<?php 
             echo esc_url( esf_get_upgrade_url( 'facebook' ) );
             ?>"><?php 
-            _e( 'Upgrade to PRO', 'easy-facebook-likebox' );
+            _e( 'Go Pro', 'easy-facebook-likebox' );
             ?></a>
 				</p>
 
@@ -476,7 +476,7 @@ class Easy_Custom_Facebook_Feed_Widget extends WP_Widget {
 				<a href="<?php 
             echo esc_url( esf_get_upgrade_url( 'facebook' ) );
             ?>"><?php 
-            _e( 'Upgrade to PRO', 'easy-facebook-likebox' );
+            _e( 'Go Pro', 'easy-facebook-likebox' );
             ?></a>
 			</p>
 

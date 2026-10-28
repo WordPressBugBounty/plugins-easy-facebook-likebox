@@ -77,7 +77,12 @@ class ESF_YouTube_Frontend {
             'icon'        => 'grid',
             'class_name'  => ESF_YouTube_Layout_Grid::class,
             'is_pro'      => false,
-            'supports'    => array('header', 'metrics', 'load_more'),
+            'supports'    => array(
+                'header',
+                'metrics',
+                'load_more',
+                'showcase'
+            ),
             'assets'      => array(
                 'layout_css' => array(
                     'handle' => 'esf-youtube-layout-grid',
@@ -146,7 +151,12 @@ class ESF_YouTube_Frontend {
             'icon'             => 'row',
             'class_name'       => ESF_YouTube_Layout_Row::class,
             'is_pro'           => false,
-            'supports'         => array('header', 'metrics', 'load_more'),
+            'supports'         => array(
+                'header',
+                'metrics',
+                'load_more',
+                'showcase'
+            ),
             'assets'           => $assets,
             'default_settings' => array(
                 'layout' => array(
@@ -195,7 +205,54 @@ class ESF_YouTube_Frontend {
         if ( class_exists( 'ESF_GDPR_Integrations' ) ) {
             ESF_GDPR_Integrations::maybe_enqueue_consent_script();
         }
+        $caption_js = ESF_YOUTUBE_DIR . 'frontend/assets/js/esf-youtube-caption.js';
+        if ( file_exists( $caption_js ) && !wp_script_is( 'esf-youtube-caption', 'enqueued' ) ) {
+            wp_enqueue_script(
+                'esf-youtube-caption',
+                ESF_YOUTUBE_URL . 'frontend/assets/js/esf-youtube-caption.js',
+                array(),
+                (string) filemtime( $caption_js ),
+                true
+            );
+        }
+        $this->maybe_enqueue_showcase_assets();
         $this->maybe_enqueue_public_script();
+    }
+
+    /**
+     * Enqueue shared Video Showcase assets when a feed opted into showcase mode.
+     *
+     * Free + Pro — not gated by Freemius premium_only.
+     *
+     * @since 6.18.0
+     * @return void
+     */
+    private function maybe_enqueue_showcase_assets() {
+        global $esf_youtube_showcase_script_needed;
+        if ( empty( $esf_youtube_showcase_script_needed ) ) {
+            return;
+        }
+        $plugin_dir = ( defined( 'FTA_PLUGIN_DIR' ) ? FTA_PLUGIN_DIR : dirname( ESF_YOUTUBE_DIR ) . '/' );
+        $plugin_url = ( defined( 'FTA_PLUGIN_URL' ) ? FTA_PLUGIN_URL : trailingslashit( dirname( ESF_YOUTUBE_URL ) ) );
+        $css_path = $plugin_dir . 'admin/shared/frontend/css/esf-showcase.css';
+        if ( file_exists( $css_path ) && !wp_style_is( 'esf-showcase', 'enqueued' ) ) {
+            wp_enqueue_style(
+                'esf-showcase',
+                $plugin_url . 'admin/shared/frontend/css/esf-showcase.css',
+                array('esf-youtube-feed'),
+                (string) filemtime( $css_path )
+            );
+        }
+        $js_path = $plugin_dir . 'admin/shared/frontend/js/esf-showcase.js';
+        if ( file_exists( $js_path ) && !wp_script_is( 'esf-showcase', 'enqueued' ) ) {
+            wp_enqueue_script(
+                'esf-showcase',
+                $plugin_url . 'admin/shared/frontend/js/esf-showcase.js',
+                array(),
+                (string) filemtime( $js_path ),
+                true
+            );
+        }
     }
 
     /**

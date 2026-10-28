@@ -122,12 +122,15 @@ final class AccountHeader {
 			$banner_url = '';
 		}
 
-		$name        = $account->get_name();
-		$handle      = $account->get_handle();
-		$avatar_url  = $account->get_avatar_url();
-		$profile_url = $account->get_profile_url();
-		$bio         = $account->get_bio();
-		$verified    = VerifiedBadge::render( $account->is_verified() );
+		$name           = $account->get_name();
+		$handle         = $account->get_handle();
+		$avatar_url     = $account->get_avatar_url();
+		$profile_url    = $account->get_profile_url();
+		$bio            = $account->get_bio();
+		$verified_label = function_exists( 'esf_translate_registry_string' )
+			? esf_translate_registry_string( 'tw_verified_account', 'Verified account' )
+			: __( 'Verified account', 'easy-facebook-likebox' );
+		$verified       = VerifiedBadge::render( $account->is_verified(), '', $verified_label );
 
 		$avatar_html = '';
 		$avatar_icon = isset( $options['avatar_icon_html'] ) ? (string) $options['avatar_icon_html'] : '';

@@ -30,6 +30,17 @@ function esf_social_wall_can_use_pro() {
 }
 
 /**
+ * Whether the current user can manage Social Wall (missing-feed recovery UI).
+ *
+ * @since 6.8.5
+ * @return bool
+ */
+function esf_social_wall_user_can_manage() {
+    $capability = apply_filters( 'esf_social_wall_manage_capability', 'manage_options' );
+    return current_user_can( $capability );
+}
+
+/**
  * Module slugs Social Wall can aggregate when activated.
  *
  * @since 6.8.2
@@ -145,6 +156,142 @@ function esf_social_wall_module_badge_icon(  $module  ) {
 }
 
 /**
+ * Brand / wall header HTML for Social Wall (multi-network chrome).
+ *
+ * Not a single-account header — title, optional description/CTA, and
+ * network icons derived from connected sources. Default OFF via
+ * feed.show_wall_header so existing walls are unchanged.
+ *
+ * Layout matches other modules' account headers: title + description in a
+ * main column, CTA on the right of that row, network icons below.
+ *
+ * @since 6.8.4
+ * @param mixed    $feed_settings Feed settings slice (settings.feed).
+ * @param string[] $modules       Unique source module slugs.
+ * @return string Escaped HTML, or empty when header is off / has no content.
+ */
+function esf_social_wall_render_wall_header(  $feed_settings, array $modules = array()  ) {
+    $feed = ( is_array( $feed_settings ) ? $feed_settings : array() );
+    if ( empty( $feed['show_wall_header'] ) ) {
+        return '';
+    }
+    $title = ( isset( $feed['header_title'] ) ? trim( (string) $feed['header_title'] ) : '' );
+    $show_desc = !isset( $feed['header_show_description'] ) || !empty( $feed['header_show_description'] );
+    $description = ( $show_desc && isset( $feed['header_description'] ) ? trim( (string) $feed['header_description'] ) : '' );
+    $show_cta = !empty( $feed['header_show_cta'] );
+    $cta_label = ( isset( $feed['header_cta_label'] ) ? trim( (string) $feed['header_cta_label'] ) : '' );
+    $cta_url = ( isset( $feed['header_cta_url'] ) ? trim( (string) $feed['header_cta_url'] ) : '' );
+    if ( '' === $cta_label ) {
+        $cta_label = __( 'Follow us', 'easy-facebook-likebox' );
+    }
+    $show_icons = !isset( $feed['header_show_network_icons'] ) || !empty( $feed['header_show_network_icons'] );
+    $align_raw = ( isset( $feed['header_align'] ) ? sanitize_key( (string) $feed['header_align'] ) : 'left' );
+    $align = ( in_array( $align_raw, array('left', 'center', 'right'), true ) ? $align_raw : 'left' );
+    $icon_color = ( isset( $feed['header_icon_color'] ) && function_exists( 'sanitize_hex_color' ) ? sanitize_hex_color( (string) $feed['header_icon_color'] ) : '' );
+    $icon_bg = ( isset( $feed['header_icon_bg_color'] ) && function_exists( 'sanitize_hex_color' ) ? sanitize_hex_color( (string) $feed['header_icon_bg_color'] ) : '' );
+    $icon_size = ( isset( $feed['header_icon_size'] ) ? (int) $feed['header_icon_size'] : 32 );
+    if ( $icon_size < 20 ) {
+        $icon_size = 20;
+    } elseif ( $icon_size > 56 ) {
+        $icon_size = 56;
+    }
+    $cta_bg = ( isset( $feed['header_cta_bg_color'] ) && function_exists( 'sanitize_hex_color' ) ? sanitize_hex_color( (string) $feed['header_cta_bg_color'] ) : '' );
+    $cta_text = ( isset( $feed['header_cta_text_color'] ) && function_exists( 'sanitize_hex_color' ) ? sanitize_hex_color( (string) $feed['header_cta_text_color'] ) : '' );
+    $cta_hover_bg = ( isset( $feed['header_cta_hover_bg_color'] ) && function_exists( 'sanitize_hex_color' ) ? sanitize_hex_color( (string) $feed['header_cta_hover_bg_color'] ) : '' );
+    $cta_hover_text = ( isset( $feed['header_cta_hover_text_color'] ) && function_exists( 'sanitize_hex_color' ) ? sanitize_hex_color( (string) $feed['header_cta_hover_text_color'] ) : '' );
+    $icons_html = '';
+    if ( $show_icons && !empty( $modules ) ) {
+        $parts = array();
+        foreach ( $modules as $module ) {
+            $module = sanitize_key( (string) $module );
+            if ( '' === $module ) {
+                continue;
+            }
+            $icon = esf_social_wall_module_badge_icon( $module );
+            if ( '' === $icon ) {
+                continue;
+            }
+            $label = ( function_exists( 'esf_social_wall_module_label' ) ? esf_social_wall_module_label( $module ) : ucfirst( $module ) );
+            // Decorative network chips — CTA carries the follow URL (no fake platform home links).
+            $parts[] = sprintf(
+                '<span class="esf-social-wall-feed__wall-header-network esf-social-wall-feed__wall-header-network--%1$s" aria-label="%2$s">%3$s</span>',
+                esc_attr( $module ),
+                esc_attr( $label ),
+                $icon
+            );
+        }
+        if ( !empty( $parts ) ) {
+            $networks_class = 'esf-social-wall-feed__wall-header-networks';
+            if ( is_string( $icon_color ) && '' !== $icon_color ) {
+                $networks_class .= ' esf-social-wall-feed__wall-header-networks--custom-color';
+            }
+            $icons_html = '<div class="' . esc_attr( $networks_class ) . '" role="list">' . implode( '', $parts ) . '</div>';
+        }
+    }
+    $cta_html = '';
+    if ( $show_cta && '' !== $cta_url ) {
+        $cta_html = sprintf( '<a class="esf-social-wall-feed__wall-header-cta" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>', esc_url( $cta_url ), esc_html( $cta_label ) );
+    }
+    if ( '' === $title && '' === $description && '' === $cta_html && '' === $icons_html ) {
+        return '';
+    }
+    $main = '';
+    if ( '' !== $title ) {
+        $main .= '<h2 class="esf-social-wall-feed__wall-header-title">' . esc_html( $title ) . '</h2>';
+    }
+    if ( '' !== $description ) {
+        $main .= '<p class="esf-social-wall-feed__wall-header-description">' . esc_html( $description ) . '</p>';
+    }
+    $body = '';
+    if ( '' !== $main || '' !== $cta_html ) {
+        $body .= '<div class="esf-social-wall-feed__wall-header-top">';
+        if ( '' !== $main ) {
+            $body .= '<div class="esf-social-wall-feed__wall-header-main">' . $main . '</div>';
+        }
+        if ( '' !== $cta_html ) {
+            $body .= $cta_html;
+        }
+        $body .= '</div>';
+    }
+    if ( '' !== $icons_html ) {
+        $body .= $icons_html;
+    }
+    $vars = array();
+    if ( is_string( $cta_bg ) && '' !== $cta_bg ) {
+        $vars[] = '--esf-sw-wall-header-cta-bg:' . $cta_bg;
+    }
+    if ( is_string( $cta_text ) && '' !== $cta_text ) {
+        $vars[] = '--esf-sw-wall-header-cta-text:' . $cta_text;
+    }
+    if ( is_string( $cta_hover_bg ) && '' !== $cta_hover_bg ) {
+        $vars[] = '--esf-sw-wall-header-cta-hover-bg:' . $cta_hover_bg;
+    }
+    if ( is_string( $cta_hover_text ) && '' !== $cta_hover_text ) {
+        $vars[] = '--esf-sw-wall-header-cta-hover-text:' . $cta_hover_text;
+    }
+    if ( is_string( $icon_color ) && '' !== $icon_color ) {
+        $vars[] = '--esf-sw-wall-header-icon-color:' . $icon_color;
+    }
+    if ( is_string( $icon_bg ) && '' !== $icon_bg ) {
+        $vars[] = '--esf-sw-wall-header-icon-bg:' . $icon_bg;
+    }
+    if ( 32 !== $icon_size ) {
+        $vars[] = '--esf-sw-wall-header-icon-size:' . $icon_size . 'px';
+        $vars[] = '--esf-sw-wall-header-icon-svg:' . max( 10, (int) round( $icon_size * 0.4375 ) ) . 'px';
+    }
+    $style_attr = '';
+    if ( !empty( $vars ) ) {
+        $style_attr = ' style="' . esc_attr( implode( ';', $vars ) ) . '"';
+    }
+    return sprintf(
+        '<header class="esf-social-wall-feed__wall-header esf-social-wall-feed__wall-header--%1$s"%2$s>%3$s</header>',
+        esc_attr( $align ),
+        $style_attr,
+        $body
+    );
+}
+
+/**
  * Option key for Social Wall global settings.
  *
  * @since 6.8.2
@@ -201,19 +348,29 @@ function esf_social_wall_sanitize_settings(  $raw  ) {
         'grid',
         'row',
         'masonry',
-        'carousel'
+        'carousel',
+        'half_width',
+        'full_width'
     );
     if ( !in_array( $layout, $allowed_layouts, true ) ) {
         $layout = $defaults['default_layout'];
     }
     $per_page = ( isset( $raw['default_per_page'] ) ? absint( $raw['default_per_page'] ) : (int) $defaults['default_per_page'] );
     $per_page = max( 1, min( 50, $per_page ) );
+    // Missing keys keep product defaults (filter/badge/load more ON for new walls).
+    // Explicit false/empty from Settings still saves off.
+    $bool_or_default = static function ( $key ) use($raw, $defaults) {
+        if ( !array_key_exists( $key, $raw ) ) {
+            return !empty( $defaults[$key] );
+        }
+        return !empty( $raw[$key] );
+    };
     return array(
         'default_layout'      => $layout,
         'default_per_page'    => $per_page,
-        'default_show_filter' => !empty( $raw['default_show_filter'] ),
-        'default_show_badge'  => !empty( $raw['default_show_badge'] ),
-        'default_load_more'   => !empty( $raw['default_load_more'] ),
+        'default_show_filter' => $bool_or_default( 'default_show_filter' ),
+        'default_show_badge'  => $bool_or_default( 'default_show_badge' ),
+        'default_load_more'   => $bool_or_default( 'default_load_more' ),
     );
 }
 

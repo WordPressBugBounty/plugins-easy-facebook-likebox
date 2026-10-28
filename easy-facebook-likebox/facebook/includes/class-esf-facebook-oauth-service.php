@@ -47,6 +47,19 @@ class ESF_Facebook_Oauth_Service {
 	}
 
 	/**
+	 * User-facing copy when me/accounts returns no Pages (personal profile / stale Meta grant).
+	 *
+	 * @since 6.7.9
+	 * @return string
+	 */
+	public static function get_no_pages_found_message() {
+		return __(
+			'No Facebook Pages were found for this login. Connect a Facebook Page you Admin (not a personal profile). If Meta shows you previously logged in, remove Easy Social Feed from Facebook Business Integrations, then reconnect.',
+			'easy-facebook-likebox'
+		);
+	}
+
+	/**
 	 * Discover Pages then persist a pick session.
 	 *
 	 * @since 6.7.9
@@ -97,7 +110,7 @@ class ESF_Facebook_Oauth_Service {
 		if ( array() === $candidates ) {
 			return new WP_Error(
 				'esf_fb_no_pages',
-				__( 'No Facebook Pages were found for this login.', 'easy-facebook-likebox' ),
+				self::get_no_pages_found_message(),
 				array( 'status' => 400 )
 			);
 		}

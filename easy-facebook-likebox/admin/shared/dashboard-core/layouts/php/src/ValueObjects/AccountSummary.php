@@ -41,6 +41,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @property-read int    $following_count
  * @property-read int    $tweet_count
  * @property-read int    $video_count
+ * @property-read int    $view_count
  * @property-read bool   $is_verified
  * @property-read bool   $verified
  * @property-read string $channel_banner
@@ -294,6 +295,8 @@ final class AccountSummary {
 			case 'is_verified':
 			case 'verified':
 			case 'channel_banner':
+			case 'channel_id':
+			case 'verified_type':
 				return true;
 			default:
 				return array_key_exists( $name, $this->extras );

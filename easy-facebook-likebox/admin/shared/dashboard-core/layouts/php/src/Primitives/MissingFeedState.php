@@ -31,11 +31,12 @@ final class MissingFeedState {
 	 * @var array<string, string>
 	 */
 	private static $default_messages = array(
-		'instagram' => 'This Instagram feed is currently unavailable.',
-		'twitter'   => 'This social feed is currently unavailable.',
-		'youtube'   => 'This YouTube feed is currently unavailable.',
-		'facebook'  => 'This Facebook feed is currently unavailable.',
-		'tiktok'    => 'This TikTok feed is currently unavailable.',
+		'instagram'   => 'This Instagram feed is currently unavailable.',
+		'twitter'     => 'This social feed is currently unavailable.',
+		'youtube'     => 'This YouTube feed is currently unavailable.',
+		'facebook'    => 'This Facebook feed is currently unavailable.',
+		'tiktok'      => 'This TikTok feed is currently unavailable.',
+		'social_wall' => 'This social wall is currently unavailable.',
 	);
 
 	/**

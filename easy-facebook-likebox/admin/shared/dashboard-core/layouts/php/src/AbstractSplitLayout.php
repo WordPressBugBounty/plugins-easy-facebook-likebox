@@ -559,6 +559,7 @@ abstract class AbstractSplitLayout extends AbstractLayout implements RendersTile
             'metric_labels'  => array(
                 'likes'    => __( 'Likes', 'easy-facebook-likebox' ),
                 'comments' => __( 'Comments', 'easy-facebook-likebox' ),
+                'shares'   => __( 'Shares', 'easy-facebook-likebox' ),
             ),
             'media_options'  => array(
                 'new_tab'              => (bool) $this->setting( 'feed.links_new_tab', true ),

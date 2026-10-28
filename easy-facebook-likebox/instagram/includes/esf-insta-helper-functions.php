@@ -354,56 +354,12 @@ if ( ! function_exists( 'esf_insta_readable_time' ) ) {
 			return $custom_time;
 		}
 
-		// Default relative time calculation
-		$retval            = '';
-		$date_time_strings = array(
-			'second'  => __( 'second', 'easy-facebook-likebox' ),
-			'seconds' => __( 'seconds', 'easy-facebook-likebox' ),
-			'minute'  => __( 'minute', 'easy-facebook-likebox' ),
-			'minutes' => __( 'minutes', 'easy-facebook-likebox' ),
-			'hour'    => __( 'hour', 'easy-facebook-likebox' ),
-			'hours'   => __( 'hours', 'easy-facebook-likebox' ),
-			'day'     => __( 'day', 'easy-facebook-likebox' ),
-			'days'    => __( 'days', 'easy-facebook-likebox' ),
-			'week'    => __( 'week', 'easy-facebook-likebox' ),
-			'weeks'   => __( 'weeks', 'easy-facebook-likebox' ),
-			'month'   => __( 'month', 'easy-facebook-likebox' ),
-			'months'  => __( 'months', 'easy-facebook-likebox' ),
-			'year'    => __( 'year', 'easy-facebook-likebox' ),
-			'years'   => __( 'years', 'easy-facebook-likebox' ),
-			'decade'  => __( 'decade', 'easy-facebook-likebox' ),
-		);
-
-		$ago_text = __( 'ago', 'easy-facebook-likebox' );
-
-		$difference = time() - $date_timestamp;
-
-		$periods = array(
-			'decade' => 315360000,
-			'year'   => 31536000,
-			'month'  => 2628000,
-			'week'   => 604800,
-			'day'    => 86400,
-			'hour'   => 3600,
-			'minute' => 60,
-			'second' => 1,
-		);
-
-		foreach ( $periods as $key => $value ) {
-
-			if ( $difference >= $value ) {
-				$time        = floor( $difference / $value );
-				$difference %= $value;
-				$retval     .= ( $retval ? ' ' : '' ) . $time . ' ';
-				$retval     .= ( ( $time > 1 ) ? $date_time_strings[ $key . 's' ] : $date_time_strings[ $key ] );
-				$granularity --;
-			}
-			if ( $granularity == '0' ) {
-				break;
-			}
+		// Shared calculator (Translation → Time + historical granularity).
+		if ( function_exists( 'esf_format_granular_time_ago' ) ) {
+			return esf_format_granular_time_ago( $date_timestamp, $granularity );
 		}
 
-		return '' . $retval . ' ' . $ago_text;
+		return '';
 	}
 }
 if ( ! function_exists( 'esf_insta_convert_to_hashtag' ) ) {

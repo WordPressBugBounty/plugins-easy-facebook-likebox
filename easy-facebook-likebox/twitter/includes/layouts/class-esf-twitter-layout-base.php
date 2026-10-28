@@ -12,6 +12,8 @@
 
 use EasySocialFeed\Layouts\Contracts\Layout;
 use EasySocialFeed\Layouts\Contracts\PostItem;
+use EasySocialFeed\Layouts\Primitives\ExpandableCaption;
+use EasySocialFeed\Layouts\Primitives\LoadMoreButton;
 use EasySocialFeed\Layouts\Primitives\MediaCollage;
 use EasySocialFeed\Layouts\ValueObjects\LayoutDefinition;
 use EasySocialFeed\Layouts\ValueObjects\AccountSummary;
@@ -229,32 +231,29 @@ abstract class ESF_Twitter_Layout_Base implements Layout {
 					$next_token = sanitize_text_field( (string) $meta_cache['next_token'] );
 				}
 			}
-			$bg_color    = $this->sanitize_theme_hex( isset( $feed['load_more_bg_color'] ) ? $feed['load_more_bg_color'] : '' );
-			$text_color  = $this->sanitize_theme_hex( isset( $feed['load_more_text_color'] ) ? $feed['load_more_text_color'] : '' );
-			$hover_bg    = $this->sanitize_theme_hex( isset( $feed['load_more_hover_bg_color'] ) ? $feed['load_more_hover_bg_color'] : '' );
-			$hover_text  = $this->sanitize_theme_hex( isset( $feed['load_more_hover_text_color'] ) ? $feed['load_more_hover_text_color'] : '' );
-			$style_parts = array();
-			if ( '' !== $bg_color ) {
-				$style_parts[] = '--esf-lm-bg:' . $bg_color;
-			}
-			if ( '' !== $text_color ) {
-				$style_parts[] = '--esf-lm-text:' . $text_color;
-			}
-			if ( '' !== $hover_bg ) {
-				$style_parts[] = '--esf-lm-bg-hover:' . $hover_bg;
-			}
-			if ( '' !== $hover_text ) {
-				$style_parts[] = '--esf-lm-text-hover:' . $hover_text;
-			}
-			$button_style   = ! empty( $style_parts ) ? implode( ';', $style_parts ) : '';
-			$load_more_html = sprintf(
-				'<div class="esf-tw-feed__load-more-wrap"><button type="button" class="esf-tw-feed__load-more" data-feed-id="%1$d" data-offset="%2$d" data-next-token="%6$s" aria-label="%3$s" %5$s>%4$s</button></div>',
-				$feed_id_attr,
-				$per_page,
-				esc_attr__( esf_get_translated_string( 'tw_load_more_tweets_aria' ), 'easy-facebook-likebox' ),
-				esc_html__( esf_get_translated_string( 'load_more' ), 'easy-facebook-likebox' ),
-				'' !== $button_style ? 'style="' . esc_attr( $button_style ) . '"' : '',
-				esc_attr( $next_token )
+
+			// Shared primitive emits button + Pro infinite markup (`--infinite` /
+			// data-esf-lm-mode) so frontend IntersectionObserver can attach.
+			$load_more_html = LoadMoreButton::render(
+				'tw',
+				array(
+					'feed_id'          => $feed_id_attr,
+					'offset'           => $per_page,
+					'next_token'       => $next_token,
+					'label'            => function_exists( 'esf_get_translated_string' )
+						? __( esf_get_translated_string( 'load_more' ), 'easy-facebook-likebox' ) // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+						: __( 'Load more', 'easy-facebook-likebox' ),
+					'aria_label'       => function_exists( 'esf_get_translated_string' )
+						? __( esf_get_translated_string( 'tw_load_more_tweets_aria' ), 'easy-facebook-likebox' ) // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+						: __( 'Load more tweets', 'easy-facebook-likebox' ),
+					'bg_color'         => isset( $feed['load_more_bg_color'] ) ? (string) $feed['load_more_bg_color'] : '',
+					'text_color'       => isset( $feed['load_more_text_color'] ) ? (string) $feed['load_more_text_color'] : '',
+					'hover_bg_color'   => isset( $feed['load_more_hover_bg_color'] ) ? (string) $feed['load_more_hover_bg_color'] : '',
+					'hover_text_color' => isset( $feed['load_more_hover_text_color'] ) ? (string) $feed['load_more_hover_text_color'] : '',
+					'mode'             => ( isset( $feed['load_more_mode'] ) && 'infinite' === $feed['load_more_mode'] )
+						? 'infinite'
+						: 'button',
+				)
 			);
 		}
 
@@ -530,10 +529,31 @@ abstract class ESF_Twitter_Layout_Base implements Layout {
 							</a>
 						<?php endif; ?>
 					</div>
-					<?php if ( $show_bio && '' !== $bio ) : ?>
-						<p class="esf-tw-feed__header-bio">
-							<?php echo esc_html( $bio ); ?>
-						</p>
+					<?php if ( $show_bio && '' !== trim( (string) $bio ) ) : ?>
+						<?php
+						$see_more = function_exists( 'esf_translate_registry_string' )
+							? esf_translate_registry_string( 'see_more', 'See more' )
+							: __( 'See more', 'easy-facebook-likebox' );
+						$see_less = function_exists( 'esf_translate_registry_string' )
+							? esf_translate_registry_string( 'see_less', 'See less' )
+							: __( 'See less', 'easy-facebook-likebox' );
+						$bio_key  = '' !== (string) $username ? (string) $username : (string) ( $this->account->id ?? '0' );
+						?>
+						<div class="esf-tw-feed__header-bio">
+							<?php
+							$caption_html = ExpandableCaption::render(
+								'twitter',
+								'<p>' . esc_html( trim( (string) $bio ) ) . '</p>',
+								array(
+									'words_limit'    => 28,
+									'post_id'        => 'header-bio-' . sanitize_html_class( $bio_key ),
+									'see_more_label' => $see_more,
+									'see_less_label' => $see_less,
+								)
+							);
+							echo $caption_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- ExpandableCaption escapes labels and receives pre-escaped HTML.
+							?>
+						</div>
 					<?php endif; ?>
 				</div>
 			</div>
@@ -1402,14 +1422,40 @@ abstract class ESF_Twitter_Layout_Base implements Layout {
 		if ( $this->has_valid_verified_type( isset( $this->account->verified_type ) ? $this->account->verified_type : '' ) ) {
 			return true;
 		}
-		if ( isset( $this->account->account_data ) && is_string( $this->account->account_data ) && '' !== $this->account->account_data ) {
-			$account_data = json_decode( $this->account->account_data, true );
+
+		// AccountSummary already exposes is_verified / verified_type above.
+		// Only legacy non-AccountSummary objects may carry a JSON account_data blob.
+		$legacy_json = $this->get_legacy_account_data_json( $this->account );
+		if ( '' !== $legacy_json ) {
+			$account_data = json_decode( $legacy_json, true );
 			if ( is_array( $account_data ) ) {
 				return $this->has_verified_flag( isset( $account_data['is_verified'] ) ? $account_data['is_verified'] : null )
 					|| $this->has_valid_verified_type( isset( $account_data['verified_type'] ) ? $account_data['verified_type'] : '' );
 			}
 		}
+
 		return false;
+	}
+
+	/**
+	 * Read a legacy JSON account_data blob when the account is not AccountSummary.
+	 *
+	 * @since 6.9.0
+	 * @param object $account Account object.
+	 * @return string Raw JSON or empty string.
+	 */
+	protected function get_legacy_account_data_json( $account ) {
+		if ( $account instanceof AccountSummary || ! is_object( $account ) ) {
+			return '';
+		}
+
+		// Defensive access for legacy stdClass / DB row shapes only.
+		$vars = get_object_vars( $account );
+		if ( ! isset( $vars['account_data'] ) || ! is_string( $vars['account_data'] ) || '' === $vars['account_data'] ) {
+			return '';
+		}
+
+		return $vars['account_data'];
 	}
 
 	/**

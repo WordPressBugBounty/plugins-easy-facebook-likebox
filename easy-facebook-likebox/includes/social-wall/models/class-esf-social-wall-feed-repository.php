@@ -76,6 +76,10 @@ class ESF_Social_Wall_Feed_Repository {
 	 * @return array<string,mixed>
 	 */
 	public static function get_default_settings() {
+		$layout_dimensions = function_exists( 'esf_layout_dimension_defaults' )
+			? esf_layout_dimension_defaults()
+			: array();
+
 		return array(
 			'sources' => array(),
 			'feed'    => array(
@@ -96,52 +100,174 @@ class ESF_Social_Wall_Feed_Repository {
 				'load_more_hover_bg_color'     => '',
 				'load_more_hover_text_color'   => '',
 				'show_popup'                   => true,
+				'popup_show_header'            => true,
+				'popup_show_caption'           => true,
+				'popup_show_meta'              => true,
+				'popup_show_view_on_network'   => true,
+				'popup_show_comments_list'     => true,
+				'popup_comments_per_page'      => 20,
+				'popup_show_gallery_nav'       => true,
+				'popup_show_gallery_thumbs'    => true,
+				'popup_gallery_nav_bg_color'   => '',
+				'popup_gallery_nav_icon_color' => '',
+				'popup_show_date'              => true,
+				'popup_show_follow'            => true,
+				'popup_show_strip'             => true,
+				'popup_show_views'             => true,
+				'popup_autoplay'               => true,
+				'popup_mute'                   => false,
 				'sort'                         => 'random',
 				'hover_overlay'                => true,
 				'show_hover_plus'              => true,
+				// Brand wall header (default OFF — existing walls unchanged).
+				'show_wall_header'             => false,
+				'header_title'                 => '',
+				'header_show_description'      => true,
+				'header_description'           => '',
+				'header_show_cta'              => false,
+				'header_cta_label'             => 'Follow us',
+				'header_cta_url'               => '',
+				'header_cta_bg_color'          => '',
+				'header_cta_text_color'        => '',
+				'header_cta_hover_bg_color'    => '',
+				'header_cta_hover_text_color'  => '',
+				'header_show_network_icons'    => true,
+				'header_icon_color'            => '',
+				'header_icon_bg_color'         => '',
+				'header_icon_size'             => 32,
+				'header_align'                 => 'left',
 			),
 			'layout'  => array(
 				'type'     => 'grid',
-				'grid'     => array(
-					'columns'            => 3,
-					'columns_tablet'     => 2,
-					'columns_mobile'     => 1,
-					'gap'                => 8,
-					'tile_border_radius' => 8,
-					'tile_shadow'        => true,
-					'media_aspect_ratio' => '1:1',
+				'grid'     => array_merge(
+					array(
+						'columns'              => 3,
+						'columns_tablet'       => 2,
+						'columns_mobile'       => 1,
+						'gap'                  => 8,
+						'tile_border_radius'   => 8,
+						'tile_shadow'          => true,
+						'media_aspect_ratio'   => '1:1',
+						'display_mode'         => 'media_only',
+						'show_caption'         => true,
+						'show_meta'            => true,
+						'show_time'            => true,
+						'caption_words'        => 25,
+						'details_bg_color'     => '#ffffff',
+						'details_text_color'   => '#1c1e21',
+						'details_accent_color' => '#1877f2',
+						'details_meta_color'   => '#65676b',
+					),
+					$layout_dimensions
 				),
-				'row'      => array(
-					'columns'            => 6,
-					'columns_tablet'     => 3,
-					'columns_mobile'     => 2,
-					'gap'                => 8,
-					'tile_border_radius' => 8,
-					'tile_shadow'        => true,
-					'media_aspect_ratio' => '1:1',
-					'row_style'          => '',
-					'wave_offset'        => 20,
+				'row'      => array_merge(
+					array(
+						'columns'              => 6,
+						'columns_tablet'       => 3,
+						'columns_mobile'       => 2,
+						'gap'                  => 8,
+						'tile_border_radius'   => 8,
+						'tile_shadow'          => true,
+						'media_aspect_ratio'   => '1:1',
+						'row_style'            => '',
+						'wave_offset'          => 20,
+						'display_mode'         => 'media_only',
+						'show_caption'         => true,
+						'show_meta'            => true,
+						'show_time'            => true,
+						'caption_words'        => 25,
+						'details_bg_color'     => '#ffffff',
+						'details_text_color'   => '#1c1e21',
+						'details_accent_color' => '#1877f2',
+						'details_meta_color'   => '#65676b',
+					),
+					$layout_dimensions
 				),
-				'masonry'  => array(
-					'columns'            => 3,
-					'columns_tablet'     => 2,
-					'columns_mobile'     => 1,
-					'gap'                => 8,
-					'tile_border_radius' => 8,
-					'tile_shadow'        => true,
-					'media_aspect_ratio' => 'auto',
+				'masonry'  => array_merge(
+					array(
+						'columns'              => 3,
+						'columns_tablet'       => 2,
+						'columns_mobile'       => 1,
+						'gap'                  => 8,
+						'tile_border_radius'   => 8,
+						'tile_shadow'          => true,
+						'media_aspect_ratio'   => 'auto',
+						'display_mode'         => 'media_only',
+						'show_caption'         => true,
+						'show_meta'            => true,
+						'show_time'            => true,
+						'caption_words'        => 25,
+						'details_bg_color'     => '#ffffff',
+						'details_text_color'   => '#1c1e21',
+						'details_accent_color' => '#1877f2',
+						'details_meta_color'   => '#65676b',
+					),
+					$layout_dimensions
 				),
-				'carousel' => array(
-					'columns'            => 3,
-					'gap'                => 8,
-					'tile_border_radius' => 8,
-					'tile_shadow'        => true,
-					'media_aspect_ratio' => '1:1',
-					'autoplay'           => true,
-					'autoplay_speed'     => 3000,
-					'loop'               => true,
-					'show_arrows'        => true,
-					'show_dots'          => true,
+				'carousel' => array_merge(
+					array(
+						'columns'              => 3,
+						'columns_tablet'       => 2,
+						'columns_mobile'       => 1,
+						'gap'                  => 8,
+						'tile_border_radius'   => 8,
+						'tile_shadow'          => true,
+						'media_aspect_ratio'   => '1:1',
+						'autoplay'             => true,
+						'autoplay_speed'       => 3000,
+						'loop'                 => true,
+						'show_arrows'          => true,
+						'show_dots'            => true,
+						'display_mode'         => 'media_only',
+						'show_caption'         => true,
+						'show_meta'            => true,
+						'show_time'            => true,
+						'caption_words'        => 25,
+						'details_bg_color'     => '#ffffff',
+						'details_text_color'   => '#1c1e21',
+						'details_accent_color' => '#1877f2',
+						'details_meta_color'   => '#65676b',
+					),
+					$layout_dimensions
+				),
+				'half_width' => array_merge(
+					array(
+						'gap'                   => 16,
+						'card_border_radius'    => 12,
+						'card_shadow'           => true,
+						'card_shadow_color'     => 'rgba(0,0,0,0.08)',
+						'bg_color'              => '#ffffff',
+						'footer_bg_color'       => '#f0f2f5',
+						'text_color'            => '#1c1e21',
+						'accent_color'          => '#1877f2',
+						'media_aspect_ratio'    => '1:1',
+						'caption_words'         => 25,
+						'show_post_header'      => true,
+						'show_post_time'        => true,
+						'show_share'            => true,
+						'show_view_on_network'  => true,
+					),
+					$layout_dimensions
+				),
+				'full_width' => array_merge(
+					array(
+						'gap'                   => 16,
+						'card_border_radius'    => 12,
+						'card_shadow'           => true,
+						'card_shadow_color'     => 'rgba(0,0,0,0.08)',
+						'bg_color'              => '#ffffff',
+						'footer_bg_color'       => '#f3f6f8',
+						'text_color'            => '#1c1e21',
+						'accent_color'          => '#1877f2',
+						'media_aspect_ratio'    => 'auto',
+						'media_position'        => 'header_first',
+						'caption_words'         => 25,
+						'show_post_header'      => true,
+						'show_post_time'        => true,
+						'show_share'            => true,
+						'show_view_on_network'  => true,
+					),
+					$layout_dimensions
 				),
 			),
 			'style'   => array(
@@ -228,7 +354,11 @@ class ESF_Social_Wall_Feed_Repository {
 		$merged              = self::merge_settings_with_defaults( $settings );
 		$merged['sources']   = self::sanitize_sources( isset( $merged['sources'] ) ? $merged['sources'] : array() );
 		$layout_type         = isset( $merged['layout']['type'] ) ? sanitize_key( (string) $merged['layout']['type'] ) : 'grid';
-		$merged['layout']['type'] = in_array( $layout_type, array( 'grid', 'row', 'masonry', 'carousel' ), true )
+		$merged['layout']['type'] = in_array(
+			$layout_type,
+			array( 'grid', 'row', 'masonry', 'carousel', 'half_width', 'full_width' ),
+			true
+		)
 			? $layout_type
 			: 'grid';
 
@@ -251,10 +381,54 @@ class ESF_Social_Wall_Feed_Repository {
 		$merged['feed']['load_more_hover_bg_color']   = self::sanitize_hex_or_empty( isset( $feed['load_more_hover_bg_color'] ) ? $feed['load_more_hover_bg_color'] : '' );
 		$merged['feed']['load_more_hover_text_color'] = self::sanitize_hex_or_empty( isset( $feed['load_more_hover_text_color'] ) ? $feed['load_more_hover_text_color'] : '' );
 		$merged['feed']['show_popup'] = ! isset( $feed['show_popup'] ) || ! empty( $feed['show_popup'] );
+		$merged['feed']['popup_show_header']          = ! isset( $feed['popup_show_header'] ) || ! empty( $feed['popup_show_header'] );
+		$merged['feed']['popup_show_caption']         = ! isset( $feed['popup_show_caption'] ) || ! empty( $feed['popup_show_caption'] );
+		$merged['feed']['popup_show_meta']            = ! isset( $feed['popup_show_meta'] ) || ! empty( $feed['popup_show_meta'] );
+		$merged['feed']['popup_show_view_on_network'] = ! isset( $feed['popup_show_view_on_network'] ) || ! empty( $feed['popup_show_view_on_network'] );
+		$merged['feed']['popup_show_comments_list']   = ! isset( $feed['popup_show_comments_list'] ) || ! empty( $feed['popup_show_comments_list'] );
+		$merged['feed']['popup_comments_per_page']    = max( 1, min( 50, isset( $feed['popup_comments_per_page'] ) ? (int) $feed['popup_comments_per_page'] : 20 ) );
+		$merged['feed']['popup_show_gallery_nav']     = ! isset( $feed['popup_show_gallery_nav'] ) || ! empty( $feed['popup_show_gallery_nav'] );
+		$merged['feed']['popup_show_gallery_thumbs']  = ! isset( $feed['popup_show_gallery_thumbs'] ) || ! empty( $feed['popup_show_gallery_thumbs'] );
+		$merged['feed']['popup_gallery_nav_bg_color'] = self::sanitize_css_color_or_empty( isset( $feed['popup_gallery_nav_bg_color'] ) ? $feed['popup_gallery_nav_bg_color'] : '' );
+		$merged['feed']['popup_gallery_nav_icon_color'] = self::sanitize_css_color_or_empty( isset( $feed['popup_gallery_nav_icon_color'] ) ? $feed['popup_gallery_nav_icon_color'] : '' );
+		$merged['feed']['popup_show_date']   = ! isset( $feed['popup_show_date'] ) || ! empty( $feed['popup_show_date'] );
+		$merged['feed']['popup_show_follow'] = ! isset( $feed['popup_show_follow'] ) || ! empty( $feed['popup_show_follow'] );
+		$merged['feed']['popup_show_strip']  = ! isset( $feed['popup_show_strip'] ) || ! empty( $feed['popup_show_strip'] );
+		$merged['feed']['popup_show_views']  = ! isset( $feed['popup_show_views'] ) || ! empty( $feed['popup_show_views'] );
+		$merged['feed']['popup_autoplay']    = ! isset( $feed['popup_autoplay'] ) || ! empty( $feed['popup_autoplay'] );
+		$merged['feed']['popup_mute']        = ! empty( $feed['popup_mute'] );
 		$merged['feed']['hover_overlay']   = ! isset( $feed['hover_overlay'] ) || ! empty( $feed['hover_overlay'] );
 		$merged['feed']['show_hover_plus'] = ! isset( $feed['show_hover_plus'] ) || ! empty( $feed['show_hover_plus'] );
 		$sort                          = isset( $feed['sort'] ) ? sanitize_key( (string) $feed['sort'] ) : 'random';
 		$merged['feed']['sort']        = in_array( $sort, array( 'newest', 'oldest', 'balanced', 'random' ), true ) ? $sort : 'random';
+
+		$merged['feed']['show_wall_header']          = ! empty( $feed['show_wall_header'] );
+		$merged['feed']['header_title']              = isset( $feed['header_title'] ) ? sanitize_text_field( (string) $feed['header_title'] ) : '';
+		$merged['feed']['header_show_description']   = ! isset( $feed['header_show_description'] ) || ! empty( $feed['header_show_description'] );
+		$merged['feed']['header_description']        = isset( $feed['header_description'] )
+			? sanitize_textarea_field( wp_strip_all_tags( (string) $feed['header_description'] ) )
+			: '';
+		$merged['feed']['header_show_cta']           = ! empty( $feed['header_show_cta'] );
+		$merged['feed']['header_cta_label']          = isset( $feed['header_cta_label'] )
+			? sanitize_text_field( (string) $feed['header_cta_label'] )
+			: 'Follow us';
+		if ( '' === $merged['feed']['header_cta_label'] ) {
+			$merged['feed']['header_cta_label'] = 'Follow us';
+		}
+		$merged['feed']['header_cta_url'] = isset( $feed['header_cta_url'] )
+			? esc_url_raw( (string) $feed['header_cta_url'] )
+			: '';
+		$merged['feed']['header_cta_bg_color']         = self::sanitize_hex_or_empty( isset( $feed['header_cta_bg_color'] ) ? $feed['header_cta_bg_color'] : '' );
+		$merged['feed']['header_cta_text_color']       = self::sanitize_hex_or_empty( isset( $feed['header_cta_text_color'] ) ? $feed['header_cta_text_color'] : '' );
+		$merged['feed']['header_cta_hover_bg_color']   = self::sanitize_hex_or_empty( isset( $feed['header_cta_hover_bg_color'] ) ? $feed['header_cta_hover_bg_color'] : '' );
+		$merged['feed']['header_cta_hover_text_color'] = self::sanitize_hex_or_empty( isset( $feed['header_cta_hover_text_color'] ) ? $feed['header_cta_hover_text_color'] : '' );
+		$merged['feed']['header_show_network_icons'] = ! isset( $feed['header_show_network_icons'] ) || ! empty( $feed['header_show_network_icons'] );
+		$merged['feed']['header_icon_color']         = self::sanitize_hex_or_empty( isset( $feed['header_icon_color'] ) ? $feed['header_icon_color'] : '' );
+		$merged['feed']['header_icon_bg_color']      = self::sanitize_hex_or_empty( isset( $feed['header_icon_bg_color'] ) ? $feed['header_icon_bg_color'] : '' );
+		$icon_size = isset( $feed['header_icon_size'] ) ? (int) $feed['header_icon_size'] : 32;
+		$merged['feed']['header_icon_size']          = max( 20, min( 56, $icon_size ) );
+		$align = isset( $feed['header_align'] ) ? sanitize_key( (string) $feed['header_align'] ) : 'left';
+		$merged['feed']['header_align']              = in_array( $align, array( 'left', 'center', 'right' ), true ) ? $align : 'left';
 
 		$merged['layout']['grid']     = self::sanitize_tile_layout_scope( isset( $merged['layout']['grid'] ) ? $merged['layout']['grid'] : array(), array(
 			'columns'        => 3,
@@ -279,8 +453,10 @@ class ESF_Social_Wall_Feed_Repository {
 		) );
 		$carousel = self::sanitize_tile_layout_scope( isset( $merged['layout']['carousel'] ) ? $merged['layout']['carousel'] : array(), array(
 			'columns'            => 3,
+			'columns_tablet'     => 2,
+			'columns_mobile'     => 1,
 			'max_columns'        => 6,
-			'include_responsive' => false,
+			'include_responsive' => true,
 		) );
 		$carousel_raw = isset( $merged['layout']['carousel'] ) && is_array( $merged['layout']['carousel'] )
 			? $merged['layout']['carousel']
@@ -292,6 +468,21 @@ class ESF_Social_Wall_Feed_Repository {
 		$carousel['show_dots']      = ! isset( $carousel_raw['show_dots'] ) || ! empty( $carousel_raw['show_dots'] );
 		$merged['layout']['carousel'] = $carousel;
 
+		$merged['layout']['half_width'] = self::sanitize_card_layout_scope(
+			isset( $merged['layout']['half_width'] ) ? $merged['layout']['half_width'] : array(),
+			array(
+				'media_aspect_ratio' => '1:1',
+				'include_media_position' => false,
+			)
+		);
+		$merged['layout']['full_width'] = self::sanitize_card_layout_scope(
+			isset( $merged['layout']['full_width'] ) ? $merged['layout']['full_width'] : array(),
+			array(
+				'media_aspect_ratio'     => 'auto',
+				'include_media_position' => true,
+			)
+		);
+
 		$style = isset( $merged['style'] ) && is_array( $merged['style'] ) ? $merged['style'] : array();
 		$css   = isset( $style['custom_css'] ) ? (string) $style['custom_css'] : '';
 		// Strip tags without requiring WP stubs in unit tests.
@@ -300,6 +491,101 @@ class ESF_Social_Wall_Feed_Repository {
 		);
 
 		return $merged;
+	}
+
+	/**
+	 * Sanitize Half Width / Full Width card layout scope.
+	 *
+	 * @since 6.8.4
+	 * @param mixed               $scope Raw scope.
+	 * @param array<string,mixed> $args  Defaults and flags.
+	 * @return array<string,mixed>
+	 */
+	private static function sanitize_card_layout_scope( $scope, array $args ) {
+		$scope = is_array( $scope ) ? $scope : array();
+		$default_ratio = isset( $args['media_aspect_ratio'] ) ? (string) $args['media_aspect_ratio'] : '1:1';
+
+		$ratio = isset( $scope['media_aspect_ratio'] ) ? (string) $scope['media_aspect_ratio'] : $default_ratio;
+		$allowed_ratios = array( 'auto', '16:9', '1:1', '4:5', '3:4', '9:16' );
+		if ( ! in_array( $ratio, $allowed_ratios, true ) ) {
+			$ratio = $default_ratio;
+		}
+
+		$out = array(
+			'gap'                  => max( 0, min( 100, isset( $scope['gap'] ) ? (int) $scope['gap'] : 16 ) ),
+			'card_border_radius'   => max( 0, min( 32, isset( $scope['card_border_radius'] ) ? (int) $scope['card_border_radius'] : 12 ) ),
+			'card_shadow'          => ! isset( $scope['card_shadow'] ) || ! empty( $scope['card_shadow'] ),
+			'card_shadow_color'    => self::sanitize_css_color_or_empty( isset( $scope['card_shadow_color'] ) ? $scope['card_shadow_color'] : '' ),
+			'bg_color'             => self::sanitize_hex_or_empty( isset( $scope['bg_color'] ) ? $scope['bg_color'] : '' ),
+			'footer_bg_color'      => self::sanitize_hex_or_empty( isset( $scope['footer_bg_color'] ) ? $scope['footer_bg_color'] : '' ),
+			'text_color'           => self::sanitize_hex_or_empty( isset( $scope['text_color'] ) ? $scope['text_color'] : '' ),
+			'accent_color'         => self::sanitize_hex_or_empty( isset( $scope['accent_color'] ) ? $scope['accent_color'] : '' ),
+			'media_aspect_ratio'   => $ratio,
+			'caption_words'        => max( 5, min( 100, isset( $scope['caption_words'] ) ? (int) $scope['caption_words'] : 25 ) ),
+			'show_post_header'     => ! isset( $scope['show_post_header'] ) || ! empty( $scope['show_post_header'] ),
+			'show_post_time'       => ! isset( $scope['show_post_time'] ) || ! empty( $scope['show_post_time'] ),
+			'show_share'           => ! isset( $scope['show_share'] ) || ! empty( $scope['show_share'] ),
+			'show_view_on_network' => ! isset( $scope['show_view_on_network'] ) || ! empty( $scope['show_view_on_network'] ),
+		);
+
+		if ( ! empty( $args['include_media_position'] ) ) {
+			$pos = isset( $scope['media_position'] ) ? sanitize_key( (string) $scope['media_position'] ) : 'header_first';
+			$out['media_position'] = in_array( $pos, array( 'header_first', 'media_first' ), true )
+				? $pos
+				: 'header_first';
+		}
+
+		return self::merge_layout_dimensions( $out, $scope );
+	}
+
+	/**
+	 * Merge shared feed/media dimension keys onto a layout scope (0 = automatic).
+	 *
+	 * Uses {@see esf_layout_dimension_*} so Social Wall matches other modules
+	 * without duplicating clamp logic.
+	 *
+	 * @since 6.8.4
+	 * @param array<string,mixed> $out   Sanitized scope.
+	 * @param array<string,mixed> $scope Raw scope (for user values).
+	 * @return array<string,mixed>
+	 */
+	private static function merge_layout_dimensions( array $out, array $scope ) {
+		if ( ! function_exists( 'esf_layout_dimension_defaults' ) ) {
+			return $out;
+		}
+
+		$dims = esf_layout_dimension_defaults();
+		foreach ( $dims as $key => $default ) {
+			$dims[ $key ] = isset( $scope[ $key ] ) ? (int) $scope[ $key ] : (int) $default;
+		}
+
+		if ( function_exists( 'esf_layout_normalize_dimension_scope' ) ) {
+			$dims = esf_layout_normalize_dimension_scope( $dims );
+		}
+
+		return array_merge( $out, $dims );
+	}
+
+	/**
+	 * Sanitize hex or rgba color (empty allowed). Used for card shadow color.
+	 *
+	 * @since 6.8.4
+	 * @param mixed $value Raw color.
+	 * @return string
+	 */
+	private static function sanitize_css_color_or_empty( $value ) {
+		$value = is_string( $value ) ? trim( $value ) : '';
+		if ( '' === $value ) {
+			return '';
+		}
+		$hex = sanitize_hex_color( $value );
+		if ( is_string( $hex ) && '' !== $hex ) {
+			return $hex;
+		}
+		if ( preg_match( '/^rgba?\(\s*[\d.%]+\s*,\s*[\d.%]+\s*,\s*[\d.%]+(?:\s*,\s*[\d.]+\s*)?\)$/i', $value ) ) {
+			return $value;
+		}
+		return '';
 	}
 
 	/**
@@ -356,7 +642,28 @@ class ESF_Social_Wall_Feed_Repository {
 			$out['wave_offset'] = max( 8, min( 48, isset( $scope['wave_offset'] ) ? (int) $scope['wave_offset'] : 20 ) );
 		}
 
-		return $out;
+		/*
+		 * Card style (Images only / Image + details). Default media_only so
+		 * existing walls keep image-first tiles until the merchant opts in.
+		 */
+		$mode = isset( $scope['display_mode'] ) ? sanitize_key( (string) $scope['display_mode'] ) : 'media_only';
+		$out['display_mode']  = 'detailed' === $mode ? 'detailed' : 'media_only';
+		$out['show_caption']  = ! isset( $scope['show_caption'] ) || ! empty( $scope['show_caption'] );
+		$out['show_meta']     = ! isset( $scope['show_meta'] ) || ! empty( $scope['show_meta'] );
+		$out['show_time']     = ! isset( $scope['show_time'] ) || ! empty( $scope['show_time'] );
+		$out['caption_words'] = max( 5, min( 100, isset( $scope['caption_words'] ) ? (int) $scope['caption_words'] : 25 ) );
+
+		$details_bg     = self::sanitize_hex_or_empty( isset( $scope['details_bg_color'] ) ? $scope['details_bg_color'] : '#ffffff' );
+		$details_text   = self::sanitize_hex_or_empty( isset( $scope['details_text_color'] ) ? $scope['details_text_color'] : '#1c1e21' );
+		$details_accent = self::sanitize_hex_or_empty( isset( $scope['details_accent_color'] ) ? $scope['details_accent_color'] : '#1877f2' );
+		$details_meta   = self::sanitize_hex_or_empty( isset( $scope['details_meta_color'] ) ? $scope['details_meta_color'] : '#65676b' );
+
+		$out['details_bg_color']     = '' !== $details_bg ? $details_bg : '#ffffff';
+		$out['details_text_color']   = '' !== $details_text ? $details_text : '#1c1e21';
+		$out['details_accent_color'] = '' !== $details_accent ? $details_accent : '#1877f2';
+		$out['details_meta_color']   = '' !== $details_meta ? $details_meta : '#65676b';
+
+		return self::merge_layout_dimensions( $out, $scope );
 	}
 
 	/**

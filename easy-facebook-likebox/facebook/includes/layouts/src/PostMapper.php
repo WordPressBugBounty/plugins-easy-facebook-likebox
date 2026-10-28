@@ -74,7 +74,7 @@ final class PostMapper {
         );
         return new Post(array(
             'id'         => $id,
-            'permalink'  => self::extract_permalink( $node ),
+            'permalink'  => self::extract_permalink( $node, $account ),
             'created_at' => ( isset( $node['created_time'] ) ? (string) $node['created_time'] : '' ),
             'text_html'  => self::format_caption_html( $caption ),
             'author'     => $account,
@@ -442,29 +442,47 @@ final class PostMapper {
     }
 
     /**
-     * @param array<string,mixed> $node Graph post.
+     * Resolve a public Facebook URL for View on Facebook / share / lightbox.
+     *
+     * Mobile note: tapping a facebook.com link on a phone usually opens the
+     * Facebook app via Universal / App Links. Graph’s own `permalink_url` is
+     * unreliable there — it may use a legacy/migrated numeric page id that
+     * desktop browsers redirect, while the app shows “This isn’t available”.
+     * Bare `facebook.com/{pageId}_{postId}` and opaque `pfbid…` links fail
+     * the same way.
+     *
+     * For feed posts with a composite Graph id (`{pageId}_{postId}`), always
+     * build `/{pageId|vanity}/posts/{postId}/` from that id (plus the Page
+     * vanity username when we have one). Never treat an external share `link`
+     * (cnn.com, etc.) as the post permalink.
+     *
+     * @param array<string,mixed> $node    Graph post.
+     * @param AccountSummary|null $account Owning page (vanity username).
      * @return string
      */
-    private static function extract_permalink( array $node ) : string {
+    private static function extract_permalink( array $node, ?AccountSummary $account = null ) : string {
+        $id = ( isset( $node['id'] ) ? sanitize_text_field( (string) $node['id'] ) : '' );
+        $stable = self::permalink_from_composite_graph_id( $id, $account );
+        // Composite feed posts: always prefer the id-derived URL so we never
+        // ship Graph’s mismatched legacy page id in the path.
+        if ( '' !== $stable ) {
+            return $stable;
+        }
+        $from_graph = '';
         foreach ( array('permalink_url', 'link') as $key ) {
             if ( !isset( $node[$key] ) || !is_string( $node[$key] ) ) {
                 continue;
             }
-            $url = trim( $node[$key] );
-            if ( '' === $url ) {
+            $url = self::absolutize_facebook_permalink_candidate( trim( (string) $node[$key] ) );
+            if ( '' === $url || !self::is_facebook_public_url( $url ) ) {
                 continue;
             }
-            // Graph sometimes returns scheme-relative or host-only Facebook links.
-            if ( 0 === strpos( $url, '//' ) ) {
-                $url = 'https:' . $url;
-            } elseif ( preg_match( '#^(www\\.)?(facebook|fb)\\.com/#i', $url ) ) {
-                $url = 'https://' . ltrim( $url, '/' );
-            }
-            if ( preg_match( '#^https?://#i', $url ) ) {
-                return $url;
-            }
+            $from_graph = $url;
+            break;
         }
-        $id = ( isset( $node['id'] ) ? sanitize_text_field( (string) $node['id'] ) : '' );
+        if ( '' !== $from_graph ) {
+            return self::rewrite_bare_composite_facebook_url( $from_graph );
+        }
         if ( '' === $id ) {
             return '';
         }
@@ -477,6 +495,113 @@ final class PostMapper {
             return 'https://www.facebook.com/photo/?fbid=' . rawurlencode( $id );
         }
         return '';
+    }
+
+    /**
+     * Build a mobile-app-safe post URL from a Page feed composite Graph id.
+     *
+     * @since 6.9.0
+     * @param string              $id      Graph object id (`{pageId}_{postId}`).
+     * @param AccountSummary|null $account Owning page (optional vanity slug).
+     * @return string Empty when the id is not a numeric composite.
+     */
+    private static function permalink_from_composite_graph_id( string $id, ?AccountSummary $account = null ) : string {
+        if ( !preg_match( '/^(\\d+)_(\\d+)$/', $id, $matches ) ) {
+            return '';
+        }
+        $page_id = $matches[1];
+        $post_id = $matches[2];
+        $slug = self::resolve_page_slug_for_permalink( $page_id, $account );
+        return 'https://www.facebook.com/' . rawurlencode( $slug ) . '/posts/' . rawurlencode( $post_id ) . '/';
+    }
+
+    /**
+     * Prefer a non-numeric Page vanity username for deep links when available.
+     *
+     * @since 6.9.0
+     * @param string              $page_id Graph Page id from the composite post id.
+     * @param AccountSummary|null $account Owning page summary.
+     * @return string Vanity username or the numeric page id.
+     */
+    private static function resolve_page_slug_for_permalink( string $page_id, ?AccountSummary $account = null ) : string {
+        if ( !$account instanceof AccountSummary ) {
+            return $page_id;
+        }
+        $candidates = array($account->get_extra( 'username', '' ), $account->get_handle());
+        foreach ( $candidates as $candidate ) {
+            $candidate = trim( (string) $candidate );
+            if ( '' === $candidate || ctype_digit( $candidate ) || $candidate === $page_id ) {
+                continue;
+            }
+            // Reject path-like or reserved Graph path segments.
+            if ( !preg_match( '/^[A-Za-z0-9.]+$/', $candidate ) ) {
+                continue;
+            }
+            return $candidate;
+        }
+        return $page_id;
+    }
+
+    /**
+     * Turn Graph permalink candidates into absolute https URLs.
+     *
+     * Videos-edge `permalink_url` is often a path only (`/Page/videos/123/`);
+     * legacy templates prepend `https://www.facebook.com` for that reason.
+     *
+     * @since 6.9.0
+     * @param string $url Raw Graph `permalink_url` or `link`.
+     * @return string Absolute URL or empty when unusable.
+     */
+    private static function absolutize_facebook_permalink_candidate( string $url ) : string {
+        if ( '' === $url ) {
+            return '';
+        }
+        // Path-only Facebook permalinks.
+        if ( '/' === $url[0] && 0 !== strpos( $url, '//' ) ) {
+            $url = 'https://www.facebook.com' . $url;
+        } elseif ( 0 === strpos( $url, '//' ) ) {
+            $url = 'https:' . $url;
+        } elseif ( preg_match( '#^(www\\.)?(facebook|fb)\\.com/#i', $url ) ) {
+            $url = 'https://' . ltrim( $url, '/' );
+        }
+        if ( !preg_match( '#^https?://#i', $url ) ) {
+            return '';
+        }
+        return $url;
+    }
+
+    /**
+     * Whether a URL points at a Facebook / FB host (not an external share target).
+     *
+     * @since 6.9.0
+     * @param string $url Absolute URL.
+     * @return bool
+     */
+    private static function is_facebook_public_url( string $url ) : bool {
+        $host = ( function_exists( 'wp_parse_url' ) ? wp_parse_url( $url, PHP_URL_HOST ) : parse_url( $url, PHP_URL_HOST ) );
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+        if ( !is_string( $host ) || '' === $host ) {
+            return false;
+        }
+        $host = strtolower( $host );
+        if ( in_array( $host, array('facebook.com', 'fb.com', 'fb.watch'), true ) ) {
+            return true;
+        }
+        return (bool) preg_match( '#(?:^|\\.)facebook\\.com$#', $host ) || (bool) preg_match( '#(?:^|\\.)fb\\.com$#', $host );
+    }
+
+    /**
+     * Rewrite bare `facebook.com/{pageId}_{postId}` to `/{pageId}/posts/{postId}/`.
+     *
+     * @since 6.9.0
+     * @param string $url Absolute Facebook URL.
+     * @return string
+     */
+    private static function rewrite_bare_composite_facebook_url( string $url ) : string {
+        if ( !preg_match( '~^https?://(?:www\\.)?(?:facebook|fb)\\.com/(\\d+)_(\\d+)/?(?:[?#].*)?$~i', $url, $matches ) ) {
+            return $url;
+        }
+        return 'https://www.facebook.com/' . rawurlencode( $matches[1] ) . '/posts/' . rawurlencode( $matches[2] ) . '/';
     }
 
     /**

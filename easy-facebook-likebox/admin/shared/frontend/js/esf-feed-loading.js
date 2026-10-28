@@ -4,7 +4,7 @@
  * Hides {@see esf_get_simple_loader_html()} once images are ready, then fades
  * posts in one-by-one. Row-wave layouts keep their own entrance animation.
  *
- * Covers Facebook, Instagram, Twitter, YouTube, and TikTok feed roots.
+ * Covers Facebook, Instagram, Twitter, YouTube, TikTok, and Social Wall feed roots.
  *
  * Public API:
  *   window.esfFeedRevealItems( scope, { onlyNew?: boolean } )
@@ -23,9 +23,12 @@
 		'[id^="esf-twitter-feed-"]',
 		'[id^="esf-youtube-feed-"]',
 		'[id^="esf-tiktok-feed-"]',
+		'[id^="esf-social_wall-feed-"]',
 	].join( ', ' );
 
-	var ITEM_SELECTOR = 'article[data-post-id]';
+	// Module cards use <article data-post-id>; Social Wall tile cells use a div.
+	var ITEM_SELECTOR =
+		'article[data-post-id], .esf-social-wall-feed__tile-cell[data-post-id]';
 	var WAVE_ANCESTOR_SELECTOR = '[class*="__row--wave"]';
 	var REVEAL_ITEM_CLASS = 'esf-feed-reveal-item';
 	var PENDING_CLASS = 'esf-feed--reveal-pending';

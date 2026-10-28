@@ -215,6 +215,7 @@ final class FullWidth extends AbstractStackedLayout {
         $options = $this->build_base_stacked_options();
         $cell_class = $this->get_cell_class();
         $popup_attr = '';
+        $options['metric_labels'] = $this->facebook_metric_labels();
         $options['permalink'] = $post->get_permalink();
         $extras = ( method_exists( $post, 'get_extras' ) ? $post->get_extras() : array() );
         if ( !empty( $extras['is_live'] ) ) {

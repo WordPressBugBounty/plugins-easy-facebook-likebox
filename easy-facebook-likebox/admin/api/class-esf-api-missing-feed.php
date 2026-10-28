@@ -26,11 +26,12 @@ if ( ! class_exists( 'ESF_API_Missing_Feed' ) ) {
 		 * @var array<string,class-string>
 		 */
 		private const FEED_REPOSITORY_CLASSES = array(
-			'instagram' => 'ESF_Instagram_Feed_Repository',
-			'twitter'   => 'ESF_Twitter_Feed_Repository',
-			'youtube'   => 'ESF_YouTube_Feed_Repository',
-			'tiktok'    => 'ESF_TikTok_Feed_Repository',
-			'facebook'  => 'ESF_Facebook_Feed_Repository',
+			'instagram'   => 'ESF_Instagram_Feed_Repository',
+			'twitter'     => 'ESF_Twitter_Feed_Repository',
+			'youtube'     => 'ESF_YouTube_Feed_Repository',
+			'tiktok'      => 'ESF_TikTok_Feed_Repository',
+			'facebook'    => 'ESF_Facebook_Feed_Repository',
+			'social_wall' => 'ESF_Social_Wall_Feed_Repository',
 		);
 
 		/**
@@ -240,11 +241,12 @@ if ( ! class_exists( 'ESF_API_Missing_Feed' ) ) {
 		 */
 		public static function default_shortcode_tag( string $module ): string {
 			$map = array(
-				'instagram' => 'esf_instagram_feed',
-				'twitter'   => 'esf_twitter_feed',
-				'youtube'   => 'esf_youtube_feed',
-				'tiktok'    => 'esf_tiktok_feed',
-				'facebook'  => 'esf_facebook_feed',
+				'instagram'   => 'esf_instagram_feed',
+				'twitter'     => 'esf_twitter_feed',
+				'youtube'     => 'esf_youtube_feed',
+				'tiktok'      => 'esf_tiktok_feed',
+				'facebook'    => 'esf_facebook_feed',
+				'social_wall' => 'esf_social_wall',
 			);
 
 			$module = sanitize_key( $module );

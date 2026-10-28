@@ -245,7 +245,7 @@ if ( efl_fs()->is_free_plan() || efl_fs()->is_plan( 'facebook_premium', true ) )
 					</p>
 					<hr/>
 					<a href="<?php echo esc_url( esf_get_upgrade_url( 'instagram' ) ); ?>"
-						class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+						class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 					</a>
 
 				</div>
@@ -272,7 +272,7 @@ if ( efl_fs()->is_free_plan() || efl_fs()->is_plan( 'facebook_premium', true ) )
 						</p>
 						<hr/>
 						<a href="<?php echo esc_url( esf_get_upgrade_url( 'instagram' ) ); ?>"
-							class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+							class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 						</a>
 
 					</div>
@@ -299,7 +299,7 @@ if ( efl_fs()->is_free_plan() || efl_fs()->is_plan( 'facebook_premium', true ) )
 						</p>
 						<hr/>
 						<a href="<?php echo esc_url( esf_get_upgrade_url( 'instagram' ) ); ?>"
-							class=" btn"><span class="dashicons dashicons-lock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+							class=" btn"><span class="dashicons dashicons-lock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 						</a>
 
 					</div>
@@ -326,7 +326,7 @@ if ( efl_fs()->is_free_plan() || efl_fs()->is_plan( 'facebook_premium', true ) )
 						</p>
 						<hr/>
 						<a href="<?php echo esc_url( esf_get_upgrade_url( 'instagram' ) ); ?>"
-							class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+							class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 						</a>
 
 					</div>

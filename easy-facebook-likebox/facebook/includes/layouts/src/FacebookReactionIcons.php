@@ -13,6 +13,7 @@
 namespace EasySocialFeed\Facebook\Layouts;
 
 use EasySocialFeed\Layouts\Support\NumberFormatter;
+use EasySocialFeed\Layouts\Support\Tooltip;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -215,11 +216,11 @@ final class FacebookReactionIcons {
 
 		$metric_class = 'carousel' === $variant
 			? sprintf(
-				'esf-%1$s-feed__carousel-metric esf-%1$s-feed__reactions-summary',
+				'esf-%1$s-feed__carousel-metric esf-%1$s-feed__reactions-summary esf-facebook-tooltip-target',
 				esc_attr( $module )
 			)
 			: sprintf(
-				'esf-%1$s-feed__metric esf-%1$s-feed__reactions-summary',
+				'esf-%1$s-feed__metric esf-%1$s-feed__reactions-summary esf-facebook-tooltip-target',
 				esc_attr( $module )
 			);
 
@@ -227,10 +228,19 @@ final class FacebookReactionIcons {
 			$metric_class .= ' esf-facebook-feed__reactions-summary--no-popover';
 		}
 
+		// Same Free+Pro text tooltip as Comments/Shares (fb_likes registry key).
+		$likes_label = isset( $options['likes_label'] ) && is_string( $options['likes_label'] ) && '' !== $options['likes_label']
+			? (string) $options['likes_label']
+			: ( function_exists( 'esf_translate_registry_string' )
+				? esf_translate_registry_string( 'fb_likes', 'Likes' )
+				: __( 'Likes', 'easy-facebook-likebox' ) );
+		$tooltip_attr = Tooltip::attributes( $likes_label );
+
 		return sprintf(
-			'<span class="%1$s" tabindex="0" aria-label="%2$s">%3$s%4$s%5$s</span>',
+			'<span class="%1$s" tabindex="0" aria-label="%2$s"%3$s>%4$s%5$s%6$s</span>',
 			esc_attr( $metric_class ),
 			esc_attr( $aria_label ),
+			'' !== $tooltip_attr ? ' ' . $tooltip_attr : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Tooltip::attributes returns escaped attributes.
 			$stack, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			$count_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			$chips // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

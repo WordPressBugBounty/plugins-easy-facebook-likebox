@@ -26,6 +26,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 trait FacebookFooterSupport {
 
 	/**
+	 * Metric tooltip labels from the shared translation registry.
+	 *
+	 * Used by Full Width / Half Width / Thumbnail so Settings → Translations
+	 * (and .po/.mo) apply; shared AbstractStacked/Split defaults stay generic
+	 * for Instagram and other modules.
+	 *
+	 * @since 6.7.9
+	 * @return array{likes:string,comments:string,shares:string}
+	 */
+	protected function facebook_metric_labels(): array {
+		return array(
+			'likes'    => function_exists( 'esf_translate_registry_string' )
+				? esf_translate_registry_string( 'fb_likes', 'Likes' )
+				: __( 'Likes', 'easy-facebook-likebox' ),
+			'comments' => function_exists( 'esf_translate_registry_string' )
+				? esf_translate_registry_string( 'fb_comments', 'Comments' )
+				: __( 'Comments', 'easy-facebook-likebox' ),
+			'shares'   => function_exists( 'esf_translate_registry_string' )
+				? esf_translate_registry_string( 'fb_shares', 'Shares' )
+				: __( 'Shares', 'easy-facebook-likebox' ),
+		);
+	}
+
+	/**
 	 * Compose the feed footer: optional Load More + View all events CTA.
 	 *
 	 * @since 6.7.9

@@ -144,6 +144,41 @@ class ESF_Translation_Strings {
 					),
 				),
 			),
+			/*
+			 * Shared across Facebook / Instagram / X / TikTok / YouTube / Social Wall.
+			 * Keys keep the historical `tw_*` names so existing fta_settings['translation']
+			 * values and Twitter call sites keep working without migration.
+			 */
+			'sharing'           => array(
+				'label'   => __( 'Sharing & Verified', 'easy-facebook-likebox' ),
+				'strings' => array(
+					array(
+						'key'     => 'tw_share_on_facebook',
+						'default' => 'Share on Facebook',
+						'context' => __( 'Share menu link label for facebook.com (all modules).', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_share_on_x',
+						'default' => 'Share on X',
+						'context' => __( 'Share menu link label for x.com (all modules).', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_share_on_linkedin',
+						'default' => 'Share on LinkedIn',
+						'context' => __( 'Share menu link label for linkedin.com (all modules).', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_share_on_whatsapp',
+						'default' => 'Share on WhatsApp',
+						'context' => __( 'Share menu link label for WhatsApp (all modules).', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'tw_verified_account',
+						'default' => 'Verified account',
+						'context' => __( 'Tooltip on the verified badge in feed headers and popups (all modules).', 'easy-facebook-likebox' ),
+					),
+				),
+			),
 			'media'             => array(
 				'label'   => __( 'Media', 'easy-facebook-likebox' ),
 				'strings' => array(
@@ -331,6 +366,16 @@ class ESF_Translation_Strings {
 						'key'     => 'yt_watch_on_youtube',
 						'default' => 'Watch on YouTube',
 						'context' => __( 'Link text in the YouTube popup that opens the video on youtube.com.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_showcase_play',
+						'default' => 'Play video',
+						'context' => __( 'Accessible label for the Video Showcase play button above a YouTube feed.', 'easy-facebook-likebox' ),
+					),
+					array(
+						'key'     => 'yt_showcase_now_playing',
+						'default' => 'Now playing',
+						'context' => __( 'Badge on the active video card and above the title of the Video Showcase player.', 'easy-facebook-likebox' ),
 					),
 					array(
 						'key'     => 'yt_popup_views_label',
@@ -802,31 +847,6 @@ class ESF_Translation_Strings {
 						'default' => 'Share',
 						'context' => __( 'Tooltip label for the share button in Twitter/X cards.', 'easy-facebook-likebox' ),
 					),
-					array(
-						'key'     => 'tw_share_on_x',
-						'default' => 'Share on X',
-						'context' => __( 'Share menu link label for x.com.', 'easy-facebook-likebox' ),
-					),
-					array(
-						'key'     => 'tw_share_on_facebook',
-						'default' => 'Share on Facebook',
-						'context' => __( 'Share menu link label for facebook.com.', 'easy-facebook-likebox' ),
-					),
-					array(
-						'key'     => 'tw_share_on_linkedin',
-						'default' => 'Share on LinkedIn',
-						'context' => __( 'Share menu link label for linkedin.com.', 'easy-facebook-likebox' ),
-					),
-					array(
-						'key'     => 'tw_share_on_whatsapp',
-						'default' => 'Share on WhatsApp',
-						'context' => __( 'Share menu link label for WhatsApp.', 'easy-facebook-likebox' ),
-					),
-					array(
-						'key'     => 'tw_verified_account',
-						'default' => 'Verified account',
-						'context' => __( 'Tooltip text shown on verified badge in Twitter/X feed and popup.', 'easy-facebook-likebox' ),
-					),
 				),
 			),
 			'errors_messages'   => array(
@@ -975,6 +995,27 @@ class ESF_Translation_Strings {
 	 * @return string Text to display. Use with __( esf_get_translated_string( 'key' ), 'easy-facebook-likebox' ) for .po/.mo.
 	 */
 	public static function get( $key ) {
+		$custom = self::get_custom( $key );
+		if ( '' !== $custom ) {
+			return $custom;
+		}
+
+		$defaults = self::get_defaults_by_key();
+		return isset( $defaults[ $key ] ) ? $defaults[ $key ] : '';
+	}
+
+	/**
+	 * Get only a saved custom translation for a key (not the registry default).
+	 *
+	 * Blank fields return an empty string so callers can keep the existing
+	 * gettext / WordPress core output unchanged.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $key Key from the registry (e.g. 'ago', 'minutes').
+	 * @return string Custom text, or empty string when unset/blank.
+	 */
+	public static function get_custom( $key ) {
 		$custom = self::get_translation_settings();
 		$value  = isset( $custom[ $key ] ) ? $custom[ $key ] : '';
 		if ( '' !== $value && is_string( $value ) ) {
@@ -989,8 +1030,7 @@ class ESF_Translation_Strings {
 			}
 		}
 
-		$defaults = self::get_defaults_by_key();
-		return isset( $defaults[ $key ] ) ? $defaults[ $key ] : '';
+		return '';
 	}
 }
 
@@ -1004,6 +1044,20 @@ if ( ! function_exists( 'esf_get_translated_string' ) ) {
 	 */
 	function esf_get_translated_string( $key ) {
 		return ESF_Translation_Strings::get( $key );
+	}
+}
+
+if ( ! function_exists( 'esf_get_custom_translated_string' ) ) {
+	/**
+	 * Get only a saved custom translation (empty when the field was left blank).
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $key Key from ESF_Translation_Strings (e.g. 'ago', 'minutes').
+	 * @return string Custom text, or empty string when unset/blank.
+	 */
+	function esf_get_custom_translated_string( $key ) {
+		return ESF_Translation_Strings::get_custom( $key );
 	}
 }
 

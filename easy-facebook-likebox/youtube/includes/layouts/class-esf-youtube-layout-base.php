@@ -11,7 +11,9 @@
 
 use EasySocialFeed\Layouts\Contracts\Layout;
 use EasySocialFeed\Layouts\Contracts\PostItem;
+use EasySocialFeed\Layouts\Primitives\ExpandableCaption;
 use EasySocialFeed\Layouts\Primitives\PostMeta;
+use EasySocialFeed\Layouts\Primitives\ShowcaseStage;
 use EasySocialFeed\Layouts\Support\NumberFormatter;
 use EasySocialFeed\Layouts\Support\Tooltip;
 use EasySocialFeed\Layouts\ValueObjects\LayoutDefinition;
@@ -78,6 +80,17 @@ abstract class ESF_YouTube_Layout_Base implements Layout {
 	 * @var AccountSummary|null
 	 */
 	protected $account;
+
+	/**
+	 * True after the showcase stage rendered and until the first item consumes it.
+	 *
+	 * Lets every layout mark the featured (first) item without tracking position,
+	 * and keeps Load More batches (no stage) from marking another active item.
+	 *
+	 * @since 6.18.0
+	 * @var bool
+	 */
+	protected $showcase_active_pending = false;
 
 	/**
 	 * Constructor (shared framework signature).
@@ -394,9 +407,21 @@ abstract class ESF_YouTube_Layout_Base implements Layout {
 		$can_show_banner    = $show_banner && ! empty( $banner_url ) && function_exists( 'esf_youtube_has_youtube_plan' ) && esf_youtube_has_youtube_plan();
 		$has_plan           = function_exists( 'esf_youtube_has_youtube_plan' ) && esf_youtube_has_youtube_plan();
 
-		$header_classes = array( 'esf-yt-feed__header' );
+		$header_classes        = array( 'esf-yt-feed__header' );
+		$banner_lightbox_label = '';
 		if ( $can_show_banner ) {
 			$header_classes[] = 'esf-yt-feed__header--has-banner';
+			// Cover lightbox reuses the same FancyBox assets as the video popup.
+			if ( function_exists( 'esf_youtube_flag_lightbox_script' ) ) {
+				esf_youtube_flag_lightbox_script();
+			}
+			$banner_lightbox_label = '' !== $name
+				? sprintf(
+					/* translators: %s: YouTube channel name */
+					__( 'View cover photo for %s', 'easy-facebook-likebox' ),
+					$name
+				)
+				: __( 'View cover photo', 'easy-facebook-likebox' );
 		}
 
 		$style_parts = array();
@@ -435,7 +460,12 @@ abstract class ESF_YouTube_Layout_Base implements Layout {
 		?>
 		<div class="<?php echo esc_attr( implode( ' ', $header_classes ) ); ?>"<?php echo $header_style_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?>>
 			<?php if ( $can_show_banner ) : ?>
-				<a class="esf-yt-feed__header-banner-wrap" href="<?php echo esc_url( $channel_url ); ?>" target="_blank" rel="noopener noreferrer" aria-hidden="true">
+				<a
+					class="esf-yt-feed__header-banner-wrap"
+					href="<?php echo esc_url( $banner_url ); ?>"
+					data-esf-cover-lightbox="1"
+					aria-label="<?php echo esc_attr( $banner_lightbox_label ); ?>"
+				>
 					<img class="esf-yt-feed__header-banner" src="<?php echo esc_url( $banner_url ); ?>" alt="" role="presentation" loading="lazy" />
 				</a>
 			<?php endif; ?>
@@ -466,8 +496,29 @@ abstract class ESF_YouTube_Layout_Base implements Layout {
 				<?php
 				$description = isset( $this->account->description ) ? trim( (string) $this->account->description ) : '';
 				if ( $show_description && '' !== $description ) :
+					$see_more = function_exists( 'esf_translate_registry_string' )
+						? esf_translate_registry_string( 'see_more', 'See more' )
+						: __( 'See more', 'easy-facebook-likebox' );
+					$see_less = function_exists( 'esf_translate_registry_string' )
+						? esf_translate_registry_string( 'see_less', 'See less' )
+						: __( 'See less', 'easy-facebook-likebox' );
+					$channel_key = '' !== (string) $channel_id ? (string) $channel_id : (string) ( $this->account->id ?? '0' );
 					?>
-					<div class="esf-yt-feed__header-description"><?php echo wp_kses_post( nl2br( esc_html( $description ) ) ); ?></div>
+					<div class="esf-yt-feed__header-description">
+						<?php
+						$caption_html = ExpandableCaption::render(
+							'youtube',
+							'<p>' . nl2br( esc_html( $description ) ) . '</p>',
+							array(
+								'words_limit'    => 28,
+								'post_id'        => 'header-bio-' . sanitize_html_class( $channel_key ),
+								'see_more_label' => $see_more,
+								'see_less_label' => $see_less,
+							)
+						);
+						echo $caption_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- ExpandableCaption escapes labels and receives pre-escaped HTML.
+						?>
+					</div>
 				<?php endif; ?>
 			</div>
 			</div>
@@ -481,10 +532,11 @@ abstract class ESF_YouTube_Layout_Base implements Layout {
 	 *
 	 * @since 6.7.5
 	 *
-	 * @param array $video Normalized video (id, video_id, title, description, thumbnail_url, published_at, view_count).
+	 * @param array $video              Normalized video (id, video_id, title, description, thumbnail_url, published_at, view_count).
+	 * @param bool  $is_showcase_active Whether this card is the currently featured showcase item.
 	 * @return string HTML output.
 	 */
-	protected function render_video_card( $video ) {
+	protected function render_video_card( $video, $is_showcase_active = false ) {
 		$settings = isset( $this->feed->settings ) && is_array( $this->feed->settings ) ? $this->feed->settings : array();
 		$card     = isset( $settings['card'] ) && is_array( $settings['card'] ) ? $settings['card'] : array();
 		$popup    = isset( $settings['popup'] ) && is_array( $settings['popup'] ) ? $settings['popup'] : array();
@@ -500,7 +552,9 @@ abstract class ESF_YouTube_Layout_Base implements Layout {
 			&& esf_youtube_has_youtube_plan();
 		$show_duration = ! isset( $card['show_duration'] ) || ! empty( $card['show_duration'] );
 
-		$popup_enabled = ! empty( $popup['enabled'] ) && function_exists( 'esf_youtube_has_youtube_plan' ) && esf_youtube_has_youtube_plan();
+		$playback_mode    = $this->get_playback_mode();
+		$popup_enabled    = ( 'popup' === $playback_mode );
+		$showcase_enabled = ( 'showcase' === $playback_mode );
 
 		$popup_show_description = ! array_key_exists( 'show_description', $popup ) || ! empty( $popup['show_description'] );
 		$popup_show_stats       = ! array_key_exists( 'show_stats', $popup ) || ! empty( $popup['show_stats'] );
@@ -617,10 +671,22 @@ abstract class ESF_YouTube_Layout_Base implements Layout {
 		if ( $popup_enabled && function_exists( 'esf_youtube_flag_lightbox_script' ) ) {
 			esf_youtube_flag_lightbox_script();
 		}
+		if ( $showcase_enabled && function_exists( 'esf_youtube_flag_showcase_script' ) ) {
+			esf_youtube_flag_showcase_script();
+		}
 
 		$article_classes = array( 'esf-yt-feed__card' );
 		if ( $popup_enabled && $video_id ) {
 			$article_classes[] = 'esf-yt-feed__card--popup';
+		}
+		if ( $showcase_enabled && $video_id ) {
+			// The first item rendered after the stage is the featured one. Load More
+			// batches never render a stage, so they never mark an active card.
+			$is_showcase_active = $is_showcase_active || $this->take_showcase_active();
+			$article_classes[]  = 'esf-yt-feed__card--showcase';
+			if ( $is_showcase_active ) {
+				$article_classes[] = 'is-esf-showcase-active';
+			}
 		}
 
 		$data_attrs = $this->get_post_id_attr( is_array( $video ) ? $video : array() );
@@ -633,12 +699,17 @@ abstract class ESF_YouTube_Layout_Base implements Layout {
 				$data_attrs .= ' data-esf-yt-video="' . esc_attr( $encoded ) . '"';
 			}
 		}
+		if ( $showcase_enabled && is_array( $video ) ) {
+			$data_attrs .= $this->get_showcase_item_attrs( $video );
+		}
 
 		$link_attrs = ' href="' . esc_url( $video_url ) . '"';
 
+		$aria_current = ( $showcase_enabled && $is_showcase_active ) ? ' aria-current="true"' : '';
+
 		ob_start();
 		?>
-		<article class="<?php echo esc_attr( implode( ' ', $article_classes ) ); ?>"<?php echo $data_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+		<article class="<?php echo esc_attr( implode( ' ', $article_classes ) ); ?>"<?php echo $data_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo $aria_current; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static attribute. ?>>
 			<a class="esf-yt-feed__card-link"<?php echo $link_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> target="_blank" rel="noopener noreferrer">
 				<?php if ( $show_thumb && $thumb ) : ?>
 					<div class="esf-yt-feed__card-thumb">
@@ -890,5 +961,262 @@ abstract class ESF_YouTube_Layout_Base implements Layout {
 		}
 
 		return ' data-post-id="' . esc_attr( $id ) . '"';
+	}
+
+	/**
+	 * Effective playback mode for this layout instance.
+	 *
+	 * @since 6.18.0
+	 * @return string new_tab|showcase|popup
+	 */
+	protected function get_playback_mode() {
+		$settings = isset( $this->feed->settings ) && is_array( $this->feed->settings )
+			? $this->feed->settings
+			: array();
+		$slug     = ( null !== $this->definition && method_exists( $this->definition, 'get_slug' ) )
+			? (string) $this->definition->get_slug()
+			: '';
+
+		if ( function_exists( 'esf_youtube_resolve_playback_mode' ) ) {
+			return esf_youtube_resolve_playback_mode( $settings, $slug );
+		}
+
+		return 'new_tab';
+	}
+
+	/**
+	 * Build a lightweight showcase item payload for a video.
+	 *
+	 * @since 6.18.0
+	 *
+	 * @param array $video Normalized video row.
+	 * @return array<string,mixed>
+	 */
+	protected function build_showcase_item_payload( array $video ) {
+		$settings = isset( $this->feed->settings ) && is_array( $this->feed->settings )
+			? $this->feed->settings
+			: array();
+
+		$video_id = isset( $video['video_id'] ) ? (string) $video['video_id'] : ( isset( $video['id'] ) ? (string) $video['id'] : '' );
+		$title    = isset( $video['title'] ) ? (string) $video['title'] : '';
+		$thumb    = isset( $video['thumbnail_url'] ) ? (string) $video['thumbnail_url'] : '';
+		$thumb_full = isset( $video['thumbnail_url_full'] ) && '' !== (string) $video['thumbnail_url_full']
+			? (string) $video['thumbnail_url_full']
+			: $thumb;
+
+		$content_filter = function_exists( 'esf_youtube_content_filter_from_settings' )
+			? esf_youtube_content_filter_from_settings( $settings )
+			: 'all';
+		$is_short       = function_exists( 'esf_youtube_should_render_as_short' )
+			? esf_youtube_should_render_as_short( $video, $content_filter )
+			: ( 'shorts' === $content_filter );
+
+		$embed_url = function_exists( 'esf_youtube_build_showcase_embed_url' )
+			? esf_youtube_build_showcase_embed_url(
+				$video_id,
+				array(
+					'autoplay' => true,
+					'mute'     => false,
+				)
+			)
+			: '';
+
+		$payload = array(
+			'video_id'     => $video_id,
+			'title'        => $title,
+			'embed_url'    => $embed_url,
+			'watch_url'    => $video_id ? 'https://www.youtube.com/watch?v=' . $video_id : '',
+			'poster_url'   => $thumb_full,
+			'aspect_ratio' => function_exists( 'esf_youtube_resolve_showcase_aspect' )
+				? esf_youtube_resolve_showcase_aspect( $settings )
+				: ( 'shorts' === $content_filter ? '9:16' : '16:9' ),
+			'is_short'     => (bool) $is_short,
+		);
+
+		if ( class_exists( '\ESF_GDPR_Integrations' ) ) {
+			$payload = \ESF_GDPR_Integrations::sanitize_popup_payload( $payload, 'youtube' );
+		}
+
+		return $payload;
+	}
+
+	/**
+	 * Escaped data-esf-showcase-item attribute for a video card/tile.
+	 *
+	 * @since 6.18.0
+	 *
+	 * @param array $video Normalized video.
+	 * @return string Attribute including leading space, or empty string.
+	 */
+	protected function get_showcase_item_attrs( array $video ) {
+		$payload = $this->build_showcase_item_payload( $video );
+		if ( empty( $payload['video_id'] ) ) {
+			return '';
+		}
+
+		$encoded = wp_json_encode( $payload );
+		if ( ! is_string( $encoded ) || '' === $encoded ) {
+			return '';
+		}
+
+		return ' data-esf-showcase-item="' . esc_attr( $encoded ) . '"';
+	}
+
+	/**
+	 * Whether this feed currently plays videos in the inline Video Showcase.
+	 *
+	 * @since 6.18.0
+	 * @return bool
+	 */
+	public function is_showcase_mode() {
+		return 'showcase' === $this->get_playback_mode();
+	}
+
+	/**
+	 * Consume the "next rendered item is the featured one" flag.
+	 *
+	 * @since 6.18.0
+	 * @return bool True once, right after the stage was rendered.
+	 */
+	protected function take_showcase_active() {
+		$pending                       = $this->showcase_active_pending;
+		$this->showcase_active_pending = false;
+		return $pending;
+	}
+
+	/**
+	 * Showcase attributes/classes for layouts that render their own item markup.
+	 *
+	 * Shared by every layout so cards, tiles, cells and slides all expose the
+	 * same `data-esf-showcase-item` contract to `esf-showcase.js`. Returns empty
+	 * values outside showcase mode so existing popup / new-tab output is unchanged.
+	 *
+	 * @since 6.18.0
+	 *
+	 * @param array $video Normalized video row.
+	 * @return array{attrs:string,classes:string[],active:bool}
+	 */
+	public function get_showcase_cell_markup( array $video ) {
+		$empty = array(
+			'attrs'   => '',
+			'classes' => array(),
+			'active'  => false,
+		);
+		if ( ! $this->is_showcase_mode() ) {
+			return $empty;
+		}
+
+		$attrs = $this->get_showcase_item_attrs( $video );
+		if ( '' === $attrs ) {
+			return $empty;
+		}
+
+		$active  = $this->take_showcase_active();
+		$classes = array( 'esf-yt-feed__card--showcase' );
+		if ( $active ) {
+			$classes[] = 'is-esf-showcase-active';
+			$attrs    .= ' aria-current="true"';
+		}
+
+		if ( function_exists( 'esf_youtube_flag_showcase_script' ) ) {
+			esf_youtube_flag_showcase_script();
+		}
+
+		return array(
+			'attrs'   => $attrs,
+			'classes' => $classes,
+			'active'  => $active,
+		);
+	}
+
+	/**
+	 * Render the shared Video Showcase stage for the first visible video.
+	 *
+	 * @since 6.18.0
+	 *
+	 * @param array $videos Videos about to be displayed (already sliced).
+	 * @return string
+	 */
+	public function render_showcase_stage_html( array $videos ) {
+		if ( ! $this->is_showcase_mode() || empty( $videos ) ) {
+			return '';
+		}
+
+		$first = null;
+		foreach ( $videos as $video ) {
+			if ( is_array( $video ) ) {
+				$first = $video;
+				break;
+			}
+		}
+		if ( null === $first ) {
+			return '';
+		}
+
+		$item = $this->build_showcase_item_payload( $first );
+		if ( empty( $item['video_id'] ) ) {
+			return '';
+		}
+
+		// sanitize_popup_payload() blanks embed_url when third-party media is blocked.
+		$blocked = empty( $item['embed_url'] );
+
+		$play_label = function_exists( 'esf_translate_registry_string' )
+			? esf_translate_registry_string( 'yt_showcase_play', 'Play video' )
+			: __( 'Play video', 'easy-facebook-likebox' );
+		if ( ! empty( $item['title'] ) ) {
+			$play_label = sprintf(
+				/* translators: %s: video title */
+				__( 'Play %s', 'easy-facebook-likebox' ),
+				(string) $item['title']
+			);
+		}
+
+		if ( function_exists( 'esf_youtube_flag_showcase_script' ) ) {
+			esf_youtube_flag_showcase_script();
+		}
+
+		$settings = isset( $this->feed->settings ) && is_array( $this->feed->settings )
+			? $this->feed->settings
+			: array();
+		$cfg      = function_exists( 'esf_youtube_get_showcase_settings' )
+			? esf_youtube_get_showcase_settings( $settings )
+			: array(
+				'max_width'   => 0,
+				'align'       => 'center',
+				'radius'      => -1,
+				'now_playing' => true,
+			);
+
+		$now_playing_label = '';
+		if ( ! empty( $cfg['now_playing'] ) ) {
+			$now_playing_label = function_exists( 'esf_translate_registry_string' )
+				? esf_translate_registry_string( 'yt_showcase_now_playing', 'Now playing' )
+				: __( 'Now playing', 'easy-facebook-likebox' );
+		}
+
+		$stage_html = ShowcaseStage::render(
+			'youtube',
+			array(
+				'poster_url'        => isset( $item['poster_url'] ) ? (string) $item['poster_url'] : '',
+				'embed_url'         => isset( $item['embed_url'] ) ? (string) $item['embed_url'] : '',
+				'play_label'        => $play_label,
+				'aspect_ratio'      => isset( $item['aspect_ratio'] ) ? (string) $item['aspect_ratio'] : '16:9',
+				'item'              => $item,
+				'blocked'           => $blocked,
+				'max_width'         => (int) $cfg['max_width'],
+				'align'             => (string) $cfg['align'],
+				'radius'            => (int) $cfg['radius'],
+				'now_playing_label' => $now_playing_label,
+				'allowed_hosts'     => function_exists( 'esf_youtube_showcase_embed_hosts' )
+					? esf_youtube_showcase_embed_hosts()
+					: array(),
+			)
+		);
+
+		// The next item rendered is the one the stage is showing.
+		$this->showcase_active_pending = ( '' !== $stage_html );
+
+		return $stage_html;
 	}
 }

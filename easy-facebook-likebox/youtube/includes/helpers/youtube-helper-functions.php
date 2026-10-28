@@ -413,6 +413,123 @@ function esf_youtube_is_pro_content_filter(  $filter  ) {
 }
 
 /**
+ * Normalize a YouTube `status.privacyStatus` value.
+ *
+ * @since 6.8.3
+ *
+ * @param mixed $raw Raw privacy status from the API or cache.
+ * @return string One of public|unlisted|private, or empty string when unknown.
+ */
+function esf_youtube_normalize_privacy_status(  $raw  ) {
+    $status = sanitize_key( (string) $raw );
+    if ( in_array( $status, array('public', 'unlisted', 'private'), true ) ) {
+        return $status;
+    }
+    return '';
+}
+
+/**
+ * Normalize feed video visibility (public | all | unlisted | private).
+ *
+ * Defaults to `public` so a feed never exposes unlisted/private videos unless
+ * a Pro user explicitly opts in.
+ *
+ * @since 6.8.3
+ *
+ * @param mixed $raw Raw visibility value.
+ * @return string One of public|all|unlisted|private.
+ */
+function esf_youtube_normalize_video_visibility(  $raw  ) {
+    $visibility = sanitize_key( (string) $raw );
+    if ( in_array( $visibility, array(
+        'public',
+        'all',
+        'unlisted',
+        'private'
+    ), true ) ) {
+        return $visibility;
+    }
+    return 'public';
+}
+
+/**
+ * Whether a video visibility value requires YouTube Pro.
+ *
+ * @since 6.8.3
+ *
+ * @param string $visibility Visibility value.
+ * @return bool True for every option except `public`.
+ */
+function esf_youtube_is_pro_video_visibility(  $visibility  ) {
+    return 'public' !== esf_youtube_normalize_video_visibility( $visibility );
+}
+
+/**
+ * Resolve the effective video visibility from feed settings.
+ *
+ * Free sites are always forced to `public`, regardless of what is stored.
+ *
+ * @since 6.8.3
+ *
+ * @param array|null $settings Feed settings.
+ * @return string public|all|unlisted|private.
+ */
+function esf_youtube_video_visibility_from_settings(  $settings  ) {
+    $visibility = 'public';
+    if ( is_array( $settings ) && isset( $settings['feed'] ) && is_array( $settings['feed'] ) && isset( $settings['feed']['video_visibility'] ) ) {
+        $visibility = esf_youtube_normalize_video_visibility( $settings['feed']['video_visibility'] );
+    }
+    if ( esf_youtube_is_pro_video_visibility( $visibility ) && (!function_exists( 'esf_youtube_has_youtube_plan' ) || !esf_youtube_has_youtube_plan()) ) {
+        return 'public';
+    }
+    return $visibility;
+}
+
+/**
+ * Filter normalized videos by privacy status.
+ *
+ * Videos without a known `privacy_status` (e.g. caches created before this
+ * field existed, or a failed statistics call) are treated as public so a
+ * missing value never makes an existing video disappear. The renderer
+ * backfills the field for cached lists before filtering.
+ *
+ * Non-public modes are Pro-only; without a YouTube plan the filter always
+ * behaves as `public`.
+ *
+ * @since 6.8.3
+ *
+ * @param array  $videos     Normalized video items.
+ * @param string $visibility public|all|unlisted|private.
+ * @return array
+ */
+function esf_youtube_filter_videos_by_visibility(  $videos, $visibility = 'public'  ) {
+    if ( !is_array( $videos ) ) {
+        return array();
+    }
+    $visibility = esf_youtube_normalize_video_visibility( $visibility );
+    if ( 'public' !== $visibility && (!function_exists( 'esf_youtube_has_youtube_plan' ) || !esf_youtube_has_youtube_plan()) ) {
+        $visibility = 'public';
+    }
+    if ( 'all' === $visibility ) {
+        return $videos;
+    }
+    $out = array();
+    foreach ( $videos as $video ) {
+        $status = '';
+        if ( is_array( $video ) && isset( $video['privacy_status'] ) ) {
+            $status = esf_youtube_normalize_privacy_status( $video['privacy_status'] );
+        }
+        if ( '' === $status ) {
+            $status = 'public';
+        }
+        if ( $status === $visibility ) {
+            $out[] = $video;
+        }
+    }
+    return $out;
+}
+
+/**
  * Derive YouTube's channel Shorts playlist ID (UUSH…) from a channel ID (UC…).
  *
  * This is the playlist behind the channel Shorts tab — the most reliable
@@ -1014,6 +1131,220 @@ function esf_youtube_flag_load_more_script() {
 function esf_youtube_flag_lightbox_script() {
     global $esf_youtube_lightbox_script_needed;
     $esf_youtube_lightbox_script_needed = true;
+}
+
+/**
+ * Flag that the shared showcase player script should be enqueued.
+ *
+ * @since 6.18.0
+ * @return void
+ */
+function esf_youtube_flag_showcase_script() {
+    global $esf_youtube_showcase_script_needed;
+    $esf_youtube_showcase_script_needed = true;
+}
+
+/**
+ * Whether a YouTube layout slug supports the Video Showcase playback mode.
+ *
+ * @since 6.18.0
+ *
+ * @param string $layout_slug Layout type (grid, row, …).
+ * @return bool
+ */
+function esf_youtube_layout_supports_showcase(  $layout_slug  ) {
+    $layout_slug = sanitize_key( (string) $layout_slug );
+    if ( '' === $layout_slug ) {
+        return false;
+    }
+    if ( class_exists( '\\EasySocialFeed\\Layouts\\LayoutRegistry' ) ) {
+        $definition = \EasySocialFeed\Layouts\LayoutRegistry::for( 'youtube' )->get( $layout_slug );
+        if ( $definition && method_exists( $definition, 'supports' ) ) {
+            return (bool) $definition->supports( 'showcase' );
+        }
+    }
+    // Fallback before layouts register (unit tests / early bootstrap).
+    return in_array( $layout_slug, array(
+        'grid',
+        'row',
+        'carousel',
+        'masonry',
+        'half_width',
+        'full_width'
+    ), true );
+}
+
+/**
+ * Resolve the effective video playback mode for a feed.
+ *
+ * Modes:
+ * - `new_tab`  — card links open youtube.com (default free behaviour)
+ * - `showcase` — inline featured player (free + Pro; layout must support it)
+ * - `popup`    — FancyBox lightbox (Pro)
+ *
+ * `playback.mode = auto` (default) derives from legacy `popup.enabled` + plan
+ * so existing feeds keep their current behaviour.
+ *
+ * @since 6.18.0
+ *
+ * @param array  $settings    Feed settings.
+ * @param string $layout_slug Layout type. Empty = read from settings.
+ * @return string One of new_tab|showcase|popup.
+ */
+function esf_youtube_resolve_playback_mode(  $settings, $layout_slug = ''  ) {
+    $settings = ( is_array( $settings ) ? $settings : array() );
+    $layout = ( isset( $settings['layout'] ) && is_array( $settings['layout'] ) ? $settings['layout'] : array() );
+    $popup = ( isset( $settings['popup'] ) && is_array( $settings['popup'] ) ? $settings['popup'] : array() );
+    $playback = ( isset( $settings['playback'] ) && is_array( $settings['playback'] ) ? $settings['playback'] : array() );
+    if ( '' === (string) $layout_slug ) {
+        $layout_slug = ( isset( $layout['type'] ) ? sanitize_key( (string) $layout['type'] ) : 'grid' );
+    } else {
+        $layout_slug = sanitize_key( (string) $layout_slug );
+    }
+    if ( '' === $layout_slug ) {
+        $layout_slug = 'grid';
+    }
+    $requested = ( isset( $playback['mode'] ) ? sanitize_key( (string) $playback['mode'] ) : 'auto' );
+    if ( !in_array( $requested, array(
+        'auto',
+        'new_tab',
+        'showcase',
+        'popup'
+    ), true ) ) {
+        $requested = 'auto';
+    }
+    $has_plan = function_exists( 'esf_youtube_has_youtube_plan' ) && esf_youtube_has_youtube_plan();
+    $supports = esf_youtube_layout_supports_showcase( $layout_slug );
+    if ( 'showcase' === $requested ) {
+        return ( $supports ? 'showcase' : 'new_tab' );
+    }
+    if ( 'popup' === $requested ) {
+        return ( $has_plan ? 'popup' : 'new_tab' );
+    }
+    if ( 'new_tab' === $requested ) {
+        return 'new_tab';
+    }
+    // auto — preserve historical popup.enabled + plan behaviour.
+    $popup_wants = !array_key_exists( 'enabled', $popup ) || !empty( $popup['enabled'] );
+    if ( $has_plan && $popup_wants ) {
+        return 'popup';
+    }
+    return 'new_tab';
+}
+
+/**
+ * Hostnames the YouTube Video Showcase may embed.
+ *
+ * Passed to the shared `ShowcaseStage` primitive, which holds no module hosts.
+ *
+ * @since 6.18.0
+ *
+ * @return string[]
+ */
+function esf_youtube_showcase_embed_hosts() {
+    return array(
+        'www.youtube-nocookie.com',
+        'youtube-nocookie.com',
+        'www.youtube.com',
+        'youtube.com'
+    );
+}
+
+/**
+ * Build a youtube-nocookie embed URL for the showcase player.
+ *
+ * @since 6.18.0
+ *
+ * @param string              $video_id YouTube video id.
+ * @param array<string,mixed> $args     Optional: autoplay (bool), mute (bool).
+ * @return string Empty when video id is blank.
+ */
+function esf_youtube_build_showcase_embed_url(  $video_id, $args = array()  ) {
+    $video_id = trim( (string) $video_id );
+    if ( '' === $video_id ) {
+        return '';
+    }
+    $args = ( is_array( $args ) ? $args : array() );
+    $autoplay = !array_key_exists( 'autoplay', $args ) || !empty( $args['autoplay'] );
+    $mute = !empty( $args['mute'] );
+    $query = array(
+        'rel'            => '0',
+        'playsinline'    => '1',
+        'modestbranding' => '1',
+        'autoplay'       => ( $autoplay ? '1' : '0' ),
+    );
+    if ( $mute ) {
+        $query['mute'] = '1';
+    }
+    return 'https://www.youtube-nocookie.com/embed/' . rawurlencode( $video_id ) . '?' . http_build_query(
+        $query,
+        '',
+        '&',
+        PHP_QUERY_RFC3986
+    );
+}
+
+/**
+ * Normalised Video Showcase player settings (`playback.showcase`).
+ *
+ * - aspect:      auto|16:9|21:9|4:3|1:1|4:5|3:4|9:16. `auto` = 9:16 for Shorts-only
+ *                feeds, otherwise 16:9. It is intentionally *not* decided per video
+ *                (duration is not a reliable Shorts signal), so the stage never jumps.
+ * - max_width:   player max width in px (0 = automatic, container width capped by height).
+ * - align:       center|left.
+ * - radius:      corner radius in px (-1 = default).
+ * - now_playing: show the "Now playing" badge on the active card and above the title.
+ *
+ * @since 6.18.0
+ *
+ * @param array $settings Feed settings.
+ * @return array{aspect:string,max_width:int,align:string,radius:int,now_playing:bool}
+ */
+function esf_youtube_get_showcase_settings(  $settings  ) {
+    $settings = ( is_array( $settings ) ? $settings : array() );
+    $playback = ( isset( $settings['playback'] ) && is_array( $settings['playback'] ) ? $settings['playback'] : array() );
+    $raw = ( isset( $playback['showcase'] ) && is_array( $playback['showcase'] ) ? $playback['showcase'] : array() );
+    $aspect = ( isset( $raw['aspect'] ) ? (string) $raw['aspect'] : 'auto' );
+    if ( !in_array( $aspect, array(
+        'auto',
+        '16:9',
+        '21:9',
+        '4:3',
+        '1:1',
+        '4:5',
+        '3:4',
+        '9:16'
+    ), true ) ) {
+        $aspect = 'auto';
+    }
+    $max_width = ( isset( $raw['max_width'] ) ? (int) $raw['max_width'] : 0 );
+    $max_width = max( 0, min( 1600, $max_width ) );
+    $align = ( isset( $raw['align'] ) && 'left' === $raw['align'] ? 'left' : 'center' );
+    $radius = ( isset( $raw['radius'] ) && '' !== $raw['radius'] ? (int) $raw['radius'] : -1 );
+    $radius = ( $radius < 0 ? -1 : min( 48, $radius ) );
+    return array(
+        'aspect'      => $aspect,
+        'max_width'   => $max_width,
+        'align'       => $align,
+        'radius'      => $radius,
+        'now_playing' => !array_key_exists( 'now_playing', $raw ) || !empty( $raw['now_playing'] ),
+    );
+}
+
+/**
+ * Resolve the showcase stage aspect ratio for a feed.
+ *
+ * @since 6.18.0
+ *
+ * @param array $settings Feed settings.
+ * @return string Aspect token, e.g. 16:9.
+ */
+function esf_youtube_resolve_showcase_aspect(  $settings  ) {
+    $cfg = esf_youtube_get_showcase_settings( $settings );
+    if ( 'auto' !== $cfg['aspect'] ) {
+        return $cfg['aspect'];
+    }
+    return ( 'shorts' === esf_youtube_content_filter_from_settings( $settings ) ? '9:16' : '16:9' );
 }
 
 /**

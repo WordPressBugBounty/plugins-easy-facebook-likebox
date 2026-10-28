@@ -187,14 +187,22 @@ class ESF_Social_Wall_Admin {
 			);
 
 			$layout_css_dir = $base_dir . 'includes/premium/social-wall/frontend/css/layouts/';
-			foreach ( array( 'grid', 'row', 'masonry', 'carousel' ) as $layout_slug ) {
-				$layout_css = $layout_css_dir . $layout_slug . '.css';
+			$layout_css_files = array(
+				'half_width' => 'half-width.css',
+				'full_width' => 'full-width.css',
+				'grid'       => 'grid.css',
+				'row'        => 'row.css',
+				'masonry'    => 'masonry.css',
+				'carousel'   => 'carousel.css',
+			);
+			foreach ( $layout_css_files as $layout_slug => $layout_file ) {
+				$layout_css = $layout_css_dir . $layout_file;
 				if ( ! file_exists( $layout_css ) ) {
 					continue;
 				}
 				wp_enqueue_style(
 					'esf-social-wall-layout-' . $layout_slug,
-					$base_url . 'includes/premium/social-wall/frontend/css/layouts/' . $layout_slug . '.css',
+					$base_url . 'includes/premium/social-wall/frontend/css/layouts/' . $layout_file,
 					array( 'esf-social-wall-feed' ),
 					(string) filemtime( $layout_css )
 				);
@@ -255,6 +263,16 @@ class ESF_Social_Wall_Admin {
 					$base_url . 'includes/premium/social-wall/frontend/js/esf-social-wall-masonry__premium_only.js',
 					array( 'esf-masonry-pack' ),
 					(string) filemtime( $masonry_js ),
+					true
+				);
+			}
+			$caption_js = $base_dir . 'includes/premium/social-wall/frontend/js/esf-social-wall-caption__premium_only.js';
+			if ( file_exists( $caption_js ) ) {
+				wp_enqueue_script(
+					'esf-social-wall-caption',
+					$base_url . 'includes/premium/social-wall/frontend/js/esf-social-wall-caption__premium_only.js',
+					array(),
+					(string) filemtime( $caption_js ),
 					true
 				);
 			}

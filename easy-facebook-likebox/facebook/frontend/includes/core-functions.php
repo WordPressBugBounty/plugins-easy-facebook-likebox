@@ -91,51 +91,11 @@ if ( !function_exists( 'efbl_time_ago' ) ) {
         if ( null !== $custom_time ) {
             return $custom_time;
         }
-        // Default relative time calculation
-        $retval = '';
-        //Preparing strings to translate
-        $date_time_strings = array(
-            'second'  => __( esf_get_translated_string( 'second' ), 'easy-facebook-likebox' ),
-            'seconds' => __( esf_get_translated_string( 'seconds' ), 'easy-facebook-likebox' ),
-            'minute'  => __( esf_get_translated_string( 'minute' ), 'easy-facebook-likebox' ),
-            'minutes' => __( esf_get_translated_string( 'minutes' ), 'easy-facebook-likebox' ),
-            'hour'    => __( esf_get_translated_string( 'hour' ), 'easy-facebook-likebox' ),
-            'hours'   => __( esf_get_translated_string( 'hours' ), 'easy-facebook-likebox' ),
-            'day'     => __( esf_get_translated_string( 'day' ), 'easy-facebook-likebox' ),
-            'days'    => __( esf_get_translated_string( 'days' ), 'easy-facebook-likebox' ),
-            'week'    => __( esf_get_translated_string( 'week' ), 'easy-facebook-likebox' ),
-            'weeks'   => __( esf_get_translated_string( 'weeks' ), 'easy-facebook-likebox' ),
-            'month'   => __( esf_get_translated_string( 'month' ), 'easy-facebook-likebox' ),
-            'months'  => __( esf_get_translated_string( 'months' ), 'easy-facebook-likebox' ),
-            'year'    => __( esf_get_translated_string( 'year' ), 'easy-facebook-likebox' ),
-            'years'   => __( esf_get_translated_string( 'years' ), 'easy-facebook-likebox' ),
-            'decade'  => __( esf_get_translated_string( 'decade' ), 'easy-facebook-likebox' ),
-        );
-        $ago_text = __( esf_get_translated_string( 'ago' ), 'easy-facebook-likebox' );
-        $difference = time() - $date_timestamp;
-        $periods = array(
-            'decade' => 315360000,
-            'year'   => 31536000,
-            'month'  => 2628000,
-            'week'   => 604800,
-            'day'    => 86400,
-            'hour'   => 3600,
-            'minute' => 60,
-            'second' => 1,
-        );
-        foreach ( $periods as $key => $value ) {
-            if ( $difference >= $value ) {
-                $time = floor( $difference / $value );
-                $difference %= $value;
-                $retval .= (( $retval ? ' ' : '' )) . $time . ' ';
-                $retval .= ( $time > 1 ? $date_time_strings[$key . 's'] : $date_time_strings[$key] );
-                --$granularity;
-            }
-            if ( $granularity == '0' ) {
-                break;
-            }
+        // Shared calculator (Translation → Time + historical granularity).
+        if ( function_exists( 'esf_format_granular_time_ago' ) ) {
+            return esf_format_granular_time_ago( $date_timestamp, $granularity );
         }
-        return '' . $retval . ' ' . $ago_text;
+        return '';
     }
 
 }

@@ -122,34 +122,31 @@ final class PostShareMenu {
 	 */
 	public static function default_networks( string $permalink ): array {
 		$encoded = rawurlencode( $permalink );
+		$label   = static function ( string $key, string $fallback ): string {
+			return function_exists( 'esf_translate_registry_string' )
+				? esf_translate_registry_string( $key, $fallback )
+				: __( $fallback, 'easy-facebook-likebox' ); // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+		};
 
 		return array(
 			array(
 				'slug'  => 'facebook',
-				'label' => function_exists( 'esf_get_translated_string' )
-					? __( esf_get_translated_string( 'tw_share_on_facebook' ), 'easy-facebook-likebox' ) // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- Dynamic registry string.
-					: __( 'Share on Facebook', 'easy-facebook-likebox' ),
+				'label' => $label( 'tw_share_on_facebook', 'Share on Facebook' ),
 				'url'   => 'https://www.facebook.com/sharer/sharer.php?u=' . $encoded,
 			),
 			array(
 				'slug'  => 'x',
-				'label' => function_exists( 'esf_get_translated_string' )
-					? __( esf_get_translated_string( 'tw_share_on_x' ), 'easy-facebook-likebox' ) // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
-					: __( 'Share on X', 'easy-facebook-likebox' ),
+				'label' => $label( 'tw_share_on_x', 'Share on X' ),
 				'url'   => 'https://x.com/intent/tweet?url=' . $encoded,
 			),
 			array(
 				'slug'  => 'linkedin',
-				'label' => function_exists( 'esf_get_translated_string' )
-					? __( esf_get_translated_string( 'tw_share_on_linkedin' ), 'easy-facebook-likebox' ) // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
-					: __( 'Share on LinkedIn', 'easy-facebook-likebox' ),
+				'label' => $label( 'tw_share_on_linkedin', 'Share on LinkedIn' ),
 				'url'   => 'https://www.linkedin.com/sharing/share-offsite/?url=' . $encoded,
 			),
 			array(
 				'slug'  => 'whatsapp',
-				'label' => function_exists( 'esf_get_translated_string' )
-					? __( esf_get_translated_string( 'tw_share_on_whatsapp' ), 'easy-facebook-likebox' ) // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
-					: __( 'Share on WhatsApp', 'easy-facebook-likebox' ),
+				'label' => $label( 'tw_share_on_whatsapp', 'Share on WhatsApp' ),
 				'url'   => 'https://wa.me/?text=' . $encoded,
 			),
 		);

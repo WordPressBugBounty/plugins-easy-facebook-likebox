@@ -1,13 +1,13 @@
 === Easy Social Feed – All In One Social Feed Plugin for WordPress ===
-Contributors: DaNish Ali, maltathemes, sjaved, freemius
-Tags: all-in-one, social feed, Instagram feed, Facebook feed, social wall
+Contributors: DaNish Ali, maltathemes, sjaved
+Tags: social feed, all in one social, instagram facebook, tiktok feed, social wall
 Requires at least: 3.3
 Tested up to: 7.1
-Stable tag: 6.8.1
+Stable tag: 6.8.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-All-in-one social feed for Instagram, Facebook, YouTube, X & TikTok. Combine networks in one Social Wall.
+The fastest, GDPR-compliant all in one social feed. Display blazing-fast Instagram, Facebook, TikTok, YouTube & X feeds in a beautiful Social Wall.
 
 == Description ==
 
@@ -53,6 +53,8 @@ No coding is required for the setup.
 - Multiple feeds on different pages using separate feed shortcodes
 - Consent-aware controls for remote media and embeds
 - Free modules with clearly defined Pro upgrades
+- **Core Web Vitals Optimized:** Built with a ground-up architectural rewrite utilizing smart database caching to serve lightning-fast feeds without slowing down your site load speed.
+- **100% GDPR & Privacy Compliant:** Localized asset caching and built-in privacy configurations mean you don't have to worry about tracking cookies violating user data regulations.
 
 ### Reviews
 
@@ -339,10 +341,15 @@ Social Wall is a Combo Pro feature. Connect the networks you already use, pick s
 - Row layout
 - Masonry layout
 - Carousel layout
+- Full Width layout
+- Half Width layout
+- Optional wall header (title, description, CTA, network icons)
+- Feed size controls (width/height per device)
+- Display modes (media only or image with details)
 - Network filters
 - Load More pagination
-- Popup and lightbox media viewing
-- Live wall customization and preview
+- Popup and lightbox media viewing with wall-level controls
+- Live wall customization and preview (including click-to-edit zones)
 - Shortcode embedding with `[esf_social_wall]`
 
 [View Social Wall Live Demo](https://easysocialfeed.com/live-social-media-wall/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=social_wall_demo) | [Explore Social Wall Pro](https://easysocialfeed.com/wordpress-social-media-wall-plugin/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=social_wall_feature)
@@ -442,7 +449,7 @@ No. TikTok feeds currently display videos from the connected TikTok account and 
 
 = Can I combine multiple social networks in one feed? =
 
-Yes. Social Wall (Combo Pro) lets you combine Facebook, Instagram, YouTube, X/Twitter and TikTok posts in one wall with Grid, Row, Masonry and Carousel layouts, network filters, Load More and popups.
+Yes. Social Wall (Combo Pro) lets you combine Facebook, Instagram, YouTube, X/Twitter and TikTok posts in one wall with Grid, Row, Masonry, Carousel, Full Width and Half Width layouts, an optional wall header, feed size controls, network filters, Load More and popups.
 
 = Does the plugin support multiple feeds? =
 
@@ -464,9 +471,24 @@ The plugin provides consent-aware controls, supported consent-plugin integration
 
 The plugin provides server-rendered markup, semantic content, crawlable links and structured data where supported. These features can improve content discoverability, but no plugin can guarantee search rankings or AI visibility.
 
+= Is Easy Social Feed a good alternative to Smash Balloon? =
+
+Yes! Unlike setup models where you must buy separate extensions for each individual social network, Easy Social Feed lets you combine Instagram, Facebook, YouTube, X (Twitter), and TikTok into a single plugin without buying 5 separate add-ons. Plus, our newly rewritten cached architecture keeps your Core Web Vitals at 100% and loads your feeds faster than ever.
+
 == Screenshots ==
 
 == Changelog ==
+
+= 6.8.2 =
+* Added: New Full Width and Half Width layouts for Social Wall.
+* Added: New "Video visibility" option for YouTube feeds (Pro) to choose which videos to show: Public, Unlisted, Private or All.
+* Added: Optional header for Social Wall with a title, description, button and network icons, with a live preview as you edit.
+* Added: Set the width and height of your Social Wall for desktop, tablet and mobile.
+* Added: New display options for Social Wall - show only media, or image with details - plus popup (lightbox) settings.
+* Fixed: The "403 Forbidden" error when saving no longer appears on websites protected by security tools like Sucuri, Cloudflare or Wordfence.
+* Fixed: YouTube feeds no longer show unlisted or private videos. Only public videos are shown by default, for both free and Pro users.
+* Improved: Easier-to-use Social Wall settings for header, popup and layout.
+* Improved: Clearer help when connecting Facebook - tips for Pages, help for reconnecting, and a hint when your new Pages are missing from the list.
 
 = 6.8.1 =
 * Added: Social Wall (Combo Pro) — combine Facebook, Instagram, YouTube, X/Twitter, and TikTok posts in one wall with Grid, Row, Masonry, and Carousel layouts, network filters, load more, and popups.
@@ -567,8 +589,3 @@ The plugin provides server-rendered markup, semantic content, crawlable links an
 
 Older changelog entries are available on our website:
 https://easysocialfeed.com/changelog
-
-== Upgrade Notice ==
-
-= 6.8.1 =
-Adds Social Wall (Combo Pro) and fixes Facebook feed cache auto-refresh so expired posts rewarm from Graph instead of sticking on stale cache. Recommended for all users.

@@ -438,7 +438,7 @@ class ESF_Instagram_Feed_Widget extends WP_Widget {
 					<a href="<?php 
             echo esc_url( esf_get_upgrade_url( 'instagram' ) );
             ?>"><?php 
-            _e( 'Upgrade to PRO', 'easy-facebook-likebox' );
+            _e( 'Go Pro', 'easy-facebook-likebox' );
             ?></a>
 				</p>
 
@@ -460,7 +460,7 @@ class ESF_Instagram_Feed_Widget extends WP_Widget {
 					<a href="<?php 
             echo esc_url( esf_get_upgrade_url( 'instagram' ) );
             ?>"><?php 
-            _e( 'Upgrade to PRO', 'easy-facebook-likebox' );
+            _e( 'Go Pro', 'easy-facebook-likebox' );
             ?></a>
 				</p>
 

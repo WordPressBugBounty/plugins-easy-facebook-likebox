@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Easy Social Feed\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-05-19 10:13+0000\n"
-"PO-Revision-Date: 2026-10-09 12:05+0000\n"
+"PO-Revision-Date: 2026-10-28 13:18+0000\n"
 "Last-Translator: \n"
 "Language-Team: Spanish (Spain)\n"
 "Language: es_ES\n"
@@ -83,7 +83,7 @@ msgid "#%s Feed"
 msgstr ""
 
 #. 1: page name
-#: facebook/includes/layouts/src/PostMapper.php:1719
+#: facebook/includes/layouts/src/PostMapper.php:1867
 #, php-format
 msgid "%1$s Facebook post"
 msgstr ""
@@ -127,7 +127,7 @@ msgid "%s account connected successfully!"
 msgstr ""
 
 #. %s: human readable time difference, e.g. "2 hours"
-#: includes/core-functions.php:1462
+#: includes/core-functions.php:1636
 #, php-format
 msgid "%s ago"
 msgstr ""
@@ -143,7 +143,7 @@ msgstr ""
 
 #. appended to feed name when duplicating
 #: twitter/includes/models/class-esf-twitter-feed-repository.php:621
-#: youtube/includes/models/class-esf-youtube-feed-repository.php:713
+#: youtube/includes/models/class-esf-youtube-feed-repository.php:747
 #: tiktok/includes/models/class-esf-tiktok-feed-repository.php:620
 #: instagram/includes/models/class-esf-instagram-feed-repository.php:568
 msgid "(Copy)"
@@ -267,6 +267,10 @@ msgid ""
 "This message was sent by Easy Social Feed."
 msgstr ""
 
+#: admin/api/class-esf-api-waf.php:116
+msgid "A firewall or security plugin is blocking Easy Social Feed."
+msgstr ""
+
 #: instagram/class-esf-instagram-main.php:740
 msgid "A mixed-size wall of Instagram tiles for a dynamic, editorial look."
 msgstr ""
@@ -279,10 +283,18 @@ msgstr ""
 msgid "A new Instagram experience is here"
 msgstr ""
 
+#. %d: HTTP status code returned by the firewall, e.g. 403.
+#: admin/api/class-esf-api-waf.php:118
+msgid ""
+"A request to the Easy Social Feed REST API was rejected with a %d response "
+"before it reached WordPress. Please allow the following path in your "
+"firewall or security plugin, using \"begins with\" matching, then try again:"
+msgstr ""
+
 #: twitter/class-esf-twitter-main.php:540
 #: youtube/frontend/class-esf-youtube-frontend.php:165
 #: twitter/includes/layouts/class-esf-twitter-layout-row.php:612
-#: youtube/includes/layouts/class-esf-youtube-layout-row.php:524
+#: youtube/includes/layouts/class-esf-youtube-layout-row.php:535
 msgid "A sleek single-row strip — great for headers and sections"
 msgstr ""
 
@@ -339,27 +351,32 @@ msgid ""
 "page events you can follow the steps explained "
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:588
+#: includes/class-esf-translation-strings.php:633
 msgid "Accessible label for a multi-image gallery in the Facebook popup."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:583
+#: includes/class-esf-translation-strings.php:628
 msgid "Accessible label for a video slide in the Facebook popup."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:593
+#: includes/class-esf-translation-strings.php:638
 msgid "Accessible label for an image slide in the Facebook popup."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:573
+#: includes/class-esf-translation-strings.php:618
 msgid ""
 "Accessible label for the next-slide control on the Facebook Carousel layout."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:568
+#: includes/class-esf-translation-strings.php:613
 msgid ""
 "Accessible label for the previous-slide control on the Facebook Carousel "
 "layout."
+msgstr ""
+
+#: includes/class-esf-translation-strings.php:373
+msgid ""
+"Accessible label for the Video Showcase play button above a YouTube feed."
 msgstr ""
 
 #: youtube/includes/api/class-esf-youtube-api-accounts.php:278
@@ -465,7 +482,7 @@ msgstr ""
 msgid "Add a comment on X…"
 msgstr ""
 
-#: youtube/includes/helpers/youtube-helper-functions.php:1264
+#: youtube/includes/helpers/youtube-helper-functions.php:1469
 msgid "Add a comment on YouTube…"
 msgstr ""
 
@@ -483,17 +500,13 @@ msgstr ""
 #: includes/class-esf-gdpr-integrations.php:648
 #: includes/class-esf-gdpr-integrations.php:773
 #: twitter/includes/helpers/twitter-helper-functions.php:419
-#: youtube/includes/helpers/youtube-helper-functions.php:1237
+#: youtube/includes/helpers/youtube-helper-functions.php:1442
 #: facebook/includes/helpers/facebook-helper-functions.php:2317
 #: facebook/includes/helpers/facebook-helper-functions.php:2322
 #: tiktok/includes/helpers/tiktok-helper-functions.php:352
 #: instagram/includes/helpers/instagram-helper-functions.php:1659
 msgid "Admins only"
 msgstr ""
-
-#: instagram/includes/esf-insta-helper-functions.php:377
-msgid "ago"
-msgstr "atrás"
 
 #: facebook/includes/api/class-esf-facebook-api-pages.php:288
 msgid "Album"
@@ -512,6 +525,7 @@ msgstr ""
 
 #: facebook/includes/easy-custom-facebook-feed-widget.php:298
 #: facebook/admin/views/html-how-to-use-tab.php:233
+#: youtube/admin/assets/src/dashboard/components/feeds/sidebar-panels/FeedSourcePanel.jsx:1150
 msgid "All"
 msgstr "Todas"
 
@@ -525,7 +539,7 @@ msgstr ""
 msgid "Already connected?"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:863
+#: includes/class-esf-translation-strings.php:883
 msgid "Alternate message when access token is missing."
 msgstr ""
 
@@ -567,31 +581,31 @@ msgstr ""
 msgid "Are you sure?"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:528
+#: includes/class-esf-translation-strings.php:573
 msgid "ARIA label for the Facebook Load More button."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:448
+#: includes/class-esf-translation-strings.php:493
 msgid "ARIA label for the Social Wall Load More button."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:433
+#: includes/class-esf-translation-strings.php:478
 msgid "ARIA label for the Social Wall network filter bar."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:383
+#: includes/class-esf-translation-strings.php:428
 msgid "ARIA label for the TikTok Load More button."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:758
+#: includes/class-esf-translation-strings.php:803
 msgid "ARIA label for the tweet logo link in Twitter/X cards."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:728
+#: includes/class-esf-translation-strings.php:773
 msgid "ARIA label for the Twitter/X Load More button."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:318
+#: includes/class-esf-translation-strings.php:353
 msgid "ARIA label for the YouTube Load More button."
 msgstr ""
 
@@ -650,7 +664,7 @@ msgstr ""
 
 #: includes/core-functions.php:1420
 #: instagram/includes/esf-insta-helper-functions.php:312
-#: youtube/includes/helpers/youtube-helper-functions.php:1269
+#: youtube/includes/helpers/youtube-helper-functions.php:1474
 #: facebook/includes/helpers/facebook-helper-functions.php:2371
 #: tiktok/includes/helpers/tiktok-helper-functions.php:373
 #: instagram/includes/helpers/instagram-helper-functions.php:1696
@@ -662,7 +676,13 @@ msgstr ""
 msgid "Background Color"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:553
+#: includes/class-esf-translation-strings.php:378
+msgid ""
+"Badge on the active video card and above the title of the Video Showcase "
+"player."
+msgstr ""
+
+#: includes/class-esf-translation-strings.php:598
 msgid ""
 "Body copy on the placeholder card when Facebook withholds shared attachment "
 "details from the Graph API."
@@ -728,7 +748,7 @@ msgstr ""
 msgid "Box width"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:693
+#: includes/class-esf-translation-strings.php:738
 msgid "Branding badge shown in the Free Facebook popup lightbox."
 msgstr ""
 
@@ -748,20 +768,20 @@ msgstr ""
 msgid "Business Basic Connection"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:258
+#: includes/class-esf-translation-strings.php:293
 msgid "Button text to load more posts."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:653
+#: includes/class-esf-translation-strings.php:698
 msgid ""
 "Button to load additional album photos in the Facebook Pro popup gallery."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:633
+#: includes/class-esf-translation-strings.php:678
 msgid "Button to load more replies under a Facebook popup comment."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:628
+#: includes/class-esf-translation-strings.php:673
 msgid "Button to load the next page of Facebook popup comments."
 msgstr ""
 
@@ -849,9 +869,9 @@ msgstr ""
 #: facebook/class-esf-facebook-main.php:668
 #: instagram/class-esf-instagram-main.php:817
 #: youtube/frontend/class-esf-youtube-frontend.php:220
-#: includes/premium/social-wall/class-esf-social-wall.php:222
+#: includes/premium/social-wall/class-esf-social-wall.php:254
 #: twitter/includes/layouts/premium/class-esf-twitter-layout-carousel.php:810
-#: youtube/includes/layouts/premium/class-esf-youtube-layout-carousel.php:611
+#: youtube/includes/layouts/premium/class-esf-youtube-layout-carousel.php:623
 msgid "Carousel"
 msgstr ""
 
@@ -978,12 +998,18 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:613
+#: includes/class-esf-translation-strings.php:658
 msgid "Close control label for the Facebook popup lightbox."
 msgstr ""
 
 #: instagram/includes/helpers/instagram-helper-functions.php:1692
 msgid "Close stories"
+msgstr ""
+
+#: admin/api/class-esf-api-waf.php:120
+msgid ""
+"Cloudflare: Security > WAF > Custom rules, add a Skip rule when the URI Path "
+"starts with this path."
 msgstr ""
 
 #: instagram/includes/api/class-esf-instagram-api-accounts.php:37
@@ -1016,7 +1042,7 @@ msgstr ""
 msgid "Comment list is disabled for this feed."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:623
+#: includes/class-esf-translation-strings.php:668
 #, php-format
 msgid ""
 "Comment pagination status in the Facebook popup (%1$s shown, %2$s total)."
@@ -1030,12 +1056,15 @@ msgid "Comment replies in the popup are a premium feature."
 msgstr ""
 
 #: twitter/includes/helpers/twitter-helper-functions.php:442
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:865
-#: youtube/includes/helpers/youtube-helper-functions.php:1254
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:936
+#: youtube/includes/helpers/youtube-helper-functions.php:1459
 #: tiktok/includes/helpers/tiktok-helper-functions.php:367
 #: instagram/includes/helpers/instagram-helper-functions.php:1675
+#: includes/premium/social-wall/layouts/SocialWallCardSupport.php:524
+#: includes/premium/social-wall/layouts/AbstractSocialWallLayout.php:675
 #: youtube/includes/layouts/premium/class-esf-youtube-layout-half-width.php:343
 #: youtube/includes/layouts/premium/class-esf-youtube-layout-full-width.php:372
+#: facebook/includes/layouts/src/FacebookFooterSupport.php:45
 #: facebook/includes/layouts/src/Layouts/Masonry.php:453
 #: facebook/includes/layouts/src/Layouts/AbstractTileLayout.php:703
 #: facebook/includes/layouts/src/Layouts/Grid.php:274
@@ -1045,7 +1074,7 @@ msgstr ""
 #: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:671
 #: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:582
 msgid "Comments"
-msgstr ""
+msgstr "Comentarios"
 
 #: facebook/admin/includes/efbl-customizer.php:2531
 #: instagram/admin/includes/class-esf-insta-customizer.php:2394
@@ -1179,9 +1208,9 @@ msgstr ""
 msgid "Copied"
 msgstr ""
 
-#: includes/core-functions.php:2022
-#: tiktok/frontend/class-esf-tiktok-frontend.php:197
-#: instagram/frontend/class-esf-instagram-frontend.php:365
+#: includes/core-functions.php:2196
+#: tiktok/frontend/class-esf-tiktok-frontend.php:208
+#: instagram/frontend/class-esf-instagram-frontend.php:376
 msgid "Copied!"
 msgstr ""
 
@@ -1212,9 +1241,9 @@ msgid ""
 "display the likebox/page plugin."
 msgstr ""
 
-#: includes/core-functions.php:2021
-#: tiktok/frontend/class-esf-tiktok-frontend.php:196
-#: instagram/frontend/class-esf-instagram-frontend.php:364
+#: includes/core-functions.php:2195
+#: tiktok/frontend/class-esf-tiktok-frontend.php:207
+#: instagram/frontend/class-esf-instagram-frontend.php:375
 msgid "Copy shortcode"
 msgstr ""
 
@@ -1246,7 +1275,7 @@ msgstr ""
 msgid "Could not create feed."
 msgstr ""
 
-#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:470
+#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:777
 msgid "Could not create social wall."
 msgstr ""
 
@@ -1254,7 +1283,7 @@ msgstr ""
 msgid "Could not delete feed."
 msgstr ""
 
-#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:556
+#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:863
 msgid "Could not delete social wall."
 msgstr ""
 
@@ -1317,7 +1346,7 @@ msgid "Could not list Facebook Pages for this account."
 msgstr ""
 
 #: twitter/includes/helpers/twitter-helper-functions.php:452
-#: youtube/includes/helpers/youtube-helper-functions.php:1260
+#: youtube/includes/helpers/youtube-helper-functions.php:1465
 #: instagram/includes/helpers/instagram-helper-functions.php:1681
 msgid "Could not load comments."
 msgstr ""
@@ -1327,9 +1356,9 @@ msgstr ""
 msgid "Could not load Facebook event details."
 msgstr ""
 
-#: includes/core-functions.php:2026
-#: tiktok/frontend/class-esf-tiktok-frontend.php:201
-#: instagram/frontend/class-esf-instagram-frontend.php:369
+#: includes/core-functions.php:2200
+#: tiktok/frontend/class-esf-tiktok-frontend.php:212
+#: instagram/frontend/class-esf-instagram-frontend.php:380
 msgid "Could not load feed preview."
 msgstr ""
 
@@ -1359,11 +1388,11 @@ msgstr ""
 msgid "Could not retrieve TikTok user data."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:279
+#: twitter/includes/api/class-esf-twitter-api-service.php:282
 msgid "Could not retrieve X user data."
 msgstr ""
 
-#: facebook/includes/class-esf-facebook-oauth-service.php:374
+#: facebook/includes/class-esf-facebook-oauth-service.php:387
 msgid "Could not save the Facebook account."
 msgstr ""
 
@@ -1399,29 +1428,29 @@ msgstr ""
 msgid "Could not update module status."
 msgstr ""
 
-#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:528
+#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:835
 msgid "Could not update social wall."
 msgstr ""
 
-#: includes/core-functions.php:2027
-#: tiktok/frontend/class-esf-tiktok-frontend.php:202
-#: instagram/frontend/class-esf-instagram-frontend.php:370
+#: includes/core-functions.php:2201
+#: tiktok/frontend/class-esf-tiktok-frontend.php:213
+#: instagram/frontend/class-esf-instagram-frontend.php:381
 msgid "Could not update the shortcode on this page."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:578
+#: includes/class-esf-translation-strings.php:623
 msgid "CTA in the Facebook Pro popup comments panel linking out to Facebook."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:558
+#: includes/class-esf-translation-strings.php:603
 msgid "CTA on the shared-event placeholder card."
 msgstr ""
 
-#: easy-facebook-likebox.php:562
+#: easy-facebook-likebox.php:566
 msgid "Custom Facebook Feed - Page Plugin (Likebox)"
 msgstr ""
 
-#: easy-facebook-likebox.php:570
+#: easy-facebook-likebox.php:574
 msgid "Custom Instagram Feed"
 msgstr ""
 
@@ -1450,10 +1479,6 @@ msgstr ""
 msgid "Customize the Single Feed Design In Real Time"
 msgstr ""
 
-#: instagram/includes/esf-insta-helper-functions.php:366
-msgid "day"
-msgstr "día"
-
 #: facebook/includes/easy-custom-facebook-feed-widget.php:475
 #: instagram/includes/esf-instagram-feed-widget.php:461
 #: facebook/admin/views/html-how-to-use-tab.php:319
@@ -1461,23 +1486,15 @@ msgstr "día"
 msgid "Days"
 msgstr "Dias"
 
-#: instagram/includes/esf-insta-helper-functions.php:367
-msgid "days"
-msgstr "dias"
-
-#: instagram/includes/esf-insta-helper-functions.php:374
-msgid "decade"
-msgstr "década"
-
 #: admin/views/html-settings-tab-translation.php:89
 msgid "Default"
 msgstr ""
 
-#: includes/core-functions.php:1795
+#: includes/core-functions.php:1969
 msgid "Default (use site language)"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:713
+#: includes/class-esf-translation-strings.php:758
 msgid "Default image alt text when a Facebook post has no caption."
 msgstr ""
 
@@ -1570,6 +1587,10 @@ msgid ""
 "More will always load normally for visitors."
 msgstr ""
 
+#: admin/api/class-esf-api-waf.php:124
+msgid "Dismiss this notice."
+msgstr ""
+
 #: includes/class-module-search.php:247 includes/class-module-search.php:252
 #: includes/class-module-search.php:257 includes/class-module-search.php:262
 msgid ""
@@ -1598,7 +1619,7 @@ msgid ""
 "subscribers and customers."
 msgstr ""
 
-#: easy-facebook-likebox.php:565
+#: easy-facebook-likebox.php:569
 msgid ""
 "Display customizable Facebook posts, photos, videos, events, albums, and the "
 "Page Plugin using shortcodes, widgets, and Gutenberg blocks."
@@ -1634,10 +1655,18 @@ msgid ""
 "and options here, or use the Like Box tab shortcode generator."
 msgstr ""
 
-#: easy-facebook-likebox.php:573
+#: easy-facebook-likebox.php:577
 msgid ""
 "Display Instagram photos and videos with grid, row, carousel, and masonry "
 "layouts, plus hashtag feeds, stories, and popup gallery."
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"Display Instagram, Facebook, YouTube, X and TikTok feeds on your website "
+"using blocks, widgets or shortcodes, with responsive layouts and live "
+"customization. Combine all networks in one Social Wall with Pro. Formerly "
+"\"Easy Facebook Like Box and Custom Facebook Feed\"."
 msgstr ""
 
 #: facebook/admin/includes/efbl-customizer.php:1509
@@ -1653,7 +1682,7 @@ msgstr ""
 msgid "Display profile info, avatars, and posts"
 msgstr ""
 
-#: easy-facebook-likebox.php:597
+#: easy-facebook-likebox.php:601
 msgid ""
 "Display TikTok videos from your account with grid and row layouts, popup "
 "lightbox, and DB-backed caching via secure Login Kit OAuth."
@@ -1667,14 +1696,14 @@ msgid ""
 "multiple layouts."
 msgstr ""
 
-#: easy-facebook-likebox.php:589
+#: easy-facebook-likebox.php:593
 msgid ""
 "Display your X (Twitter) timeline using secure OAuth connection with DB-"
 "backed caching. Connect your own account (free) or display any public "
 "account feed (Pro)."
 msgstr ""
 
-#: easy-facebook-likebox.php:581
+#: easy-facebook-likebox.php:585
 msgid ""
 "Display YouTube videos from your channel, playlists, or search using secure "
 "OAuth with customizable layouts and caching."
@@ -1801,11 +1830,11 @@ msgstr ""
 msgid "Empty response from Facebook."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:643
+#: includes/class-esf-translation-strings.php:688
 msgid "Empty state when a Facebook post has no comments in the popup."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:703
+#: includes/class-esf-translation-strings.php:748
 msgid ""
 "Empty state when a live-stream-only Facebook feed has no active broadcast."
 msgstr ""
@@ -1814,11 +1843,11 @@ msgstr ""
 msgid "Enable Prefer live or Live only Display before syncing."
 msgstr ""
 
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:333
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:346
 msgid "Enter a search keyword to find videos."
 msgstr ""
 
-#: facebook/includes/class-esf-facebook-oauth-service.php:155
+#: facebook/includes/class-esf-facebook-oauth-service.php:168
 msgid "Enter a valid Facebook access token."
 msgstr ""
 
@@ -1870,15 +1899,15 @@ msgid ""
 "defined width."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:663
+#: includes/class-esf-translation-strings.php:708
 msgid "Error state when Facebook popup album photo load-more fails."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:648
+#: includes/class-esf-translation-strings.php:693
 msgid "Error state when Facebook popup comments fail to load."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:833
+#: includes/class-esf-translation-strings.php:853
 msgid "Errors & Messages"
 msgstr ""
 
@@ -1965,7 +1994,7 @@ msgstr ""
 #: facebook/includes/class-esf-facebook-modern-feed-widget.php:54
 #: facebook/admin/class-easy-facebook-likebox-admin.php:171
 #: facebook/admin/class-easy-facebook-likebox-admin.php:172
-#: includes/social-wall/helpers/social-wall-helper-functions.php:127
+#: includes/social-wall/helpers/social-wall-helper-functions.php:138
 #: facebook/admin/classes/class-esf-facebook-admin.php:70
 #: facebook/admin/classes/class-esf-facebook-admin.php:71
 #: instagram/admin/views/html-admin-page-mif.php:137
@@ -1980,7 +2009,7 @@ msgstr ""
 msgid "Facebook Account Connected"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:513
+#: includes/class-esf-translation-strings.php:558
 msgid "Facebook Angry reaction label."
 msgstr ""
 
@@ -2001,7 +2030,7 @@ msgstr ""
 msgid "Facebook App ID(optional)"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:493
+#: includes/class-esf-translation-strings.php:538
 msgid "Facebook Care reaction label."
 msgstr ""
 
@@ -2021,11 +2050,11 @@ msgstr ""
 msgid "Facebook Demo - Customizer"
 msgstr ""
 
-#: facebook/includes/class-esf-facebook-oauth-service.php:186
+#: facebook/includes/class-esf-facebook-oauth-service.php:199
 msgid "Facebook did not return an id for this token."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:453
+#: includes/class-esf-translation-strings.php:498
 #: includes/class-esf-module-catalogue.php:86
 #: facebook/includes/api/class-esf-facebook-api-feeds.php:212
 #: facebook/includes/api/class-esf-facebook-api-feeds.php:623
@@ -2051,7 +2080,7 @@ msgstr ""
 msgid "Facebook Graph request failed."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:498
+#: includes/class-esf-translation-strings.php:543
 msgid "Facebook Haha reaction label."
 msgstr ""
 
@@ -2059,11 +2088,11 @@ msgstr ""
 msgid "Facebook Like box(Page Plugin)"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:483
+#: includes/class-esf-translation-strings.php:528
 msgid "Facebook Like reaction label."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:488
+#: includes/class-esf-translation-strings.php:533
 msgid "Facebook Love reaction label."
 msgstr ""
 
@@ -2096,7 +2125,7 @@ msgstr ""
 msgid "Facebook Page URL:"
 msgstr ""
 
-#: facebook/includes/layouts/src/PostMapper.php:1725
+#: facebook/includes/layouts/src/PostMapper.php:1873
 msgid "Facebook post"
 msgstr ""
 
@@ -2128,7 +2157,7 @@ msgstr ""
 msgid "Facebook returned an unexpected response."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:508
+#: includes/class-esf-translation-strings.php:553
 msgid "Facebook Sad reaction label."
 msgstr ""
 
@@ -2144,7 +2173,7 @@ msgstr ""
 msgid "Facebook user or Page access token."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:503
+#: includes/class-esf-translation-strings.php:548
 msgid "Facebook Wow reaction label."
 msgstr ""
 
@@ -2200,7 +2229,7 @@ msgstr ""
 
 #. %s: error message
 #. %s: Error message
-#: twitter/includes/api/class-esf-twitter-api-service.php:220
+#: twitter/includes/api/class-esf-twitter-api-service.php:223
 #: youtube/includes/api/class-esf-youtube-api-service.php:335
 #, php-format
 msgid "Failed to refresh token: %s"
@@ -2219,15 +2248,15 @@ msgstr ""
 msgid "Failed to update feed."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:393
+#: includes/class-esf-translation-strings.php:438
 msgid "Fallback caption on text-only TikTok tiles and popup links."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:688
+#: includes/class-esf-translation-strings.php:733
 msgid "Fallback display name when a Facebook comment author is missing."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:768
+#: includes/class-esf-translation-strings.php:813
 msgid "Fallback label used for retweets when source account is unknown."
 msgstr ""
 
@@ -2250,7 +2279,7 @@ msgid "Feed #%d"
 msgstr ""
 
 #: twitter/includes/models/class-esf-twitter-feed-repository.php:622
-#: youtube/includes/models/class-esf-youtube-feed-repository.php:713
+#: youtube/includes/models/class-esf-youtube-feed-repository.php:747
 #: tiktok/includes/models/class-esf-tiktok-feed-repository.php:621
 msgid "Feed (Copy)"
 msgstr ""
@@ -2332,9 +2361,9 @@ msgstr ""
 msgid "Feed name."
 msgstr ""
 
-#: includes/core-functions.php:2013
-#: tiktok/frontend/class-esf-tiktok-frontend.php:190
-#: instagram/frontend/class-esf-instagram-frontend.php:356
+#: includes/core-functions.php:2187
+#: tiktok/frontend/class-esf-tiktok-frontend.php:201
+#: instagram/frontend/class-esf-instagram-frontend.php:367
 msgid "Feed not found"
 msgstr ""
 
@@ -2497,20 +2526,24 @@ msgid ""
 "automatically."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:458
+#: includes/class-esf-translation-strings.php:503
 msgid "Follow button label in the Facebook feed header."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:358
+#: includes/class-esf-translation-strings.php:403
 msgid "Follow button label in the TikTok feed header."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:748
+#: includes/class-esf-translation-strings.php:793
 msgid "Follow button label in Twitter/X feed and popup."
 msgstr ""
 
 #: facebook/includes/layouts/src/FacebookHeaderSupport.php:60
 msgid "Follow on Facebook"
+msgstr "Seguir en Facebook"
+
+#: includes/social-wall/helpers/social-wall-helper-functions.php:222
+msgid "Follow us"
 msgstr ""
 
 #: facebook/frontend/views/html-feed-header.php:74
@@ -2528,18 +2561,6 @@ msgstr ""
 msgid ""
 "Following are the pages cached data from Facebook API. Delete the cache to "
 "refresh your feeds manually"
-msgstr ""
-
-#. Description of the plugin
-msgid ""
-"Formerly \"Easy Facebook Like Box and Custom Facebook Feed\" plugin allows "
-"you to easily display custom facebook feed, custom Instagram photos and "
-"videos feed, page plugin (like box) on your website using either widget or "
-"shortcode to increase facbook fan page likes. You can use the shortcode "
-"generator. Additionally, it also now allows you to display the customized "
-"facebook feed on your website using the same color scheme of your website. "
-"Its completely customizable with lots of optional settings. Its also "
-"responsive facebook like box at the same time."
 msgstr ""
 
 #: facebook/admin/views/html-moderate-tab.php:112
@@ -2574,6 +2595,7 @@ msgstr ""
 #: facebook/class-esf-facebook-main.php:555
 #: instagram/class-esf-instagram-main.php:659
 #: youtube/frontend/class-esf-youtube-frontend.php:351
+#: includes/premium/social-wall/class-esf-social-wall.php:227
 msgid "Full Width"
 msgstr ""
 
@@ -2624,7 +2646,7 @@ msgstr ""
 msgid "Generating Shortcode"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:478
+#: includes/class-esf-translation-strings.php:523
 msgid "Generic label for Facebook reactions."
 msgstr ""
 
@@ -2639,6 +2661,35 @@ msgstr ""
 
 #: instagram/admin/views/html-admin-page-mif.php:209
 msgid "Go in your Instagram Settings and select “Authorized Apps”"
+msgstr ""
+
+#: includes/class-esf-settings.php:610 admin/api/class-esf-api-hub.php:139
+#: facebook/includes/easy-facebook-page-plugin-widget.php:149
+#: facebook/includes/easy-custom-facebook-feed-widget.php:278
+#: facebook/includes/easy-custom-facebook-feed-widget.php:406
+#: facebook/includes/easy-custom-facebook-feed-widget.php:434
+#: instagram/includes/esf-instagram-feed-widget.php:411
+#: instagram/includes/esf-instagram-feed-widget.php:438
+#: facebook/admin/includes/efbl-customizer-extend.php:160
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:263
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:284
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:307
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:327
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:347
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:367
+#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:387
+#: facebook/admin/views/html-moderate-tab.php:115
+#: instagram/admin/includes/class-esf-insta-customizer-extend.php:156
+#: instagram/admin/views/html-admin-page-mif.php:248
+#: instagram/admin/views/html-admin-page-mif.php:275
+#: instagram/admin/views/html-admin-page-mif.php:302
+#: instagram/admin/views/html-admin-page-mif.php:329
+#: instagram/admin/views/html-shoppable-tab.php:130
+#: instagram/admin/views/html-moderate-tab.php:123
+#: instagram/admin/views/html-how-to-use-tab.php:165
+#: instagram/admin/views/html-how-to-use-tab.php:279
+#: instagram/admin/views/html-how-to-use-tab.php:343
+msgid "Go Pro"
 msgstr ""
 
 #: instagram/admin/views/html-admin-page-mif.php:204
@@ -2667,8 +2718,8 @@ msgstr ""
 #: tiktok/class-esf-tiktok-main.php:164
 #: instagram/class-esf-instagram-main.php:440
 #: youtube/frontend/class-esf-youtube-frontend.php:85
-#: includes/premium/social-wall/class-esf-social-wall.php:202
-#: youtube/includes/layouts/class-esf-youtube-layout-grid.php:148
+#: includes/premium/social-wall/class-esf-social-wall.php:234
+#: youtube/includes/layouts/class-esf-youtube-layout-grid.php:156
 #: twitter/includes/layouts/premium/class-esf-twitter-layout-grid.php:738
 msgid "Grid"
 msgstr ""
@@ -2706,6 +2757,7 @@ msgstr ""
 #: facebook/class-esf-facebook-main.php:551
 #: instagram/class-esf-instagram-main.php:583
 #: youtube/frontend/class-esf-youtube-frontend.php:274
+#: includes/premium/social-wall/class-esf-social-wall.php:220
 msgid "Half Width"
 msgstr ""
 
@@ -2794,7 +2846,7 @@ msgid "Hide CTA button"
 msgstr ""
 
 #: twitter/includes/helpers/twitter-helper-functions.php:454
-#: youtube/includes/helpers/youtube-helper-functions.php:1263
+#: youtube/includes/helpers/youtube-helper-functions.php:1468
 #: instagram/includes/helpers/instagram-helper-functions.php:1684
 #, fuzzy
 #| msgid "View Replies"
@@ -2816,13 +2868,9 @@ msgid "Horizontal scrolling tiles"
 msgstr ""
 
 #: youtube/frontend/class-esf-youtube-frontend.php:221
-#: youtube/includes/layouts/premium/class-esf-youtube-layout-carousel.php:612
+#: youtube/includes/layouts/premium/class-esf-youtube-layout-carousel.php:624
 msgid "Horizontal scrolling video tiles"
 msgstr ""
-
-#: instagram/includes/esf-insta-helper-functions.php:364
-msgid "hour"
-msgstr "hora"
 
 #: facebook/includes/easy-custom-facebook-feed-widget.php:471
 #: instagram/includes/esf-instagram-feed-widget.php:457
@@ -2830,10 +2878,6 @@ msgstr "hora"
 #: instagram/admin/views/html-how-to-use-tab.php:230
 msgid "Hours"
 msgstr "Horas"
-
-#: instagram/includes/esf-insta-helper-functions.php:365
-msgid "hours"
-msgstr "horas"
 
 #: instagram/admin/views/html-autenticate-tab.php:333
 msgid "How to connect Instagram to Facebook Page"
@@ -2969,7 +3013,7 @@ msgstr ""
 msgid "Image"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:718
+#: includes/class-esf-translation-strings.php:763
 #, php-format
 msgid ""
 "Image alt text with Page name when a Facebook post has no caption. %1$s is "
@@ -2992,7 +3036,7 @@ msgstr ""
 msgid "Infinity loop. Duplicate last and first items to get loop illusion."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:545
+#: twitter/includes/api/class-esf-twitter-api-service.php:554
 msgid ""
 "Initial public feed sync can take a little longer. Please try again in a "
 "moment."
@@ -3009,7 +3053,7 @@ msgstr ""
 #: instagram/includes/class-esf-instagram-modern-feed-widget.php:54
 #: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:202
 #: instagram/admin/class-easy-facebook-likebox-instagram-admin.php:203
-#: includes/social-wall/helpers/social-wall-helper-functions.php:128
+#: includes/social-wall/helpers/social-wall-helper-functions.php:139
 #: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:101
 #: instagram/admin/classes/class-esf-instagram-admin.php:49
 #: instagram/admin/classes/class-esf-instagram-admin.php:50
@@ -3070,7 +3114,7 @@ msgstr ""
 msgid "Instagram did not return an account id for this token."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:343
+#: includes/class-esf-translation-strings.php:388
 #: includes/class-esf-module-catalogue.php:102
 #: instagram/includes/class-esf-instagram-legacy-source-resolver.php:253
 #: instagram/includes/class-esf-instagram-migrator.php:1406
@@ -3187,7 +3231,7 @@ msgstr ""
 msgid "Invalid Facebook post ID."
 msgstr ""
 
-#: admin/api/class-esf-api-missing-feed.php:140
+#: admin/api/class-esf-api-missing-feed.php:141
 #: twitter/includes/api/class-esf-twitter-api-warm-media.php:81
 #: twitter/includes/api/class-esf-twitter-api-preview.php:144
 #: facebook/includes/api/class-esf-facebook-api-preview.php:176
@@ -3266,10 +3310,10 @@ msgstr ""
 msgid "Invalid request. Missing required parameters."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:549
-#: twitter/includes/api/class-esf-twitter-api-service.php:858
-#: twitter/includes/api/class-esf-twitter-api-service.php:1177
-#: twitter/includes/api/class-esf-twitter-api-service.php:1184
+#: twitter/includes/api/class-esf-twitter-api-service.php:558
+#: twitter/includes/api/class-esf-twitter-api-service.php:870
+#: twitter/includes/api/class-esf-twitter-api-service.php:1189
+#: twitter/includes/api/class-esf-twitter-api-service.php:1196
 msgid "Invalid response from ESF proxy."
 msgstr ""
 
@@ -3309,24 +3353,24 @@ msgstr ""
 msgid "Invalid TikTok feed."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:245
+#: twitter/includes/api/class-esf-twitter-api-service.php:248
 #: tiktok/includes/api/class-esf-tiktok-api-service.php:115
 msgid "Invalid token refresh response from server."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:716
+#: twitter/includes/api/class-esf-twitter-api-service.php:725
 msgid "Invalid tweet ID or access token."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:799
+#: twitter/includes/api/class-esf-twitter-api-service.php:808
 msgid "Invalid tweet ID."
 msgstr ""
 
 #: twitter/includes/class-esf-twitter-manual-oauth-service.php:32
 #: youtube/includes/class-esf-youtube-manual-oauth-service.php:32
-#: facebook/includes/class-esf-facebook-oauth-service.php:62
-#: facebook/includes/class-esf-facebook-oauth-service.php:140
-#: facebook/includes/class-esf-facebook-oauth-service.php:304
+#: facebook/includes/class-esf-facebook-oauth-service.php:75
+#: facebook/includes/class-esf-facebook-oauth-service.php:153
+#: facebook/includes/class-esf-facebook-oauth-service.php:317
 #: tiktok/includes/class-esf-tiktok-manual-oauth-service.php:32
 #: instagram/includes/class-esf-instagram-facebook-oauth-service.php:62
 #: instagram/includes/class-esf-instagram-facebook-oauth-service.php:216
@@ -3394,7 +3438,7 @@ msgstr ""
 
 #: includes/core-functions.php:1428
 #: instagram/includes/esf-insta-helper-functions.php:304
-#: youtube/includes/helpers/youtube-helper-functions.php:1267
+#: youtube/includes/helpers/youtube-helper-functions.php:1472
 #: facebook/includes/helpers/facebook-helper-functions.php:2369
 #: tiktok/includes/helpers/tiktok-helper-functions.php:371
 #: instagram/includes/helpers/instagram-helper-functions.php:1694
@@ -3409,35 +3453,35 @@ msgstr ""
 msgid "Keep settings and data when the plugin is deleted"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:608
+#: includes/class-esf-translation-strings.php:653
 msgid "Label for the full reactions breakdown in the Facebook popup."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:548
+#: includes/class-esf-translation-strings.php:593
 msgid ""
 "Label on the placeholder card when a link attachment cannot be fully "
 "previewed in the feed."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:533
+#: includes/class-esf-translation-strings.php:578
 msgid ""
 "Label on the placeholder card when a shared Facebook event cannot be fully "
 "previewed in the feed."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:538
+#: includes/class-esf-translation-strings.php:583
 msgid ""
 "Label on the placeholder card when a shared Facebook post cannot be fully "
 "previewed in the feed."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:543
+#: includes/class-esf-translation-strings.php:588
 msgid ""
 "Label on the placeholder card when a shared Facebook video cannot be fully "
 "previewed in the feed."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:338
+#: includes/class-esf-translation-strings.php:383
 msgid "Label used next to the view count in the YouTube popup stats bar."
 msgstr ""
 
@@ -3468,8 +3512,8 @@ msgstr ""
 msgid "Leave blank for default"
 msgstr ""
 
-#: includes/core-functions.php:2016
-#: instagram/frontend/class-esf-instagram-frontend.php:359
+#: includes/core-functions.php:2190
+#: instagram/frontend/class-esf-instagram-frontend.php:370
 msgid "Legacy Instagram shortcode"
 msgstr ""
 
@@ -3500,16 +3544,20 @@ msgstr ""
 msgid "Likebox feeds do not use post cache."
 msgstr ""
 
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:864
-#: youtube/includes/helpers/youtube-helper-functions.php:1253
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:935
+#: youtube/includes/helpers/youtube-helper-functions.php:1458
 #: tiktok/includes/helpers/tiktok-helper-functions.php:366
 #: instagram/includes/helpers/instagram-helper-functions.php:1674
 #: twitter/includes/layouts/premium/class-esf-twitter-layout-grid.php:681
 #: twitter/includes/layouts/premium/class-esf-twitter-layout-carousel.php:733
 #: twitter/includes/layouts/premium/class-esf-twitter-layout-masonry.php:767
 #: twitter/includes/layouts/premium/class-esf-twitter-layout-half-width.php:347
+#: includes/premium/social-wall/layouts/SocialWallCardSupport.php:521
+#: includes/premium/social-wall/layouts/AbstractSocialWallLayout.php:674
 #: youtube/includes/layouts/premium/class-esf-youtube-layout-half-width.php:342
 #: youtube/includes/layouts/premium/class-esf-youtube-layout-full-width.php:371
+#: facebook/includes/layouts/src/FacebookFooterSupport.php:42
+#: facebook/includes/layouts/src/FacebookReactionIcons.php:236
 #: facebook/includes/layouts/src/Layouts/Masonry.php:450
 #: facebook/includes/layouts/src/Layouts/AbstractTileLayout.php:700
 #: facebook/includes/layouts/src/Layouts/Grid.php:271
@@ -3519,7 +3567,7 @@ msgstr ""
 #: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:670
 #: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:581
 msgid "Likes"
-msgstr ""
+msgstr "Me gusta"
 
 #: facebook/includes/layouts/src/FacebookEmbedPlaceholder.php:138
 msgid "Link preview"
@@ -3537,11 +3585,11 @@ msgstr ""
 msgid "Link Source"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:388
+#: includes/class-esf-translation-strings.php:433
 msgid "Link text in the TikTok popup that opens the video on tiktok.com."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:333
+#: includes/class-esf-translation-strings.php:368
 msgid "Link text in the YouTube popup that opens the video on youtube.com."
 msgstr ""
 
@@ -3586,6 +3634,7 @@ msgstr ""
 msgid "Load More"
 msgstr "Carga más"
 
+#: twitter/includes/layouts/class-esf-twitter-layout-base.php:245
 #: twitter/includes/layouts/premium/class-esf-twitter-layout-half-width.php:255
 #: youtube/includes/layouts/premium/class-esf-youtube-layout-half-width.php:295
 #: youtube/includes/layouts/premium/class-esf-youtube-layout-full-width.php:324
@@ -3597,7 +3646,7 @@ msgstr "Carga más"
 msgid "Load more"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:248
+#: includes/class-esf-translation-strings.php:283
 msgid "Load More / Pagination"
 msgstr ""
 
@@ -3627,7 +3676,7 @@ msgid "Load More Color"
 msgstr ""
 
 #: twitter/includes/helpers/twitter-helper-functions.php:444
-#: youtube/includes/helpers/youtube-helper-functions.php:1256
+#: youtube/includes/helpers/youtube-helper-functions.php:1461
 #: instagram/includes/helpers/instagram-helper-functions.php:1677
 msgid "Load more comments"
 msgstr ""
@@ -3679,11 +3728,12 @@ msgid "Load more posts"
 msgstr ""
 
 #: twitter/includes/helpers/twitter-helper-functions.php:445
-#: youtube/includes/helpers/youtube-helper-functions.php:1257
+#: youtube/includes/helpers/youtube-helper-functions.php:1462
 #: instagram/includes/helpers/instagram-helper-functions.php:1678
 msgid "Load more replies"
 msgstr ""
 
+#: twitter/includes/layouts/class-esf-twitter-layout-base.php:248
 #: twitter/includes/layouts/premium/class-esf-twitter-layout-half-width.php:260
 msgid "Load more tweets"
 msgstr ""
@@ -3694,7 +3744,7 @@ msgid "Load more videos"
 msgstr ""
 
 #: twitter/includes/helpers/twitter-helper-functions.php:446
-#: youtube/includes/helpers/youtube-helper-functions.php:1258
+#: youtube/includes/helpers/youtube-helper-functions.php:1463
 #: instagram/includes/helpers/instagram-helper-functions.php:1679
 msgid "Loading comments…"
 msgstr ""
@@ -3711,11 +3761,11 @@ msgstr ""
 msgid "Loading more album photos is a premium feature."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:658
+#: includes/class-esf-translation-strings.php:703
 msgid "Loading state while Facebook popup album photos are fetched."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:638
+#: includes/class-esf-translation-strings.php:683
 msgid "Loading state while Facebook popup comments are fetched."
 msgstr ""
 
@@ -3725,12 +3775,13 @@ msgstr ""
 msgid "Loading..."
 msgstr "Cargando"
 
-#: includes/core-functions.php:2012
-#: youtube/frontend/class-esf-youtube-frontend.php:661
-#: tiktok/frontend/class-esf-tiktok-frontend.php:189
-#: tiktok/frontend/class-esf-tiktok-frontend.php:247
-#: instagram/frontend/class-esf-instagram-frontend.php:287
-#: instagram/frontend/class-esf-instagram-frontend.php:355
+#: includes/core-functions.php:2186
+#: youtube/frontend/class-esf-youtube-frontend.php:713
+#: tiktok/frontend/class-esf-tiktok-frontend.php:200
+#: tiktok/frontend/class-esf-tiktok-frontend.php:258
+#: instagram/frontend/class-esf-instagram-frontend.php:298
+#: instagram/frontend/class-esf-instagram-frontend.php:366
+#: includes/premium/social-wall/class-esf-social-wall.php:150
 msgid "Loading…"
 msgstr ""
 
@@ -3765,7 +3816,7 @@ msgstr ""
 
 #: includes/core-functions.php:1424
 #: instagram/includes/esf-insta-helper-functions.php:308
-#: youtube/includes/helpers/youtube-helper-functions.php:1268
+#: youtube/includes/helpers/youtube-helper-functions.php:1473
 #: facebook/includes/helpers/facebook-helper-functions.php:2370
 #: tiktok/includes/helpers/tiktok-helper-functions.php:372
 #: instagram/includes/helpers/instagram-helper-functions.php:1695
@@ -3785,7 +3836,7 @@ msgstr ""
 
 #: twitter/includes/class-esf-twitter-manual-oauth-service.php:38
 #: youtube/includes/class-esf-youtube-manual-oauth-service.php:38
-#: facebook/includes/class-esf-facebook-oauth-service.php:146
+#: facebook/includes/class-esf-facebook-oauth-service.php:159
 #: tiktok/includes/class-esf-tiktok-manual-oauth-service.php:38
 #: instagram/includes/class-esf-instagram-facebook-oauth-service.php:136
 #: instagram/includes/class-esf-instagram-manual-oauth-service.php:41
@@ -3808,13 +3859,13 @@ msgstr ""
 #: facebook/class-esf-facebook-main.php:666
 #: instagram/class-esf-instagram-main.php:739
 #: youtube/frontend/class-esf-youtube-frontend.php:429
-#: includes/premium/social-wall/class-esf-social-wall.php:214
+#: includes/premium/social-wall/class-esf-social-wall.php:246
 #: twitter/includes/layouts/premium/class-esf-twitter-layout-masonry.php:824
-#: youtube/includes/layouts/premium/class-esf-youtube-layout-masonry.php:633
+#: youtube/includes/layouts/premium/class-esf-youtube-layout-masonry.php:644
 msgid "Masonry"
 msgstr ""
 
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:738
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:809
 msgid "Matching videos"
 msgstr ""
 
@@ -3822,7 +3873,7 @@ msgstr ""
 msgid "Maybe later"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:148
+#: includes/class-esf-translation-strings.php:183
 msgid "Media"
 msgstr ""
 
@@ -3896,19 +3947,11 @@ msgstr ""
 msgid "MIF Skins"
 msgstr ""
 
-#: instagram/includes/esf-insta-helper-functions.php:362
-msgid "minute"
-msgstr "minuto"
-
 #: facebook/includes/easy-custom-facebook-feed-widget.php:473
 #: instagram/includes/esf-instagram-feed-widget.php:459
 #: facebook/admin/views/html-how-to-use-tab.php:316
 #: instagram/admin/views/html-how-to-use-tab.php:229
 msgid "Minutes"
-msgstr "minutos"
-
-#: instagram/includes/esf-insta-helper-functions.php:363
-msgid "minutes"
 msgstr "minutos"
 
 #: facebook/includes/class-esf-facebook-graph-client.php:1100
@@ -3952,7 +3995,7 @@ msgstr ""
 #: twitter/class-esf-twitter-main.php:370
 #: youtube/frontend/class-esf-youtube-frontend.php:430
 #: twitter/includes/layouts/premium/class-esf-twitter-layout-masonry.php:825
-#: youtube/includes/layouts/premium/class-esf-youtube-layout-masonry.php:634
+#: youtube/includes/layouts/premium/class-esf-youtube-layout-masonry.php:645
 msgid "Mixed-height tiles that fill the wall"
 msgstr ""
 
@@ -3986,6 +4029,10 @@ msgstr ""
 msgid "Moderation settings reset."
 msgstr ""
 
+#: admin/api/class-esf-api-waf.php:122
+msgid "ModSecurity or host firewall: ask your host to allow this path."
+msgstr ""
+
 #: facebook/includes/api/class-esf-facebook-api-migrate.php:216
 #: facebook/includes/api/class-esf-facebook-api-migrate.php:247
 #: instagram/includes/api/class-esf-instagram-api-migrate.php:207
@@ -3998,15 +4045,7 @@ msgstr ""
 msgid "Module system switching is unavailable."
 msgstr ""
 
-#: instagram/includes/esf-insta-helper-functions.php:370
-msgid "month"
-msgstr "mes"
-
-#: instagram/includes/esf-insta-helper-functions.php:371
-msgid "months"
-msgstr "meses"
-
-#: twitter/includes/layouts/class-esf-twitter-layout-base.php:1149
+#: twitter/includes/layouts/class-esf-twitter-layout-base.php:1169
 #: admin/shared/dashboard-core/layouts/php/src/Primitives/MediaCollage.php:200
 msgid "more"
 msgstr ""
@@ -4055,7 +4094,7 @@ msgstr ""
 msgid "Navigation Color"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:418
+#: includes/class-esf-translation-strings.php:463
 msgid "Navigation hint shown in the TikTok popup lightbox."
 msgstr ""
 
@@ -4070,7 +4109,7 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:603
+#: includes/class-esf-translation-strings.php:648
 msgid "Next media control in the Facebook popup gallery."
 msgstr ""
 
@@ -4095,7 +4134,7 @@ msgstr ""
 msgid "Next tweets"
 msgstr ""
 
-#: youtube/includes/layouts/premium/class-esf-youtube-layout-carousel.php:268
+#: youtube/includes/layouts/premium/class-esf-youtube-layout-carousel.php:272
 msgid "Next videos"
 msgstr ""
 
@@ -4137,7 +4176,7 @@ msgid ""
 msgstr ""
 
 #: twitter/includes/helpers/twitter-helper-functions.php:447
-#: youtube/includes/helpers/youtube-helper-functions.php:1259
+#: youtube/includes/helpers/youtube-helper-functions.php:1464
 #: instagram/includes/helpers/instagram-helper-functions.php:1680
 msgid "No comments yet."
 msgstr ""
@@ -4154,8 +4193,11 @@ msgstr ""
 msgid "No events to show right now."
 msgstr ""
 
-#: facebook/includes/class-esf-facebook-oauth-service.php:100
-msgid "No Facebook Pages were found for this login."
+#: facebook/includes/class-esf-facebook-oauth-service.php:56
+msgid ""
+"No Facebook Pages were found for this login. Connect a Facebook Page you "
+"Admin (not a personal profile). If Meta shows you previously logged in, "
+"remove Easy Social Feed from Facebook Business Integrations, then reconnect."
 msgstr ""
 
 #: facebook/includes/class-esf-facebook-renderer.php:733
@@ -4171,9 +4213,9 @@ msgstr ""
 msgid "No Facebook user token to refresh."
 msgstr ""
 
-#: includes/core-functions.php:2024
-#: tiktok/frontend/class-esf-tiktok-frontend.php:199
-#: instagram/frontend/class-esf-instagram-frontend.php:367
+#: includes/core-functions.php:2198
+#: tiktok/frontend/class-esf-tiktok-frontend.php:210
+#: instagram/frontend/class-esf-instagram-frontend.php:378
 msgid "No feeds available. Create one in the dashboard first."
 msgstr ""
 
@@ -4197,7 +4239,7 @@ msgstr ""
 msgid "No Instagram user token to refresh."
 msgstr ""
 
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:315
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:328
 msgid "No long-form videos found for this channel."
 msgstr ""
 
@@ -4226,14 +4268,13 @@ msgid ""
 "authenticate tab"
 msgstr ""
 
-#: facebook/includes/class-esf-facebook-oauth-service.php:311
+#: facebook/includes/class-esf-facebook-oauth-service.php:324
 #: instagram/includes/class-esf-instagram-facebook-oauth-service.php:223
 msgid "No pending Facebook connection. Please start connect again."
 msgstr ""
 
-#: includes/social-wall/class-esf-social-wall-admin.php:290
-#: includes/premium/social-wall/class-esf-social-wall.php:130
-#: includes/premium/social-wall/class-esf-social-wall.php:327
+#: includes/social-wall/class-esf-social-wall-admin.php:308
+#: includes/premium/social-wall/class-esf-social-wall.php:147
 msgid "No posts found for this network."
 msgstr ""
 
@@ -4270,7 +4311,7 @@ msgstr ""
 msgid "No shoppable defaults were provided."
 msgstr ""
 
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:309
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:322
 msgid "No Shorts found for this channel."
 msgstr ""
 
@@ -4295,7 +4336,7 @@ msgstr ""
 msgid "No valid posts were provided."
 msgstr ""
 
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:337
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:350
 msgid "No videos matched this search."
 msgstr ""
 
@@ -4322,7 +4363,7 @@ msgstr ""
 msgid "No YouTube videos were returned. Existing cache was kept."
 msgstr ""
 
-#: includes/core-functions.php:1655
+#: includes/core-functions.php:1829
 msgid "Nonce not verified or you don't have appropriate permissions"
 msgstr ""
 
@@ -4334,7 +4375,7 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: facebook/includes/class-esf-facebook-oauth-service.php:416
+#: facebook/includes/class-esf-facebook-oauth-service.php:429
 msgid "None of the selected Pages could be imported."
 msgstr ""
 
@@ -4345,6 +4386,10 @@ msgstr ""
 #: admin/class-esf-admin.php:562
 msgid "Nothing to autofill."
 msgstr ""
+
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:1195
+msgid "Now playing"
+msgstr "Reproduciendo"
 
 #: facebook/includes/api/class-esf-facebook-api-album-photos.php:77
 msgid "Number of album photos already displayed."
@@ -4429,9 +4474,9 @@ msgstr ""
 msgid "Open %s feeds"
 msgstr ""
 
-#: includes/core-functions.php:2023
-#: tiktok/frontend/class-esf-tiktok-frontend.php:198
-#: instagram/frontend/class-esf-instagram-frontend.php:366
+#: includes/core-functions.php:2197
+#: tiktok/frontend/class-esf-tiktok-frontend.php:209
+#: instagram/frontend/class-esf-instagram-frontend.php:377
 msgid "Open dashboard"
 msgstr ""
 
@@ -4474,7 +4519,7 @@ msgid ""
 "token (or paste the token in the preview)."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:618
+#: includes/class-esf-translation-strings.php:663
 msgid "Opens a comment attachment image in a nested lightbox."
 msgstr ""
 
@@ -4558,7 +4603,7 @@ msgstr ""
 msgid "Original link"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:268
+#: includes/class-esf-translation-strings.php:303
 msgid "Other"
 msgstr ""
 
@@ -4620,7 +4665,7 @@ msgstr ""
 msgid "Page not found for this feed."
 msgstr ""
 
-#: admin/api/class-esf-api-missing-feed.php:158
+#: admin/api/class-esf-api-missing-feed.php:159
 #: facebook/includes/api/class-esf-facebook-api-pages.php:147
 #: facebook/includes/api/class-esf-facebook-api-pages.php:154
 #: facebook/includes/api/class-esf-facebook-api-pages.php:183
@@ -4697,7 +4742,7 @@ msgstr ""
 msgid "Pause stories"
 msgstr ""
 
-#: facebook/includes/class-esf-facebook-oauth-service.php:322
+#: facebook/includes/class-esf-facebook-oauth-service.php:335
 #: instagram/includes/class-esf-instagram-facebook-oauth-service.php:233
 msgid "Pending session is invalid. Please connect again."
 msgstr ""
@@ -4714,7 +4759,7 @@ msgstr ""
 msgid "Photo by %s"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:668
+#: includes/class-esf-translation-strings.php:713
 msgid "Photo count on Facebook album filter cards (%d = number of photos)."
 msgstr ""
 
@@ -4726,9 +4771,19 @@ msgstr ""
 msgid "Photos, videos, stories, and hashtag feeds."
 msgstr ""
 
+#. %s: video title
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:1170
+#, php-format
+msgid "Play %s"
+msgstr "Reproducir %s"
+
 #: instagram/includes/helpers/instagram-helper-functions.php:1687
 msgid "Play stories"
 msgstr ""
+
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:1166
+msgid "Play video"
+msgstr "Reproducir vídeo"
 
 #: youtube/includes/api/class-esf-youtube-api-feeds.php:583
 #: youtube/includes/api/class-esf-youtube-api-feeds.php:715
@@ -4809,13 +4864,13 @@ msgid ""
 "posts after every selected time duration"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:173
-#: includes/class-esf-translation-strings.php:183
-#: includes/class-esf-translation-strings.php:193
-#: includes/class-esf-translation-strings.php:203
-#: includes/class-esf-translation-strings.php:213
-#: includes/class-esf-translation-strings.php:223
-#: includes/class-esf-translation-strings.php:233
+#: includes/class-esf-translation-strings.php:208
+#: includes/class-esf-translation-strings.php:218
+#: includes/class-esf-translation-strings.php:228
+#: includes/class-esf-translation-strings.php:238
+#: includes/class-esf-translation-strings.php:248
+#: includes/class-esf-translation-strings.php:258
+#: includes/class-esf-translation-strings.php:268
 msgid "Plural time unit."
 msgstr ""
 
@@ -4832,6 +4887,10 @@ msgstr ""
 #: facebook/includes/layouts/src/Layouts/Row.php:402
 #: tiktok/includes/layouts/src/Layouts/AbstractTileLayout.php:893
 msgid "Post"
+msgstr ""
+
+#: includes/premium/social-wall/layouts/SocialWallCardSupport.php:392
+msgid "post"
 msgstr ""
 
 #: includes/class-esf-translation-strings.php:68
@@ -4885,7 +4944,7 @@ msgstr ""
 msgid "Powered by Easy Social Feed"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:878
+#: includes/class-esf-translation-strings.php:898
 msgid "Prefix before error message (e.g. \"Error: something went wrong\")."
 msgstr ""
 
@@ -4893,7 +4952,7 @@ msgstr ""
 msgid "Prefix before reaction count (e.g. \"All 5\")."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:763
+#: includes/class-esf-translation-strings.php:808
 msgid "Prefix text shown before the original retweeted account."
 msgstr ""
 
@@ -4935,9 +4994,9 @@ msgid ""
 "disabled or limited for all visitors."
 msgstr ""
 
-#: includes/core-functions.php:2018
-#: tiktok/frontend/class-esf-tiktok-frontend.php:193
-#: instagram/frontend/class-esf-instagram-frontend.php:361
+#: includes/core-functions.php:2192
+#: tiktok/frontend/class-esf-tiktok-frontend.php:204
+#: instagram/frontend/class-esf-instagram-frontend.php:372
 msgid "Preview feed"
 msgstr ""
 
@@ -4946,7 +5005,7 @@ msgstr ""
 msgid "Previous"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:598
+#: includes/class-esf-translation-strings.php:643
 msgid "Previous media control in the Facebook popup gallery."
 msgstr ""
 
@@ -4971,7 +5030,7 @@ msgstr ""
 msgid "Previous tweets"
 msgstr ""
 
-#: youtube/includes/layouts/premium/class-esf-youtube-layout-carousel.php:267
+#: youtube/includes/layouts/premium/class-esf-youtube-layout-carousel.php:271
 msgid "Previous videos"
 msgstr ""
 
@@ -5011,42 +5070,47 @@ msgstr ""
 msgid "Profile Picture"
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:297
-#: twitter/includes/api/class-esf-twitter-api-service.php:438
-#: twitter/includes/api/class-esf-twitter-api-service.php:465
+#: twitter/includes/api/class-esf-twitter-api-service.php:300
+#: twitter/includes/api/class-esf-twitter-api-service.php:444
+#: twitter/includes/api/class-esf-twitter-api-service.php:471
 #: twitter/includes/api/class-esf-twitter-api-accounts.php:584
 msgid "Public account feeds require the Twitter Pro plan."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:301
+#: twitter/includes/api/class-esf-twitter-api-service.php:304
 #: twitter/includes/api/class-esf-twitter-api-accounts.php:562
 msgid "Public account support is unavailable in this build."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:442
-#: twitter/includes/api/class-esf-twitter-api-service.php:469
+#: twitter/includes/api/class-esf-twitter-api-service.php:448
+#: twitter/includes/api/class-esf-twitter-api-service.php:475
 msgid "Public timeline support is unavailable in this build."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:777
+#: twitter/includes/api/class-esf-twitter-api-service.php:786
 msgid "Public tweet replies are unavailable in this build."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:770
+#: twitter/includes/api/class-esf-twitter-api-service.php:779
 msgid "Public tweet replies require the X Pro plan."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:1169
+#: twitter/includes/api/class-esf-twitter-api-service.php:1181
 msgid "Public X proxy returned an error."
 msgstr ""
 
 #: twitter/includes/layouts/premium/class-esf-twitter-layout-half-width.php:353
+#: includes/premium/social-wall/layouts/SocialWallCardSupport.php:533
 msgid "Quotes"
 msgstr ""
 
 #: facebook/includes/helpers/facebook-helper-functions.php:2122
 msgid "Read full story"
 msgstr "Leggi tutta la storia"
+
+#: admin/api/class-esf-api-waf.php:123
+msgid "Read the firewall compatibility guide"
+msgstr ""
 
 #: includes/class-esf-gdpr-integrations.php:919
 msgid "Real Cookie Banner by devowl.io"
@@ -5110,7 +5174,7 @@ msgstr ""
 msgid "Replies per page."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:854
+#: twitter/includes/api/class-esf-twitter-api-service.php:866
 msgid "Replies sync can take a little longer. Please try again in a moment."
 msgstr ""
 
@@ -5151,7 +5215,7 @@ msgid "Responsive"
 msgstr ""
 
 #: youtube/frontend/class-esf-youtube-frontend.php:86
-#: youtube/includes/layouts/class-esf-youtube-layout-grid.php:149
+#: youtube/includes/layouts/class-esf-youtube-layout-grid.php:157
 msgid "Responsive grid of video cards"
 msgstr ""
 
@@ -5188,8 +5252,8 @@ msgstr ""
 #: instagram/class-esf-instagram-main.php:473
 #: youtube/frontend/class-esf-youtube-frontend.php:164
 #: twitter/includes/layouts/class-esf-twitter-layout-row.php:611
-#: includes/premium/social-wall/class-esf-social-wall.php:207
-#: youtube/includes/layouts/class-esf-youtube-layout-row.php:523
+#: includes/premium/social-wall/class-esf-social-wall.php:239
+#: youtube/includes/layouts/class-esf-youtube-layout-row.php:534
 msgid "Row"
 msgstr ""
 
@@ -5219,9 +5283,9 @@ msgstr ""
 msgid "Save Settings"
 msgstr ""
 
-#: includes/core-functions.php:2019
-#: tiktok/frontend/class-esf-tiktok-frontend.php:194
-#: instagram/frontend/class-esf-instagram-frontend.php:362
+#: includes/core-functions.php:2193
+#: tiktok/frontend/class-esf-tiktok-frontend.php:205
+#: instagram/frontend/class-esf-instagram-frontend.php:373
 msgid "Save to this page"
 msgstr ""
 
@@ -5243,16 +5307,11 @@ msgstr ""
 msgid "Search for "
 msgstr ""
 
-#: instagram/includes/esf-insta-helper-functions.php:360
-msgid "second"
-msgstr "seconda"
-
-#: instagram/includes/esf-insta-helper-functions.php:361
-msgid "seconds"
-msgstr "secondi"
-
+#: twitter/includes/layouts/class-esf-twitter-layout-base.php:539
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:504
 #: facebook/includes/layouts/src/FacebookHeaderSupport.php:168
 #: tiktok/includes/layouts/src/TikTokHeaderSupport.php:60
+#: instagram/includes/layouts/src/InstagramHeaderSupport.php:144
 #: facebook/includes/layouts/src/Layouts/AbstractTileLayout.php:675
 #: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:648
 #: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:562
@@ -5260,8 +5319,11 @@ msgstr "secondi"
 msgid "See less"
 msgstr "Vedi di meno"
 
+#: twitter/includes/layouts/class-esf-twitter-layout-base.php:536
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:501
 #: facebook/includes/layouts/src/FacebookHeaderSupport.php:165
 #: tiktok/includes/layouts/src/TikTokHeaderSupport.php:57
+#: instagram/includes/layouts/src/InstagramHeaderSupport.php:141
 #: facebook/includes/layouts/src/Layouts/AbstractTileLayout.php:672
 #: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:645
 #: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:559
@@ -5287,13 +5349,13 @@ msgstr ""
 msgid "Select a connected Instagram Business account."
 msgstr ""
 
-#: includes/core-functions.php:2017
-#: tiktok/frontend/class-esf-tiktok-frontend.php:192
-#: instagram/frontend/class-esf-instagram-frontend.php:360
+#: includes/core-functions.php:2191
+#: tiktok/frontend/class-esf-tiktok-frontend.php:203
+#: instagram/frontend/class-esf-instagram-frontend.php:371
 msgid "Select a feed"
 msgstr ""
 
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:322
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:335
 msgid "Select a playlist to display its videos."
 msgstr ""
 
@@ -5307,7 +5369,7 @@ msgid ""
 "only posts and so on."
 msgstr ""
 
-#: facebook/includes/class-esf-facebook-oauth-service.php:346
+#: facebook/includes/class-esf-facebook-oauth-service.php:359
 msgid "Select at least one Page to import."
 msgstr ""
 
@@ -5598,7 +5660,7 @@ msgstr ""
 msgid "Selected account not found."
 msgstr ""
 
-#: admin/api/class-esf-api-missing-feed.php:149
+#: admin/api/class-esf-api-missing-feed.php:150
 msgid "Selected feed was not found."
 msgstr ""
 
@@ -5606,7 +5668,7 @@ msgstr ""
 msgid "Selected Page not found."
 msgstr ""
 
-#: easy-facebook-likebox.php:622 admin/class-esf-admin.php:639
+#: easy-facebook-likebox.php:626 admin/class-esf-admin.php:639
 #: admin/class-esf-admin.php:640
 #: facebook/admin/classes/class-esf-facebook-admin.php:454
 msgid "Settings"
@@ -5652,37 +5714,23 @@ msgstr ""
 msgid "Share"
 msgstr "Condividere"
 
-#: includes/class-esf-translation-strings.php:813
-msgid "Share menu link label for facebook.com."
+#: includes/class-esf-translation-strings.php:158
+msgid "Share menu link label for facebook.com (all modules)."
 msgstr ""
+"Etiqueta del enlace para compartir en facebook.com (todos los módulos)."
 
-#: includes/class-esf-translation-strings.php:818
-msgid "Share menu link label for linkedin.com."
+#: includes/class-esf-translation-strings.php:168
+msgid "Share menu link label for linkedin.com (all modules)."
 msgstr ""
+"Etiqueta del enlace para compartir en linkedin.com (todos los módulos)."
 
-#: includes/class-esf-translation-strings.php:823
-msgid "Share menu link label for WhatsApp."
-msgstr ""
+#: includes/class-esf-translation-strings.php:173
+msgid "Share menu link label for WhatsApp (all modules)."
+msgstr "Etiqueta del enlace para compartir en WhatsApp (todos los módulos)."
 
-#: includes/class-esf-translation-strings.php:808
-msgid "Share menu link label for x.com."
-msgstr ""
-
-#: admin/shared/dashboard-core/layouts/php/src/Primitives/PostShareMenu.php:131
-msgid "Share on Facebook"
-msgstr ""
-
-#: admin/shared/dashboard-core/layouts/php/src/Primitives/PostShareMenu.php:145
-msgid "Share on LinkedIn"
-msgstr ""
-
-#: admin/shared/dashboard-core/layouts/php/src/Primitives/PostShareMenu.php:152
-msgid "Share on WhatsApp"
-msgstr ""
-
-#: admin/shared/dashboard-core/layouts/php/src/Primitives/PostShareMenu.php:138
-msgid "Share on X"
-msgstr ""
+#: includes/class-esf-translation-strings.php:163
+msgid "Share menu link label for x.com (all modules)."
+msgstr "Etiqueta del enlace para compartir en x.com (todos los módulos)."
 
 #: facebook/includes/layouts/src/FacebookEmbedPlaceholder.php:106
 msgid "Shared event"
@@ -5697,13 +5745,21 @@ msgid "Shared video"
 msgstr ""
 
 #: tiktok/includes/helpers/tiktok-helper-functions.php:368
+#: includes/premium/social-wall/layouts/SocialWallCardSupport.php:527
+#: includes/premium/social-wall/layouts/AbstractSocialWallLayout.php:676
+#: facebook/includes/layouts/src/FacebookFooterSupport.php:48
 #: facebook/includes/layouts/src/Layouts/Masonry.php:456
 #: facebook/includes/layouts/src/Layouts/AbstractTileLayout.php:706
 #: facebook/includes/layouts/src/Layouts/Grid.php:277
 #: facebook/includes/layouts/src/Layouts/Carousel.php:498
+#: admin/shared/dashboard-core/layouts/php/src/AbstractSplitLayout.php:672
 #: admin/shared/dashboard-core/layouts/php/src/AbstractStackedLayout.php:583
 msgid "Shares"
-msgstr ""
+msgstr "Compartidos"
+
+#: includes/class-esf-translation-strings.php:153
+msgid "Sharing & Verified"
+msgstr "Compartir y verificado"
 
 #: includes/premium/class-esf-shoppable.php:430
 #: includes/premium/class-esf-shoppable.php:880
@@ -5745,13 +5801,13 @@ msgstr ""
 msgid "Shortcode Generator"
 msgstr ""
 
-#: includes/core-functions.php:2020
-#: tiktok/frontend/class-esf-tiktok-frontend.php:195
-#: instagram/frontend/class-esf-instagram-frontend.php:363
+#: includes/core-functions.php:2194
+#: tiktok/frontend/class-esf-tiktok-frontend.php:206
+#: instagram/frontend/class-esf-instagram-frontend.php:374
 msgid "Shortcode updated. Reloading…"
 msgstr ""
 
-#: admin/api/class-esf-api-missing-feed.php:179
+#: admin/api/class-esf-api-missing-feed.php:180
 msgid "Shortcode was not found in this page content."
 msgstr ""
 
@@ -6079,115 +6135,115 @@ msgid ""
 msgstr ""
 
 #: twitter/includes/helpers/twitter-helper-functions.php:443
-#: youtube/includes/helpers/youtube-helper-functions.php:1255
+#: youtube/includes/helpers/youtube-helper-functions.php:1460
 #: instagram/includes/helpers/instagram-helper-functions.php:1676
 #, php-format
 msgid "Showing %1$s of %2$s"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:298
+#: includes/class-esf-translation-strings.php:333
 msgid ""
 "Shown in preview/frontend when Playlist source is chosen but no playlist is "
 "selected yet."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:523
+#: includes/class-esf-translation-strings.php:568
 msgid ""
 "Shown on the public Events feed when Events cannot load (e.g. Page token not "
 "set up yet)."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:283
+#: includes/class-esf-translation-strings.php:318
 msgid "Shown when a channel-uploads YouTube feed has no videos to display."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:518
+#: includes/class-esf-translation-strings.php:563
 msgid "Shown when a Facebook feed has no posts to render."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:303
+#: includes/class-esf-translation-strings.php:338
 msgid "Shown when a playlist feed is selected but the playlist is empty."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:438
+#: includes/class-esf-translation-strings.php:483
 msgid "Shown when a Social Wall has no connected sources or posts to render."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:443
+#: includes/class-esf-translation-strings.php:488
 msgid "Shown when a Social Wall network filter tab has no posts to display."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:373
+#: includes/class-esf-translation-strings.php:418
 msgid "Shown when a TikTok feed has no videos to render."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:733
+#: includes/class-esf-translation-strings.php:778
 msgid "Shown when a Twitter/X feed has no tweets to render."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:313
+#: includes/class-esf-translation-strings.php:348
 msgid "Shown when a YouTube search feed returns no matching videos."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:858
+#: includes/class-esf-translation-strings.php:878
 msgid "Shown when API access token is missing."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:843
+#: includes/class-esf-translation-strings.php:863
 msgid "Shown when Facebook feed returns no results."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:848
+#: includes/class-esf-translation-strings.php:868
 msgid "Shown when feed request returns no data."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:873
+#: includes/class-esf-translation-strings.php:893
 msgid "Shown when Instagram feed has no data."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:883
+#: includes/class-esf-translation-strings.php:903
 msgid "Shown when Instagram stories have no data."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:868
+#: includes/class-esf-translation-strings.php:888
 msgid "Shown when loading more Instagram posts and none are left."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:838
+#: includes/class-esf-translation-strings.php:858
 msgid "Shown when no Facebook or Instagram account is connected."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:308
+#: includes/class-esf-translation-strings.php:343
 msgid "Shown when Search source is chosen but no keyword is entered yet."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:153
+#: includes/class-esf-translation-strings.php:188
 msgid "Shown when the browser cannot play the video."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:888
+#: includes/class-esf-translation-strings.php:908
 msgid "Shown when the Facebook page ID is invalid."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:853
+#: includes/class-esf-translation-strings.php:873
 msgid "Shown when the given account ID is invalid."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:253
+#: includes/class-esf-translation-strings.php:288
 msgid "Shown when there are no more posts to load."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:293
+#: includes/class-esf-translation-strings.php:328
 msgid "Shown when Video type is Exclude Shorts and no long-form videos remain."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:288
+#: includes/class-esf-translation-strings.php:323
 msgid ""
 "Shown when Video type is Shorts only and the channel Shorts playlist is "
 "empty."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:263
+#: includes/class-esf-translation-strings.php:298
 msgid "Shown while more posts are loading."
 msgstr ""
 
@@ -6201,17 +6257,17 @@ msgstr ""
 msgid "Sidebar Content Color"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:168
-#: includes/class-esf-translation-strings.php:178
-#: includes/class-esf-translation-strings.php:188
-#: includes/class-esf-translation-strings.php:198
-#: includes/class-esf-translation-strings.php:208
-#: includes/class-esf-translation-strings.php:218
-#: includes/class-esf-translation-strings.php:228
+#: includes/class-esf-translation-strings.php:203
+#: includes/class-esf-translation-strings.php:213
+#: includes/class-esf-translation-strings.php:223
+#: includes/class-esf-translation-strings.php:233
+#: includes/class-esf-translation-strings.php:243
+#: includes/class-esf-translation-strings.php:253
+#: includes/class-esf-translation-strings.php:263
 msgid "Singular time unit."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:678
+#: includes/class-esf-translation-strings.php:723
 msgid "Singular toggle to expand one reply under a Facebook popup comment."
 msgstr ""
 
@@ -6369,7 +6425,7 @@ msgstr ""
 msgid "Social"
 msgstr ""
 
-#: admin/shared/seo/php/src/SchemaBuilder.php:481
+#: admin/shared/seo/php/src/SchemaBuilder.php:498
 #: admin/shared/seo/php/src/SeoHelper.php:86
 msgid "Social feed"
 msgstr ""
@@ -6378,19 +6434,19 @@ msgstr ""
 msgid "Social media post"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:423
+#: includes/class-esf-translation-strings.php:468
 #: includes/social-wall/class-esf-social-wall-admin.php:85
 #: includes/social-wall/class-esf-social-wall-admin.php:86
-#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:449
+#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:756
 msgid "Social Wall"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:428
+#: includes/class-esf-translation-strings.php:473
 msgid "Social Wall frontend filter tab that shows every network."
 msgstr ""
 
-#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:490
-#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:546
+#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:797
+#: includes/social-wall/models/class-esf-social-wall-feed-repository.php:853
 #: includes/premium/social-wall/api/class-esf-social-wall-api-preview.php:82
 #: includes/premium/social-wall/api/class-esf-social-wall-api-feeds.php:148
 #: includes/premium/social-wall/api/class-esf-social-wall-api-feeds.php:227
@@ -6492,7 +6548,7 @@ msgstr ""
 msgid "Stacked video cards with thumbnail, caption, and engagement."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:698
+#: includes/class-esf-translation-strings.php:743
 msgid ""
 "Status suffix next to the Page name when a Facebook Page has an active live "
 "stream (e.g. “Easy Social Feed is live now”)."
@@ -6507,16 +6563,16 @@ msgstr ""
 msgid "Submit"
 msgstr ""
 
-#: youtube/includes/helpers/youtube-helper-functions.php:1242
+#: youtube/includes/helpers/youtube-helper-functions.php:1447
 #: youtube/admin/classes/class-esf-youtube-admin.php:313
 msgid "Subscribe"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:328
+#: includes/class-esf-translation-strings.php:363
 msgid "Subscribe button text shown in the YouTube feed header and popup."
 msgstr ""
 
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:724
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:795
 msgid "Subscribers"
 msgstr ""
 
@@ -6531,11 +6587,15 @@ msgstr ""
 msgid "Successfully Authenticated!"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:773
+#: admin/api/class-esf-api-waf.php:119
+msgid "Sucuri: Firewall (WAF) > Allowlist & Blocklist > Allow a URL Path."
+msgstr ""
+
+#: includes/class-esf-translation-strings.php:818
 msgid "Suffix shown in media grids for extra item count (e.g. \"+2 more\")."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:778
+#: includes/class-esf-translation-strings.php:823
 msgid ""
 "Suffix shown in multi-image collages for extra item count (e.g. \"+1 more\")."
 msgstr ""
@@ -6643,6 +6703,10 @@ msgstr ""
 msgid ""
 "The Easy Social Feed setup wizard requires JavaScript. Please enable "
 "JavaScript and reload this page."
+msgstr ""
+
+#: admin/api/class-esf-api-waf.php:270
+msgid "The encoded request body is invalid."
 msgstr ""
 
 #. 1: Page name, 2: Formatted expiry date, 3: Cache note, 4: Update instructions, 5: Admin URL
@@ -6762,6 +6826,16 @@ msgid ""
 "given by a supported GDPR / cookie consent plugin. Local media always loads."
 msgstr ""
 
+#: admin/api/class-esf-api-waf.php:125
+msgid ""
+"The request was blocked by a firewall or security plugin. Allow /wp-"
+"json/esf/ in your firewall and try again."
+msgstr ""
+
+#: admin/api/class-esf-api-waf.php:126
+msgid "The response is not a valid JSON response."
+msgstr ""
+
 #: instagram/includes/helpers/instagram-helper-functions.php:1753
 msgid ""
 "The screens you are using now belong to the older version. They still work "
@@ -6840,7 +6914,7 @@ msgid ""
 "your feeds and data behave across the plugin."
 msgstr ""
 
-#: facebook/includes/class-esf-facebook-oauth-service.php:177
+#: facebook/includes/class-esf-facebook-oauth-service.php:190
 msgid "This access token could not be validated with Facebook."
 msgstr ""
 
@@ -6872,7 +6946,7 @@ msgid ""
 "account."
 msgstr ""
 
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:342
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:355
 msgid "This channel has no videos yet."
 msgstr ""
 
@@ -6999,8 +7073,8 @@ msgid ""
 "values. You can edit it and change the look & feel of your Facebook Feeds."
 msgstr ""
 
-#: includes/core-functions.php:2015
-#: instagram/frontend/class-esf-instagram-frontend.php:358
+#: includes/core-functions.php:2189
+#: instagram/frontend/class-esf-instagram-frontend.php:369
 msgid ""
 "This legacy Instagram shortcode needs updating after migration. Choose a "
 "feed to preview, then save the new shortcode to this page."
@@ -7082,27 +7156,27 @@ msgstr ""
 msgid "This permission is used to show comments for your posts."
 msgstr ""
 
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:326
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:339
 msgid "This playlist has no videos yet."
 msgstr ""
 
-#: includes/core-functions.php:2025
-#: tiktok/frontend/class-esf-tiktok-frontend.php:200
-#: instagram/frontend/class-esf-instagram-frontend.php:368
+#: includes/core-functions.php:2199
+#: tiktok/frontend/class-esf-tiktok-frontend.php:211
+#: instagram/frontend/class-esf-instagram-frontend.php:379
 msgid ""
 "This shortcode is not inside editable page content. Copy the new shortcode "
 "and paste it where needed."
 msgstr ""
 
-#: includes/core-functions.php:2014
-#: tiktok/frontend/class-esf-tiktok-frontend.php:191
-#: instagram/frontend/class-esf-instagram-frontend.php:357
+#: includes/core-functions.php:2188
+#: tiktok/frontend/class-esf-tiktok-frontend.php:202
+#: instagram/frontend/class-esf-instagram-frontend.php:368
 msgid ""
 "This shortcode points to a feed that was deleted. Choose another feed to "
 "preview or update this page."
 msgstr ""
 
-#: admin/shared/dashboard-core/layouts/php/src/Primitives/MissingFeedState.php:111
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/MissingFeedState.php:112
 msgid "This social feed is currently unavailable."
 msgstr ""
 
@@ -7146,7 +7220,7 @@ msgid "Thumbnail on the left, title and engagement on the right."
 msgstr ""
 
 #: includes/class-esf-feed-disconnected-cache.php:1235
-#: includes/social-wall/helpers/social-wall-helper-functions.php:131
+#: includes/social-wall/helpers/social-wall-helper-functions.php:142
 #: tiktok/admin/classes/class-esf-tiktok-admin.php:70
 #: tiktok/admin/classes/class-esf-tiktok-admin.php:71
 msgid "TikTok"
@@ -7191,7 +7265,7 @@ msgstr ""
 msgid "TikTok API request failed: %s"
 msgstr ""
 
-#: easy-facebook-likebox.php:594 includes/class-esf-translation-strings.php:353
+#: easy-facebook-likebox.php:598 includes/class-esf-translation-strings.php:398
 #: includes/class-esf-module-catalogue.php:152
 #: tiktok/includes/api/class-esf-tiktok-api-feeds.php:673
 msgid "TikTok Feed"
@@ -7205,17 +7279,17 @@ msgstr ""
 msgid "TikTok video"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:158
+#: includes/class-esf-translation-strings.php:193
 msgid "Time"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:238
+#: includes/class-esf-translation-strings.php:273
 msgid "Time unit."
 msgstr ""
 
 #: twitter/class-esf-twitter-main.php:171
 #: facebook/includes/easy-facebook-page-plugin-widget.php:120
-#: twitter/includes/layouts/class-esf-twitter-layout-timeline.php:180
+#: twitter/includes/layouts/class-esf-twitter-layout-timeline.php:195
 #: facebook/admin/views/html-likebox-tab.php:83
 msgid "Timeline"
 msgstr ""
@@ -7254,11 +7328,11 @@ msgid ""
 "can register your app from Facebook developer account and add ID here."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:683
+#: includes/class-esf-translation-strings.php:728
 msgid "Toggle to collapse replies under a Facebook popup comment."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:673
+#: includes/class-esf-translation-strings.php:718
 msgid "Toggle to expand replies under a Facebook popup comment (%d = count)."
 msgstr ""
 
@@ -7283,88 +7357,90 @@ msgstr ""
 msgid "Token refresh server returned no tokens."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:468
+#: includes/class-esf-translation-strings.php:513
 msgid ""
 "Tooltip label for comment count on Facebook feed tiles and in the popup."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:408
+#: includes/class-esf-translation-strings.php:453
 msgid "Tooltip label for comment count on TikTok feed tiles and in the popup."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:788
+#: includes/class-esf-translation-strings.php:833
 msgid "Tooltip label for like count in Twitter/X card and popup metrics."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:403
+#: includes/class-esf-translation-strings.php:448
 msgid "Tooltip label for like count on TikTok feed tiles and in the popup."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:463
+#: includes/class-esf-translation-strings.php:508
 msgid ""
 "Tooltip label for like/reaction count on Facebook feed tiles and in the "
 "popup."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:753
+#: includes/class-esf-translation-strings.php:798
 msgid "Tooltip label for links that open a tweet on x.com."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:708
+#: includes/class-esf-translation-strings.php:753
 msgid "Tooltip label for Page category in the Facebook feed header."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:798
+#: includes/class-esf-translation-strings.php:843
 msgid "Tooltip label for quote count in Twitter/X card and popup metrics."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:783
+#: includes/class-esf-translation-strings.php:828
 msgid "Tooltip label for reply count in Twitter/X card and popup metrics."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:793
+#: includes/class-esf-translation-strings.php:838
 msgid "Tooltip label for retweet count in Twitter/X card and popup metrics."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:473
+#: includes/class-esf-translation-strings.php:518
 msgid "Tooltip label for share count on Facebook feed tiles and in the popup."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:413
+#: includes/class-esf-translation-strings.php:458
 msgid "Tooltip label for share count on TikTok feed tiles and in the popup."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:363
+#: includes/class-esf-translation-strings.php:408
 msgid "Tooltip label for the following count in the TikTok feed header."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:738
+#: includes/class-esf-translation-strings.php:783
 msgid "Tooltip label for the following count in Twitter/X feed header."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:348
+#: includes/class-esf-translation-strings.php:393
 msgid "Tooltip label for the post count in the Instagram feed header."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:803
+#: includes/class-esf-translation-strings.php:848
 msgid "Tooltip label for the share button in Twitter/X cards."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:743
+#: includes/class-esf-translation-strings.php:788
 msgid "Tooltip label for the tweet count in Twitter/X feed header."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:368
+#: includes/class-esf-translation-strings.php:413
 msgid "Tooltip label for the video count in the TikTok feed header."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:398
+#: includes/class-esf-translation-strings.php:443
 msgid "Tooltip label for view count on TikTok feed tiles."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:828
-msgid "Tooltip text shown on verified badge in Twitter/X feed and popup."
+#: includes/class-esf-translation-strings.php:178
+msgid "Tooltip on the verified badge in feed headers and popups (all modules)."
 msgstr ""
+"Texto emergente de la insignia verificada en cabeceras y ventanas emergentes "
+"(todos los módulos)."
 
 #: instagram/includes/class-esf-instagram-cache.php:315
 msgid "Top"
@@ -7386,7 +7462,8 @@ msgstr ""
 msgid "Trouble connecting? Please "
 msgstr ""
 
-#: includes/premium/social-wall/layouts/AbstractSocialWallLayout.php:474
+#: includes/premium/social-wall/layouts/SocialWallCardSupport.php:351
+#: includes/premium/social-wall/layouts/AbstractSocialWallLayout.php:556
 msgid "Twitter"
 msgstr ""
 
@@ -7448,7 +7525,7 @@ msgstr ""
 msgid "Unmute video"
 msgstr ""
 
-#: admin/api/class-esf-api-missing-feed.php:131
+#: admin/api/class-esf-api-missing-feed.php:132
 #: admin/api/premium/class-esf-api-moderation.php:217
 #: admin/api/premium/class-esf-api-shoppable.php:292
 msgid "Unsupported module."
@@ -7472,49 +7549,11 @@ msgstr ""
 msgid "Updated!"
 msgstr ""
 
-#: includes/class-esf-settings.php:610 admin/api/class-esf-api-hub.php:139
-msgid "Upgrade Now"
-msgstr ""
-
-#: instagram/admin/views/html-how-to-use-tab.php:165
-#: instagram/admin/views/html-how-to-use-tab.php:279
-#: instagram/admin/views/html-how-to-use-tab.php:343
-msgid "Upgrade now"
-msgstr ""
-
-#: facebook/includes/easy-facebook-page-plugin-widget.php:149
-#: facebook/includes/easy-custom-facebook-feed-widget.php:278
-#: facebook/includes/easy-custom-facebook-feed-widget.php:406
-#: facebook/includes/easy-custom-facebook-feed-widget.php:434
-#: instagram/includes/esf-instagram-feed-widget.php:411
-#: instagram/includes/esf-instagram-feed-widget.php:438
-msgid "Upgrade to PRO"
-msgstr ""
-
 #: admin/views/html-upgrade-notice.php:25
 msgid "Upgrade to Pro"
 msgstr ""
 
-#: facebook/admin/includes/efbl-customizer-extend.php:160
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:263
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:284
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:307
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:327
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:347
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:367
-#: facebook/admin/views/html-admin-page-easy-facebook-likebox.php:387
-#: facebook/admin/views/html-moderate-tab.php:115
-#: instagram/admin/includes/class-esf-insta-customizer-extend.php:156
-#: instagram/admin/views/html-admin-page-mif.php:248
-#: instagram/admin/views/html-admin-page-mif.php:275
-#: instagram/admin/views/html-admin-page-mif.php:302
-#: instagram/admin/views/html-admin-page-mif.php:329
-#: instagram/admin/views/html-shoppable-tab.php:130
-#: instagram/admin/views/html-moderate-tab.php:123
-msgid "Upgrade to pro"
-msgstr ""
-
-#: includes/class-esf-translation-strings.php:563
+#: includes/class-esf-translation-strings.php:608
 msgid ""
 "Uppercase label on Facebook Row / Grid / Masonry / Carousel text-only tiles "
 "(status updates with no media)."
@@ -7563,7 +7602,7 @@ msgstr ""
 msgid "Use this Image"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:163
+#: includes/class-esf-translation-strings.php:198
 msgid "Used after relative time (e.g. \"5 minutes ago\")."
 msgstr ""
 
@@ -7575,7 +7614,7 @@ msgstr ""
 msgid "Used as heading for the replies section."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:273
+#: includes/class-esf-translation-strings.php:308
 msgid "Used as label or title for follower count (e.g. on Instagram)."
 msgstr ""
 
@@ -7587,7 +7626,7 @@ msgstr ""
 msgid "Used for Facebook event ticket link."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:243
+#: includes/class-esf-translation-strings.php:278
 msgid "Used for Facebook events filter (e.g. \"upcoming events\")."
 msgstr ""
 
@@ -7636,7 +7675,7 @@ msgstr ""
 msgid "User, hashtag, and tagged media from your account"
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:320
+#: twitter/includes/api/class-esf-twitter-api-service.php:323
 #: twitter/includes/api/class-esf-twitter-api-accounts.php:595
 msgid "Username is required."
 msgstr ""
@@ -7646,8 +7685,12 @@ msgstr ""
 msgid "Username:"
 msgstr ""
 
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/AccountHeader.php:132
+msgid "Verified account"
+msgstr "Cuenta verificada"
+
 #: twitter/class-esf-twitter-main.php:172
-#: twitter/includes/layouts/class-esf-twitter-layout-timeline.php:181
+#: twitter/includes/layouts/class-esf-twitter-layout-timeline.php:196
 msgid "Vertical list of tweets with images on the left"
 msgstr ""
 
@@ -7668,7 +7711,7 @@ msgid "Video proxy requires cURL."
 msgstr ""
 
 #: facebook/includes/easy-custom-facebook-feed-widget.php:268
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:734
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:805
 #: facebook/admin/views/html-how-to-use-tab.php:161
 #: facebook/admin/views/html-how-to-use-tab.php:203
 msgid "Videos"
@@ -7686,18 +7729,18 @@ msgstr ""
 msgid "Videos from your TikTok account on your site."
 msgstr ""
 
-#: youtube/includes/helpers/youtube-helper-functions.php:1262
+#: youtube/includes/helpers/youtube-helper-functions.php:1467
 #: instagram/includes/helpers/instagram-helper-functions.php:1683
 msgid "View %d reply"
 msgstr ""
 
 #: twitter/includes/helpers/twitter-helper-functions.php:453
-#: youtube/includes/helpers/youtube-helper-functions.php:1261
+#: youtube/includes/helpers/youtube-helper-functions.php:1466
 #: instagram/includes/helpers/instagram-helper-functions.php:1682
 msgid "View all %d replies"
 msgstr ""
 
-#: facebook/includes/layouts/src/FacebookFooterSupport.php:82
+#: facebook/includes/layouts/src/FacebookFooterSupport.php:106
 #, fuzzy
 #| msgid "View All Events"
 msgid "View all events"
@@ -7707,14 +7750,17 @@ msgstr "Visualizza tutti gli eventi"
 msgid "View comments on Instagram"
 msgstr ""
 
-#: admin/shared/dashboard-core/layouts/php/src/Primitives/AccountHeader.php:424
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:424
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/AccountHeader.php:427
 msgid "View cover photo"
 msgstr ""
 
+#. %s: YouTube channel name
 #. %s: Facebook Page name
 #. %s: account / page name
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:421
 #: facebook/includes/layouts/src/FacebookHeaderSupport.php:97
-#: admin/shared/dashboard-core/layouts/php/src/Primitives/AccountHeader.php:421
+#: admin/shared/dashboard-core/layouts/php/src/Primitives/AccountHeader.php:424
 #, php-format
 msgid "View cover photo for %s"
 msgstr ""
@@ -7731,6 +7777,12 @@ msgstr ""
 #: facebook/includes/layouts/src/FacebookLinkCard.php:268
 msgid "View Map"
 msgstr "Guarda la mappa"
+
+#. %s: network name (Facebook, Instagram, X, …)
+#: includes/premium/social-wall/layouts/SocialWallCardSupport.php:395
+#, php-format
+msgid "View on %s"
+msgstr ""
 
 #: facebook/frontend/class-esf-facebook-frontend.php:473
 #: facebook/includes/layouts/src/FacebookEmbedPlaceholder.php:99
@@ -7757,17 +7809,18 @@ msgstr ""
 msgid "View story by %s"
 msgstr ""
 
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:755
-#: youtube/includes/layouts/class-esf-youtube-layout-base.php:863
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:826
+#: youtube/includes/layouts/class-esf-youtube-layout-base.php:934
 #: tiktok/includes/helpers/tiktok-helper-functions.php:369
+#: includes/premium/social-wall/layouts/SocialWallCardSupport.php:530
 msgid "Views"
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:378
+#: includes/class-esf-translation-strings.php:423
 msgid "Visible text for the TikTok Load More button."
 msgstr ""
 
-#: includes/class-esf-translation-strings.php:323
+#: includes/class-esf-translation-strings.php:358
 msgid "Visible text for the YouTube Load More button."
 msgstr ""
 
@@ -7793,7 +7846,7 @@ msgstr ""
 msgid "Watch on TikTok"
 msgstr ""
 
-#: youtube/includes/helpers/youtube-helper-functions.php:1245
+#: youtube/includes/helpers/youtube-helper-functions.php:1450
 #: youtube/admin/classes/class-esf-youtube-admin.php:314
 msgid "Watch on YouTube"
 msgstr ""
@@ -8137,14 +8190,6 @@ msgid ""
 "premium version to unlock this and all other cool features. "
 msgstr ""
 
-#: instagram/includes/esf-insta-helper-functions.php:368
-msgid "week"
-msgstr "settimana"
-
-#: instagram/includes/esf-insta-helper-functions.php:369
-msgid "weeks"
-msgstr "settimane"
-
 #: admin/class-esf-admin.php:620 admin/class-esf-admin.php:621
 msgid "Welcome"
 msgstr ""
@@ -8237,6 +8282,10 @@ msgstr ""
 msgid "Width:"
 msgstr ""
 
+#: admin/api/class-esf-api-waf.php:121
+msgid "Wordfence: Firewall > All Firewall Options > Allowlisted URLs."
+msgstr ""
+
 #: facebook/includes/easy-custom-facebook-feed-widget.php:375
 #: instagram/includes/esf-instagram-feed-widget.php:370
 msgid "Words limit to show:"
@@ -8257,7 +8306,7 @@ msgstr ""
 
 #: includes/class-esf-feed-disconnected-cache.php:1234
 #: includes/class-esf-review-request.php:646
-#: includes/social-wall/helpers/social-wall-helper-functions.php:129
+#: includes/social-wall/helpers/social-wall-helper-functions.php:140
 msgid "X"
 msgstr ""
 
@@ -8266,12 +8315,12 @@ msgstr ""
 msgid "X / Twitter"
 msgstr ""
 
-#: easy-facebook-likebox.php:586 includes/class-esf-translation-strings.php:723
+#: easy-facebook-likebox.php:590 includes/class-esf-translation-strings.php:768
 #: includes/class-esf-module-catalogue.php:134
 msgid "X / Twitter Feed"
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:1113
+#: twitter/includes/api/class-esf-twitter-api-service.php:1125
 msgid "X access token has expired. Please reconnect your account."
 msgstr ""
 
@@ -8319,7 +8368,7 @@ msgid ""
 "replies on X."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:1126
+#: twitter/includes/api/class-esf-twitter-api-service.php:1138
 msgid "X returned more data than expected. Please try again in a moment."
 msgstr ""
 
@@ -8327,7 +8376,7 @@ msgstr ""
 msgid "X tweet ID."
 msgstr ""
 
-#: twitter/includes/api/class-esf-twitter-api-service.php:356
+#: twitter/includes/api/class-esf-twitter-api-service.php:362
 msgid "X user not found."
 msgstr ""
 
@@ -8335,17 +8384,9 @@ msgstr ""
 msgid "X username (without @)."
 msgstr ""
 
-#: includes/social-wall/helpers/social-wall-helper-functions.php:155
+#: includes/social-wall/helpers/social-wall-helper-functions.php:166
 msgid "X/Twitter"
 msgstr ""
-
-#: instagram/includes/esf-insta-helper-functions.php:372
-msgid "year"
-msgstr "anno"
-
-#: instagram/includes/esf-insta-helper-functions.php:373
-msgid "years"
-msgstr "anni"
 
 #: includes/class-esf-review-request.php:391
 msgid "Yes, happy to leave a review"
@@ -8543,7 +8584,7 @@ msgstr ""
 
 #: includes/class-esf-feed-disconnected-cache.php:1233
 #: includes/class-esf-review-request.php:647
-#: includes/social-wall/helpers/social-wall-helper-functions.php:130
+#: includes/social-wall/helpers/social-wall-helper-functions.php:141
 #: youtube/admin/classes/class-esf-youtube-admin.php:82
 #: youtube/admin/classes/class-esf-youtube-admin.php:83
 msgid "YouTube"
@@ -8588,7 +8629,7 @@ msgstr ""
 msgid "YouTube comments request failed with status %d."
 msgstr ""
 
-#: easy-facebook-likebox.php:578 includes/class-esf-translation-strings.php:278
+#: easy-facebook-likebox.php:582 includes/class-esf-translation-strings.php:313
 #: includes/class-esf-module-catalogue.php:118
 msgid "YouTube Feed"
 msgstr ""
@@ -8615,8 +8656,8 @@ msgstr ""
 msgid "YouTube returned a malformed comments response."
 msgstr ""
 
-#: youtube/includes/helpers/youtube-helper-functions.php:1265
-#: youtube/includes/helpers/youtube-helper-functions.php:1344
+#: youtube/includes/helpers/youtube-helper-functions.php:1470
+#: youtube/includes/helpers/youtube-helper-functions.php:1549
 msgid "YouTube user"
 msgstr ""
 
@@ -8638,3 +8679,47 @@ msgstr ""
 #: includes/class-esf-feed-widget.php:194
 msgid "— Select —"
 msgstr ""
+
+#: youtube/admin/assets/src/dashboard/components/feeds/sidebar-panels/FeedSourcePanel.jsx:460
+msgid "Video visibility"
+msgstr "Visibilidad de los vídeos"
+
+#: youtube/admin/assets/src/dashboard/components/feeds/sidebar-panels/FeedSourcePanel.jsx:1128
+msgid ""
+"Choose which videos appear in this feed based on their YouTube visibility. "
+"Only public videos are shown by default."
+msgstr ""
+"Elige qué vídeos aparecen en este feed según su visibilidad en YouTube. De "
+"forma predeterminada solo se muestran los vídeos públicos."
+
+#: youtube/admin/assets/src/dashboard/components/feeds/sidebar-panels/FeedSourcePanel.jsx:1136
+msgid "Video visibility filter"
+msgstr "Filtro de visibilidad de vídeos"
+
+#: youtube/admin/assets/src/dashboard/components/feeds/sidebar-panels/FeedSourcePanel.jsx:1142
+msgid "Public"
+msgstr "Público"
+
+#: youtube/admin/assets/src/dashboard/components/feeds/sidebar-panels/FeedSourcePanel.jsx:1144
+msgid "Only videos anyone can find and watch"
+msgstr "Solo vídeos que cualquiera puede encontrar y ver"
+
+#: youtube/admin/assets/src/dashboard/components/feeds/sidebar-panels/FeedSourcePanel.jsx:1152
+msgid "Public, unlisted and private videos"
+msgstr "Vídeos públicos, no listados y privados"
+
+#: youtube/admin/assets/src/dashboard/components/feeds/sidebar-panels/FeedSourcePanel.jsx:1158
+msgid "Unlisted"
+msgstr "No listado"
+
+#: youtube/admin/assets/src/dashboard/components/feeds/sidebar-panels/FeedSourcePanel.jsx:1160
+msgid "Only videos shared by link"
+msgstr "Solo vídeos compartidos mediante enlace"
+
+#: youtube/admin/assets/src/dashboard/components/feeds/sidebar-panels/FeedSourcePanel.jsx:1166
+msgid "Private"
+msgstr "Privado"
+
+#: youtube/admin/assets/src/dashboard/components/feeds/sidebar-panels/FeedSourcePanel.jsx:1168
+msgid "Only videos visible to you"
+msgstr "Solo vídeos visibles para ti"

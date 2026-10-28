@@ -4,7 +4,7 @@
  * Plugin Name: Easy Social Feed
  * Plugin URI:        https://wordpress.org/plugins/easy-facebook-likebox
  * Description:       Display Instagram, Facebook, YouTube, X and TikTok feeds on your website using blocks, widgets or shortcodes, with responsive layouts and live customization. Combine all networks in one Social Wall with Pro. Formerly "Easy Facebook Like Box and Custom Facebook Feed".
- * Version:           6.8.1
+ * Version:           6.8.2
  * Author:            Easy Social Feed
  * Author URI:        https://easysocialfeed.com/
  * Text Domain:       easy-facebook-likebox
@@ -275,6 +275,9 @@ if ( function_exists( 'efl_fs' ) ) {
     require_once __DIR__ . '/includes/class-esf-oauth-token-helpers.php';
     require_once __DIR__ . '/includes/class-esf-manual-access-token.php';
     require_once __DIR__ . '/includes/class-esf-meta-graph-error.php';
+    // Decodes Base64-wrapped (WAF-safe) request bodies for every esf/* REST route in one place.
+    require_once __DIR__ . '/admin/api/class-esf-api-waf.php';
+    ESF_API_WAF::init();
     if ( 'activated' === $youtube_status ) {
         require_once plugin_dir_path( __FILE__ ) . 'youtube/autoload.php';
     }
@@ -306,7 +309,7 @@ if ( function_exists( 'efl_fs' ) ) {
     }
     if ( !class_exists( 'Feed_Them_All' ) ) {
         class Feed_Them_All {
-            public $version = '6.8.1';
+            public $version = '6.8.2';
 
             public $fta_slug = 'easy-facebook-likebox';
 

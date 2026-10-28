@@ -95,6 +95,16 @@ class ESF_Twitter_Frontend {
         if ( class_exists( 'ESF_GDPR_Integrations' ) ) {
             ESF_GDPR_Integrations::maybe_enqueue_consent_script();
         }
+        $caption_js = ESF_TWITTER_DIR . 'frontend/assets/js/esf-twitter-caption.js';
+        if ( file_exists( $caption_js ) && !wp_script_is( 'esf-twitter-caption', 'enqueued' ) ) {
+            wp_enqueue_script(
+                'esf-twitter-caption',
+                ESF_TWITTER_URL . 'frontend/assets/js/esf-twitter-caption.js',
+                array(),
+                (string) filemtime( $caption_js ),
+                true
+            );
+        }
         $this->maybe_enqueue_public_script();
     }
 

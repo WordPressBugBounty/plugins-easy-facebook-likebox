@@ -202,7 +202,7 @@ if ( efl_fs()->is_plan( 'instagram_premium', true ) or efl_fs()->is_plan( 'combo
     echo esc_url( esf_get_upgrade_url( 'instagram' ) );
     ?>"
 									   class=" btn"><span class="dashicons dashicons-unlock"></span><?php 
-    esc_html_e( 'Upgrade now', 'easy-facebook-likebox' );
+    esc_html_e( 'Go Pro', 'easy-facebook-likebox' );
     ?>
 									</a>
 
@@ -356,7 +356,7 @@ if ( efl_fs()->is_plan( 'instagram_premium', true ) or efl_fs()->is_plan( 'combo
     echo esc_url( esf_get_upgrade_url( 'instagram' ) );
     ?>"
 								   class=" btn"><span class="dashicons dashicons-unlock"></span><?php 
-    esc_html_e( 'Upgrade now', 'easy-facebook-likebox' );
+    esc_html_e( 'Go Pro', 'easy-facebook-likebox' );
     ?>
 								</a>
 
@@ -420,7 +420,7 @@ if ( efl_fs()->is_plan( 'instagram_premium', true ) or efl_fs()->is_plan( 'combo
     echo esc_url( esf_get_upgrade_url( 'instagram' ) );
     ?>"
 									   class=" btn"><span class="dashicons dashicons-unlock"></span><?php 
-    esc_html_e( 'Upgrade now', 'easy-facebook-likebox' );
+    esc_html_e( 'Go Pro', 'easy-facebook-likebox' );
     ?>
 									</a>
 

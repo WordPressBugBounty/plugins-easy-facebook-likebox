@@ -130,6 +130,9 @@ class ESF_YouTube_Admin {
             $asset['version'],
             true
         );
+        // Load JS translations (languages/easy-facebook-likebox-{locale}-esf-youtube-dashboard.json)
+        // so `__()` strings in the React dashboard are translated like the other modules.
+        wp_set_script_translations( 'esf-youtube-dashboard', 'easy-facebook-likebox' );
         // Enqueue React dashboard styles.
         wp_enqueue_style(
             'esf-youtube-dashboard',

@@ -184,6 +184,9 @@ class ESF_Twitter_API_Service {
         }
         $refresh_url = apply_filters( 'esf_twitter_oauth_refresh_url', 'https://easysocialfeed.com/apps/x/refresh.php' );
         $response = wp_remote_post( $refresh_url, array(
+            'headers' => array(
+                'User-Agent' => $this->get_esf_apps_user_agent(),
+            ),
             'body'    => array(
                 'refresh_token' => $refresh_token,
                 'site_url'      => home_url(),
@@ -850,6 +853,41 @@ class ESF_Twitter_API_Service {
     private function get_max_api_response_bytes() {
         $max = (int) apply_filters( 'esf_twitter_api_max_response_bytes', self::MAX_PROXY_RESPONSE_BYTES );
         return ( $max > 0 ? $max : self::MAX_PROXY_RESPONSE_BYTES );
+    }
+
+    /**
+     * User-Agent for server-to-server calls to easysocialfeed.com/apps/x/*.
+     *
+     * SiteGround Anti-Bot may challenge WordPress's default UA. A stable
+     * EasySocialFeed-API token lets the hosted bridge identify plugin traffic.
+     * Applies only to X bridge/proxy requests — not to api.x.com or OAuth browser redirects.
+     *
+     * @since 6.16.1
+     * @return string
+     */
+    private function get_esf_apps_user_agent() {
+        // Prefer the lightweight global over get_bloginfo() (avoids filter/option work).
+        $wp_version = ( isset( $GLOBALS['wp_version'] ) && is_scalar( $GLOBALS['wp_version'] ) ? (string) $GLOBALS['wp_version'] : '' );
+        if ( '' === $wp_version && function_exists( 'get_bloginfo' ) ) {
+            $wp_version = (string) get_bloginfo( 'version' );
+        }
+        if ( '' === $wp_version ) {
+            $wp_version = 'unknown';
+        }
+        $plugin_version = ( defined( 'FTA_VERSION' ) ? (string) FTA_VERSION : '1.0' );
+        $user_agent = sprintf( 'WordPress/%1$s; EasySocialFeed-API/%2$s; +https://easysocialfeed.com', $wp_version, $plugin_version );
+        /**
+         * Filter the User-Agent sent on X module calls to easysocialfeed.com/apps/x/*.
+         *
+         * @since 6.16.1
+         * @param string $user_agent Default EasySocialFeed-API User-Agent.
+         */
+        $filtered = apply_filters( 'esf_twitter_apps_user_agent', $user_agent );
+        if ( !is_string( $filtered ) ) {
+            return $user_agent;
+        }
+        $filtered = trim( $filtered );
+        return ( '' !== $filtered ? $filtered : $user_agent );
     }
 
     /**

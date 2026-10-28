@@ -188,6 +188,7 @@ final class HalfWidth extends AbstractSplitLayout {
         $options = $this->build_base_split_options();
         $cell_class = $this->get_cell_class();
         $popup_attr = '';
+        $options['metric_labels'] = $this->facebook_metric_labels();
         // Overlay likes/comments are opt-in per Half Width layout settings so Grid
         // feed defaults (true) do not leak onto cards that already show footer metrics.
         if ( $this->has_pro_plan() ) {

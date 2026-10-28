@@ -3,9 +3,10 @@
  * Simple Loading Overlay Helper (Frontend Only)
  *
  * Generates a lightweight loading spinner overlay for modern modules (Twitter,
- * YouTube, Facebook, Instagram). Prevents layout shift with minimal code (~500 bytes CSS + 1KB JS).
- * Staggered post reveal lives in admin/shared/frontend/js/esf-feed-loading.js +
- * esf-feed-reveal.css (loaded only when General → entrance animation is on).
+ * YouTube, Facebook, Instagram, Social Wall). Prevents layout shift with minimal
+ * code (~500 bytes CSS + 1KB JS). Staggered post reveal lives in
+ * admin/shared/frontend/js/esf-feed-loading.js + esf-feed-reveal.css (loaded only
+ * when General → entrance animation is on).
  *
  * @package Easy_Social_Feed
  * @subpackage Shared/Frontend
@@ -19,13 +20,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Generate simple loading overlay HTML for frontend feeds.
  *
- * @param string $module Module slug ('twitter', 'youtube', 'facebook', 'instagram').
+ * @param string $module Module slug ('twitter', 'youtube', 'facebook', 'instagram', 'social_wall').
  * @return string Loading overlay HTML.
  */
 function esf_get_simple_loader_html( $module ) {
 	$module = sanitize_key( $module );
 
-	if ( empty( $module ) || ! in_array( $module, array( 'twitter', 'youtube', 'facebook', 'instagram' ), true ) ) {
+	if ( empty( $module ) || ! in_array( $module, array( 'twitter', 'youtube', 'facebook', 'instagram', 'social_wall' ), true ) ) {
 		return '';
 	}
 

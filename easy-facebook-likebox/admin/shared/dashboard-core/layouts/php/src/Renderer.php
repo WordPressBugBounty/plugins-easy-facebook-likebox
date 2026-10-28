@@ -105,7 +105,7 @@ final class Renderer {
 		                    false !== strpos( $_SERVER['REQUEST_URI'], 'tab=customize' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		
 		// Only show loader on actual public frontend (not admin/REST/customize/admin-facing URLs)
-		if ( ! $is_preview && ! $is_admin && ! $is_rest && ! $is_customize && ! $has_admin_path && in_array( $module, array( 'twitter', 'youtube', 'facebook', 'instagram' ), true ) && function_exists( 'esf_get_simple_loader_html' ) ) {
+		if ( ! $is_preview && ! $is_admin && ! $is_rest && ! $is_customize && ! $has_admin_path && in_array( $module, array( 'twitter', 'youtube', 'facebook', 'instagram', 'social_wall' ), true ) && function_exists( 'esf_get_simple_loader_html' ) ) {
 			$loader_html = esf_get_simple_loader_html( $module );
 		}
 

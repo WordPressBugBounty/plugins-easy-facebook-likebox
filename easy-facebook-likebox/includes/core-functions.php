@@ -1413,6 +1413,146 @@ if ( !function_exists( 'esf_readable_count' ) ) {
     }
 
 }
+if ( !function_exists( 'esf_get_time_unit_labels' ) ) {
+    /**
+     * Localized time-unit labels (+ "ago") from Settings → Translation → Time.
+     *
+     * Shared by modern and legacy relative-time helpers so every module reads
+     * the same registry keys. Blank fields fall back to English defaults via
+     * esf_get_translated_string(), then through __() for .po/.mo.
+     *
+     * @since 6.9.0
+     *
+     * @return array<string,string> Map of registry key => display text.
+     */
+    function esf_get_time_unit_labels() {
+        $keys = array(
+            'second',
+            'seconds',
+            'minute',
+            'minutes',
+            'hour',
+            'hours',
+            'day',
+            'days',
+            'week',
+            'weeks',
+            'month',
+            'months',
+            'year',
+            'years',
+            'decade',
+            'ago'
+        );
+        $labels = array();
+        foreach ( $keys as $key ) {
+            $text = ( function_exists( 'esf_get_translated_string' ) ? esf_get_translated_string( $key ) : $key );
+            $labels[$key] = __( $text, 'easy-facebook-likebox' );
+            // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- Registry defaults / custom strings.
+        }
+        return $labels;
+    }
+
+}
+if ( !function_exists( 'esf_format_granular_time_ago' ) ) {
+    /**
+     * Build a multi-unit relative time string (legacy feed calculator).
+     *
+     * Shared implementation for efbl_time_ago() and esf_insta_readable_time().
+     * Preserves the historical floor-based periods and granularity behaviour.
+     *
+     * @since 6.9.0
+     *
+     * @param int $date_timestamp Unix timestamp of the event.
+     * @param int $granularity    Max number of units to include (default 2).
+     * @return string Relative time ending with the localized "ago" label.
+     */
+    function esf_format_granular_time_ago(  $date_timestamp, $granularity = 2  ) {
+        $date_timestamp = (int) $date_timestamp;
+        $granularity = (int) $granularity;
+        $labels = esf_get_time_unit_labels();
+        $ago_text = ( isset( $labels['ago'] ) ? $labels['ago'] : 'ago' );
+        $retval = '';
+        $difference = time() - $date_timestamp;
+        $periods = array(
+            'decade' => 315360000,
+            'year'   => 31536000,
+            'month'  => 2628000,
+            'week'   => 604800,
+            'day'    => 86400,
+            'hour'   => 3600,
+            'minute' => 60,
+            'second' => 1,
+        );
+        foreach ( $periods as $key => $value ) {
+            if ( $difference >= $value ) {
+                $time = (int) floor( $difference / $value );
+                $difference %= $value;
+                $unit_key = ( $time > 1 ? $key . 's' : $key );
+                // Registry has "decade" but no "decades"; fall back to singular.
+                if ( !isset( $labels[$unit_key] ) ) {
+                    $unit_key = $key;
+                }
+                $retval .= (( $retval ? ' ' : '' )) . $time . ' ' . $labels[$unit_key];
+                --$granularity;
+            }
+            if ( 0 === $granularity ) {
+                break;
+            }
+        }
+        return '' . $retval . ' ' . $ago_text;
+    }
+
+}
+if ( !function_exists( 'esf_human_time_diff_parts' ) ) {
+    /**
+     * Resolve count + unit keys using the same buckets as WordPress human_time_diff().
+     *
+     * Kept in sync with wp-includes/formatting.php::human_time_diff() so blank
+     * Translation → Time fields continue to produce identical output.
+     *
+     * @since 6.9.0
+     *
+     * @param int $diff Absolute difference in seconds.
+     * @return array{0:int,1:string,2:string} Count, singular registry key, plural registry key.
+     */
+    function esf_human_time_diff_parts(  $diff  ) {
+        $diff = (int) abs( $diff );
+        if ( $diff < MINUTE_IN_SECONDS ) {
+            $secs = ( $diff <= 1 ? 1 : $diff );
+            return array($secs, 'second', 'seconds');
+        }
+        if ( $diff < HOUR_IN_SECONDS ) {
+            $mins = (int) round( $diff / MINUTE_IN_SECONDS );
+            $mins = ( $mins <= 1 ? 1 : $mins );
+            return array($mins, 'minute', 'minutes');
+        }
+        if ( $diff < DAY_IN_SECONDS ) {
+            $hours = (int) round( $diff / HOUR_IN_SECONDS );
+            $hours = ( $hours <= 1 ? 1 : $hours );
+            return array($hours, 'hour', 'hours');
+        }
+        if ( $diff < WEEK_IN_SECONDS ) {
+            $days = (int) round( $diff / DAY_IN_SECONDS );
+            $days = ( $days <= 1 ? 1 : $days );
+            return array($days, 'day', 'days');
+        }
+        if ( $diff < MONTH_IN_SECONDS ) {
+            $weeks = (int) round( $diff / WEEK_IN_SECONDS );
+            $weeks = ( $weeks <= 1 ? 1 : $weeks );
+            return array($weeks, 'week', 'weeks');
+        }
+        if ( $diff < YEAR_IN_SECONDS ) {
+            $months = (int) round( $diff / MONTH_IN_SECONDS );
+            $months = ( $months <= 1 ? 1 : $months );
+            return array($months, 'month', 'months');
+        }
+        $years = (int) round( $diff / YEAR_IN_SECONDS );
+        $years = ( $years <= 1 ? 1 : $years );
+        return array($years, 'year', 'years');
+    }
+
+}
 if ( !function_exists( 'esf_readable_time_ago' ) ) {
     /**
      * Convert a date/time string to a relative "time ago" string.
@@ -1420,6 +1560,10 @@ if ( !function_exists( 'esf_readable_time_ago' ) ) {
      * Wrapper around human_time_diff() that accepts common date formats
      * and appends a translated "ago" suffix. Intended for feed items
      * (Facebook, Instagram, YouTube, etc.).
+     *
+     * Honors Settings → Translation → Time custom strings when set. Blank
+     * fields keep the previous human_time_diff() + "%s ago" behaviour so
+     * WordPress core and plugin gettext translations are unchanged.
      *
      * @since 6.5.0
      *
@@ -1434,11 +1578,25 @@ if ( !function_exists( 'esf_readable_time_ago' ) ) {
         if ( !$timestamp ) {
             return '';
         }
-        $diff = human_time_diff( $timestamp, current_time( 'timestamp' ) );
+        $now = current_time( 'timestamp' );
+        $custom_ago = ( function_exists( 'esf_get_custom_translated_string' ) ? esf_get_custom_translated_string( 'ago' ) : '' );
+        $custom_unit = '';
+        $count = 0;
+        if ( function_exists( 'esf_get_custom_translated_string' ) ) {
+            list( $count, $singular_key, $plural_key ) = esf_human_time_diff_parts( (int) abs( $now - $timestamp ) );
+            $unit_key = ( 1 === (int) $count ? $singular_key : $plural_key );
+            $custom_unit = esf_get_custom_translated_string( $unit_key );
+        }
+        // Custom unit text is used as-is (do not re-run through __()).
+        $phrase = ( '' !== $custom_unit ? $count . ' ' . $custom_unit : human_time_diff( $timestamp, $now ) );
+        if ( '' !== $custom_ago ) {
+            // Custom "ago" text is used as-is (do not re-run through __()).
+            return $phrase . ' ' . $custom_ago;
+        }
         return sprintf( 
             /* translators: %s: human readable time difference, e.g. "2 hours" */
             __( '%s ago', 'easy-facebook-likebox' ),
-            $diff
+            $phrase
          );
     }
 
@@ -2477,6 +2635,117 @@ function esf_locate_premium_only_asset(
 }
 
 /**
+ * Attach a one-time FancyBox beforeClose handler that stops nested media.
+ *
+ * Pro lightboxes use FancyBox `type: 'html'` with nested `<iframe>` / `<video>`
+ * players. FancyBox's HTML reset only pauses video/audio and does not blank
+ * iframe src, so cross-origin players can keep playing audio after a quick
+ * close. This registers a single document-level `beforeClose.fb` listener via
+ * `wp_add_inline_script` on `jquery.fancybox.min` (no extra HTTP request).
+ *
+ * Safe to call multiple times; the print filter + static flag ensure the
+ * inline script is added at most once, even when FancyBox is enqueued during
+ * shortcode render after `wp_enqueue_scripts`.
+ *
+ * @since 6.7.9
+ * @return void
+ */
+if ( !function_exists( 'esf_enqueue_fancybox_stop_media_script' ) ) {
+    function esf_enqueue_fancybox_stop_media_script() {
+        static $hooked = false;
+        if ( $hooked ) {
+            return;
+        }
+        $hooked = true;
+        $attach = static function () {
+            static $done = false;
+            if ( $done ) {
+                return;
+            }
+            if ( !function_exists( 'wp_script_is' ) || !function_exists( 'wp_add_inline_script' ) ) {
+                return;
+            }
+            if ( !wp_script_is( 'jquery.fancybox.min', 'registered' ) && !wp_script_is( 'jquery.fancybox.min', 'enqueued' ) ) {
+                return;
+            }
+            $done = true;
+            /*
+             * Keep this compact: runs on every Pro FancyBox close across modules.
+             * Blank iframes first (cross-origin audio), then hard-stop HTML5 media.
+             */
+            $js = <<<'JS'
+(function ($) {
+	if (!$ || window.esfFancyboxStopMediaBound) {
+		return;
+	}
+	window.esfFancyboxStopMediaBound = true;
+
+	function esfStopFancyboxMedia(root) {
+		if (!root || !root.querySelectorAll) {
+			return;
+		}
+		var iframes = root.querySelectorAll("iframe");
+		for (var i = 0; i < iframes.length; i++) {
+			try {
+				// Match FancyBox native iframe reset — blanking stops cross-origin audio.
+				iframes[i].setAttribute("src", "about:blank");
+			} catch (e) {}
+		}
+		var media = root.querySelectorAll("video,audio");
+		for (var j = 0; j < media.length; j++) {
+			var el = media[j];
+			try {
+				el.pause();
+				el.muted = true;
+				el.removeAttribute("src");
+				while (el.firstChild) {
+					el.removeChild(el.firstChild);
+				}
+				el.load();
+			} catch (e) {}
+		}
+	}
+
+	$(document).on("beforeClose.fb", function (_event, instance) {
+		if (!instance) {
+			return;
+		}
+		if (instance.opts) {
+			instance.opts.esfClosed = true;
+		}
+		if (instance.$refs && instance.$refs.container && instance.$refs.container.length) {
+			esfStopFancyboxMedia(instance.$refs.container.get(0));
+			return;
+		}
+		if (instance.slides && instance.slides.length) {
+			for (var s = 0; s < instance.slides.length; s++) {
+				var slide = instance.slides[s];
+				if (slide && slide.$slide && slide.$slide.length) {
+					esfStopFancyboxMedia(slide.$slide.get(0));
+				}
+			}
+		}
+	});
+})(window.jQuery);
+JS;
+            wp_add_inline_script( 'jquery.fancybox.min', $js, 'after' );
+        };
+        // Immediate attempt when the handle is already registered.
+        $attach();
+        /*
+         * Shortcode / render paths enqueue FancyBox after wp_enqueue_scripts.
+         * print_scripts_array runs immediately before a handle is printed.
+         */
+        add_filter( 'print_scripts_array', static function ( $todo ) use($attach) {
+            if ( is_array( $todo ) && in_array( 'jquery.fancybox.min', $todo, true ) ) {
+                $attach();
+            }
+            return $todo;
+        }, 1 );
+    }
+
+}
+/**
  * Enqueue shared FancyBox control CSS (theme/button resets) after FancyBox.
  *
  * Call immediately after enqueueing `jquery.fancybox.min` style so toolbar
@@ -2498,6 +2767,10 @@ if ( !function_exists( 'esf_enqueue_fancybox_controls_style' ) ) {
             array('jquery.fancybox.min'),
             (string) filemtime( $path )
         );
+        // Same call sites as controls CSS — stop nested media audio on close (issue #299).
+        if ( function_exists( 'esf_enqueue_fancybox_stop_media_script' ) ) {
+            esf_enqueue_fancybox_stop_media_script();
+        }
     }
 
 }

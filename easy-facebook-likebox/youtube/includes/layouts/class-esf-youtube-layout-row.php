@@ -268,11 +268,16 @@ class ESF_YouTube_Layout_Row extends ESF_YouTube_Layout_Base {
 				. '</div>';
 		}
 
+		// Shared Video Showcase stage (empty unless playback mode resolves to showcase).
+		// Rendered before the cells so the first cell is marked as the featured one.
+		$stage_html = $this->render_showcase_stage_html( $videos );
+
 		$cells = $this->render_cards_for_videos( $videos );
 
 		$load_more_html = isset( $display_state['load_more_html'] ) ? (string) $display_state['load_more_html'] : '';
 
 		return $header_html
+			. $stage_html
 			. '<div class="' . esc_attr( $shell['class'] ) . '" style="' . esc_attr( $shell['style'] ) . '">'
 			. '<div class="esf-yt-feed__row-inner">'
 			. $cells
@@ -358,7 +363,12 @@ class ESF_YouTube_Layout_Row extends ESF_YouTube_Layout_Base {
 			$cell_class .= ' esf-yt-feed__row-cell--popup';
 		}
 
-		return '<article class="' . esc_attr( $cell_class ) . '"' . $this->get_post_id_attr( is_array( $video ) ? $video : array() ) . $ctx['data_attrs'] . '>'
+		$showcase = $this->get_showcase_cell_markup( $video );
+		if ( ! empty( $showcase['classes'] ) ) {
+			$cell_class .= ' ' . implode( ' ', $showcase['classes'] );
+		}
+
+		return '<article class="' . esc_attr( $cell_class ) . '"' . $this->get_post_id_attr( is_array( $video ) ? $video : array() ) . $ctx['data_attrs'] . $showcase['attrs'] . '>'
 			. $tile_html
 			. '</article>';
 	}
@@ -383,7 +393,8 @@ class ESF_YouTube_Layout_Row extends ESF_YouTube_Layout_Base {
 			? esf_youtube_should_render_as_short( is_array( $video ) ? $video : array(), $content_filter )
 			: ( 'shorts' === $content_filter );
 
-		$popup_enabled = ! empty( $popup['enabled'] ) && function_exists( 'esf_youtube_has_youtube_plan' ) && esf_youtube_has_youtube_plan();
+		// Popup and Video Showcase are mutually exclusive.
+		$popup_enabled = ! empty( $popup['enabled'] ) && function_exists( 'esf_youtube_has_youtube_plan' ) && esf_youtube_has_youtube_plan() && ! $this->is_showcase_mode();
 
 		$popup_show_description   = ! array_key_exists( 'show_description', $popup ) || ! empty( $popup['show_description'] );
 		$popup_show_stats         = ! array_key_exists( 'show_stats', $popup ) || ! empty( $popup['show_stats'] );
@@ -525,7 +536,7 @@ class ESF_YouTube_Layout_Row extends ESF_YouTube_Layout_Base {
 					'icon'        => 'row',
 					'class_name'  => self::class,
 					'is_pro'      => false,
-					'supports'    => array( 'header', 'metrics', 'load_more' ),
+					'supports'    => array( 'header', 'metrics', 'load_more', 'showcase' ),
 					'assets'      => array(
 						'css' => ESF_YOUTUBE_URL . 'frontend/assets/css/layouts/row.css',
 						'js'  => ESF_YOUTUBE_URL . 'frontend/assets/js/esf-youtube-row-wave.js',

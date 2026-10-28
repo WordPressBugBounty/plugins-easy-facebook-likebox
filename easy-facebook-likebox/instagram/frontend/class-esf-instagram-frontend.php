@@ -133,6 +133,16 @@ class ESF_Instagram_Frontend {
         if ( class_exists( 'ESF_GDPR_Integrations' ) ) {
             ESF_GDPR_Integrations::maybe_enqueue_consent_script();
         }
+        $caption_js = ESF_INSTAGRAM_DIR . 'frontend/assets/js/esf-instagram-caption.js';
+        if ( file_exists( $caption_js ) && !wp_script_is( 'esf-instagram-caption', 'enqueued' ) ) {
+            wp_enqueue_script(
+                'esf-instagram-caption',
+                ESF_INSTAGRAM_URL . 'frontend/assets/js/esf-instagram-caption.js',
+                array(),
+                (string) filemtime( $caption_js ),
+                true
+            );
+        }
         if ( function_exists( 'esf_enqueue_feed_loading_script' ) ) {
             esf_enqueue_feed_loading_script();
         }

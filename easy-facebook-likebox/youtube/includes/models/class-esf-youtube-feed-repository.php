@@ -69,6 +69,11 @@ class ESF_YouTube_Feed_Repository {
 				'per_page'                   => 12,
 				'content_filter'             => 'all',
 				/**
+				 * Which videos to show by privacy status: public | all | unlisted | private.
+				 * Only `public` is available without a YouTube plan.
+				 */
+				'video_visibility'           => 'public',
+				/**
 				 * Extra source accounts for Multifeed (Pro / addon). Primary
 				 * `account_id` column remains the default / header account.
 				 *
@@ -242,7 +247,7 @@ class ESF_YouTube_Feed_Repository {
 				'show_views'       => true,
 				'show_duration'    => true,
 			),
-			'popup'  => array(
+			'popup'    => array(
 				'enabled'            => true,
 				'show_description'   => true,
 				'show_stats'         => true,
@@ -251,7 +256,24 @@ class ESF_YouTube_Feed_Repository {
 				'show_comments_list' => true,
 				'comments_per_page'  => 20,
 			),
-			'style'  => array(
+			/**
+			 * Video click behaviour. `auto` keeps legacy popup.enabled + plan
+			 * derivation so existing feeds do not change behaviour.
+			 *
+			 * @since 6.18.0
+			 */
+			'playback' => array(
+				'mode'     => 'auto',
+				// Video Showcase player sizing (see esf_youtube_get_showcase_settings()).
+				'showcase' => array(
+					'aspect'      => 'auto',
+					'max_width'   => 0,
+					'align'       => 'center',
+					'radius'      => -1,
+					'now_playing' => true,
+				),
+			),
+			'style'    => array(
 				'custom_css' => '',
 			),
 		);
@@ -291,7 +313,8 @@ class ESF_YouTube_Feed_Repository {
 	}
 
 	/**
-	 * Normalize content_filter; force "all" without a YouTube plan.
+	 * Normalize content_filter and video_visibility; force "all" / "public"
+	 * without a YouTube plan. Also normalizes multifeed account_ids.
 	 *
 	 * @since 6.7.6
 	 *
@@ -324,6 +347,25 @@ class ESF_YouTube_Feed_Repository {
 		}
 
 		$settings['feed']['content_filter'] = $filter;
+
+		// Video visibility: normalize; force "public" without a YouTube plan.
+		$visibility = function_exists( 'esf_youtube_normalize_video_visibility' )
+			? esf_youtube_normalize_video_visibility(
+				isset( $settings['feed']['video_visibility'] ) ? $settings['feed']['video_visibility'] : 'public'
+			)
+			: 'public';
+
+		if (
+			'public' !== $visibility
+			&& (
+				! function_exists( 'esf_youtube_has_youtube_plan' )
+				|| ! esf_youtube_has_youtube_plan()
+			)
+		) {
+			$visibility = 'public';
+		}
+
+		$settings['feed']['video_visibility'] = $visibility;
 
 		if ( isset( $settings['feed']['account_ids'] ) && is_array( $settings['feed']['account_ids'] ) ) {
 			$ids = array();
@@ -497,6 +539,23 @@ class ESF_YouTube_Feed_Repository {
 		$settings  = isset( $data['settings'] ) && is_array( $data['settings'] )
 			? self::merge_settings_with_defaults( $data['settings'] )
 			: self::get_default_settings();
+
+		// New feeds start on Video Showcase (free and Pro) unless the caller chose a
+		// mode. Existing feeds keep `auto` (legacy popup/new-tab behaviour) because
+		// this runs on create only, never in merge_settings_with_defaults().
+		$explicit_mode = is_array( $data['settings'] ?? null ) && isset( $data['settings']['playback']['mode'] );
+		$layout_type   = isset( $settings['layout']['type'] ) ? sanitize_key( (string) $settings['layout']['type'] ) : 'grid';
+		if (
+			! $explicit_mode
+			&& function_exists( 'esf_youtube_layout_supports_showcase' )
+			&& esf_youtube_layout_supports_showcase( $layout_type )
+		) {
+			$settings['playback']['mode'] = 'showcase';
+			if ( ! isset( $settings['popup'] ) || ! is_array( $settings['popup'] ) ) {
+				$settings['popup'] = array();
+			}
+			$settings['popup']['enabled'] = false;
+		}
 
 		// Seed Multifeed source list with the primary account (Instagram / Facebook parity).
 		// $account_id is validated as > 0 above.

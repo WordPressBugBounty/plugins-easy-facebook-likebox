@@ -136,7 +136,7 @@ if ( ! class_exists( 'ESF_API_Hub' ) ) {
 				'visible'     => $is_free,
 				'discount'    => isset( $promo['discount'] ) ? (string) $promo['discount'] : '17%',
 				'coupon'      => isset( $promo['coupon'] ) ? (string) $promo['coupon'] : 'ESPF17',
-				'button_text' => __( 'Upgrade Now', 'easy-facebook-likebox' ),
+				'button_text' => __( 'Go Pro', 'easy-facebook-likebox' ),
 				'button_url'  => esc_url_raw( (string) $upgrade_url ),
 				'target'      => '_blank',
 			);

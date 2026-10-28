@@ -48,7 +48,17 @@
 			throw new Error( 'feeds_fetch_failed' );
 		}
 		const data = await response.json();
-		return Array.isArray( data ) ? data : [];
+		// Modules return a bare array; Social Wall wraps as { feeds: [...] }.
+		if ( Array.isArray( data ) ) {
+			return data;
+		}
+		if ( data && Array.isArray( data.feeds ) ) {
+			return data.feeds;
+		}
+		if ( data && Array.isArray( data.data ) ) {
+			return data.data;
+		}
+		return [];
 	};
 
 	const fetchPreview = async ( previewPath, feedId ) => {

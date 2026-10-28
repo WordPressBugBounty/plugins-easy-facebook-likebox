@@ -96,6 +96,16 @@ class ESF_TikTok_Frontend {
         if ( class_exists( 'ESF_GDPR_Integrations' ) ) {
             ESF_GDPR_Integrations::maybe_enqueue_consent_script();
         }
+        $caption_js = ESF_TIKTOK_DIR . 'frontend/assets/js/esf-tiktok-caption.js';
+        if ( file_exists( $caption_js ) && !wp_script_is( 'esf-tiktok-caption', 'enqueued' ) ) {
+            wp_enqueue_script(
+                'esf-tiktok-caption',
+                ESF_TIKTOK_URL . 'frontend/assets/js/esf-tiktok-caption.js',
+                array(),
+                (string) filemtime( $caption_js ),
+                true
+            );
+        }
     }
 
     /**

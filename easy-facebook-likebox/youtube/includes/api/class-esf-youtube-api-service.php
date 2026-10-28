@@ -769,6 +769,9 @@ class ESF_YouTube_API_Service {
 				$videos[ $i ]['duration']           = (string) $stats['duration'];
 				$videos[ $i ]['duration_formatted'] = isset( $stats['duration_formatted'] ) ? (string) $stats['duration_formatted'] : '';
 			}
+			if ( ! empty( $stats['privacy_status'] ) ) {
+				$videos[ $i ]['privacy_status'] = (string) $stats['privacy_status'];
+			}
 		}
 
 		return $videos;
@@ -822,7 +825,8 @@ class ESF_YouTube_API_Service {
 
 		$ids        = array_slice( array_unique( array_filter( $video_ids ) ), 0, 50 );
 		$query_args = array(
-			'part' => 'statistics,contentDetails',
+			// `status` adds privacyStatus (public|unlisted|private) at no extra quota cost.
+			'part' => 'statistics,contentDetails,status',
 			'id'   => implode( ',', $ids ),
 		);
 		$hl         = self::get_hl_for_request();
@@ -870,6 +874,14 @@ class ESF_YouTube_API_Service {
 			if ( '' !== $duration ) {
 				$row['duration']           = $duration;
 				$row['duration_formatted'] = self::format_iso_duration( $duration );
+			}
+
+			$status         = isset( $item['status'] ) && is_array( $item['status'] ) ? $item['status'] : array();
+			$privacy_status = function_exists( 'esf_youtube_normalize_privacy_status' )
+				? esf_youtube_normalize_privacy_status( isset( $status['privacyStatus'] ) ? $status['privacyStatus'] : '' )
+				: '';
+			if ( '' !== $privacy_status ) {
+				$row['privacy_status'] = $privacy_status;
 			}
 
 			$out[ $vid ] = $row;

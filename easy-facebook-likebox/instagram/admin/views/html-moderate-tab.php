@@ -120,7 +120,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 							   class="trial-btn"><?php esc_html_e( 'Free 7-day PRO trial', 'easy-facebook-likebox' ); ?>
 							</a>
 							<a href="<?php echo esc_url( esf_get_upgrade_url( 'instagram' ) ); ?>"
-							   class=" btn pro-btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+							   class=" btn pro-btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 							</a>
 							<p><?php esc_html_e( 'Upgrade today and get ' . $banner_info['discount'] . ' discount! On the checkout click on "Have a promotional code?" and enter', 'easy-facebook-likebox' ); ?>
 								<?php if ( $banner_info['coupon'] ) { ?>

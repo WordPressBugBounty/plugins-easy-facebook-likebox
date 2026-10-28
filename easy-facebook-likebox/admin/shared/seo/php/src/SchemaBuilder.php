@@ -71,6 +71,23 @@ final class SchemaBuilder {
 	}
 
 	/**
+	 * Build ItemList + SocialMediaPosting schema for Social Wall posts.
+	 *
+	 * Walls mix networks; SocialMediaPosting is the shared generic type
+	 * (same path as Instagram / Facebook / Twitter PostItem feeds).
+	 *
+	 * @since 6.8.5
+	 *
+	 * @param PostItem[]          $posts     Mapped posts.
+	 * @param AccountSummary|null $account   Optional wall-level account (usually null).
+	 * @param string              $feed_name Wall display name.
+	 * @return array<string,mixed>|array<int,array<string,mixed>>
+	 */
+	public static function for_social_wall_posts( array $posts, ?AccountSummary $account, string $feed_name ): array {
+		return self::for_layout_posts( $posts, $account, $feed_name );
+	}
+
+	/**
 	 * Build ItemList + VideoObject schema for TikTok videos.
 	 *
 	 * @since 6.15.0

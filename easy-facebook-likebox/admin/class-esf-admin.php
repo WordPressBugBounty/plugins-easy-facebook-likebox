@@ -807,7 +807,7 @@ if ( !class_exists( 'ESF_Admin' ) ) {
                 'discount-text'     => '',
                 'coupon'            => $coupon,
                 'discount'          => $discount,
-                'button-text'       => 'Upgrade Now',
+                'button-text'       => 'Go Pro',
                 'button-url'        => esf_get_upgrade_url( 'general' ),
                 'target'            => '_blank',
             );

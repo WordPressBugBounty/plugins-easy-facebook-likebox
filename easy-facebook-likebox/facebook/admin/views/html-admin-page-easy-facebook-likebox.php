@@ -260,7 +260,7 @@ $esf_autostart_connect = (
 				</p>
 				<hr/>
 				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
-				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 				</a>
 			</div>
 		</div>
@@ -281,7 +281,7 @@ $esf_autostart_connect = (
 				</p>
 				<hr/>
 				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
-				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
 			</div>
@@ -304,7 +304,7 @@ $esf_autostart_connect = (
 				</p>
 				<hr/>
 				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
-				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
 			</div>
@@ -324,7 +324,7 @@ $esf_autostart_connect = (
 				</p>
 				<hr/>
 				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
-				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
 			</div>
@@ -344,7 +344,7 @@ $esf_autostart_connect = (
 				</p>
 				<hr/>
 				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
-				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
 			</div>
@@ -364,7 +364,7 @@ $esf_autostart_connect = (
 				</p>
 				<hr/>
 				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
-				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+				   class=" btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
 			</div>
@@ -384,7 +384,7 @@ $esf_autostart_connect = (
 				</p>
 				<hr/>
 				<a href="<?php echo esc_url( esf_get_upgrade_url( 'facebook' ) ); ?>"
-				   class="btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Upgrade to pro', 'easy-facebook-likebox' ); ?>
+				   class="btn"><span class="dashicons dashicons-unlock"></span><?php esc_html_e( 'Go Pro', 'easy-facebook-likebox' ); ?>
 				</a>
 
 			</div>

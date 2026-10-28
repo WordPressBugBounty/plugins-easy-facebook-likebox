@@ -114,6 +114,23 @@ class ESF_Twitter_Layout_Timeline extends ESF_Twitter_Layout_Base {
 			$class .= ' esf-tw-feed__timeline--has-feed-height';
 		}
 
+		// Design-panel hover overlay / + icon (same feed.hover_plus_* pattern as Grid/Row).
+		$feed_settings = isset( $settings['feed'] ) && is_array( $settings['feed'] ) ? $settings['feed'] : array();
+		$hover_overlay = ! isset( $feed_settings['hover_overlay'] ) || ! empty( $feed_settings['hover_overlay'] );
+		if ( $hover_overlay ) {
+			$class .= ' esf-tw-feed__timeline--hover-overlay';
+		}
+		$hover_plus_size = isset( $feed_settings['hover_plus_size'] )
+			? max( 20, min( 72, (int) $feed_settings['hover_plus_size'] ) )
+			: 44;
+		$parts[]         = '--esf-tw-hover-plus-size:' . $hover_plus_size . 'px';
+		$hover_plus_color = $this->sanitize_theme_hex(
+			isset( $feed_settings['hover_plus_color'] ) ? (string) $feed_settings['hover_plus_color'] : ''
+		);
+		if ( '' !== $hover_plus_color ) {
+			$parts[] = '--esf-tw-hover-plus-color:' . $hover_plus_color;
+		}
+
 		$has_plan = function_exists( 'esf_twitter_has_twitter_plan' ) && esf_twitter_has_twitter_plan();
 		$ratio    = '16:9';
 		if ( $has_plan && function_exists( 'esf_layout_sanitize_aspect_ratio' ) ) {
@@ -145,10 +162,8 @@ class ESF_Twitter_Layout_Timeline extends ESF_Twitter_Layout_Base {
 			}
 		}
 
-		$style_attr = '';
-		if ( ! empty( $parts ) ) {
-			$style_attr = ' style="' . esc_attr( implode( ';', $parts ) ) . '"';
-		}
+		// Always has at least --esf-tw-hover-plus-size (set above).
+		$style_attr = ' style="' . esc_attr( implode( ';', $parts ) ) . '"';
 
 		return array(
 			'class'      => $class,

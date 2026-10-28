@@ -31,7 +31,7 @@ final class FeedSeoIntegration {
 	 * @since 6.9.0
 	 * @var array<int,string>
 	 */
-	private const SHARED_LAYOUT_MODULES = array( 'instagram', 'tiktok', 'twitter', 'youtube', 'facebook' );
+	private const SHARED_LAYOUT_MODULES = array( 'instagram', 'tiktok', 'twitter', 'youtube', 'facebook', 'social_wall' );
 
 	/**
 	 * Bootstrap SEO hooks once per request.
@@ -45,7 +45,7 @@ final class FeedSeoIntegration {
 		}
 		$booted = true;
 
-		// Shared renderer (Instagram, TikTok, Twitter, YouTube, Facebook — all layouts).
+		// Shared renderer (Instagram, TikTok, Twitter, YouTube, Facebook, Social Wall — all layouts).
 		\add_filter( 'esf_layouts_render_wrapper_attributes', array( __CLASS__, 'filter_layouts_wrapper_attributes' ), 10, 4 );
 		\add_filter( 'esf_layouts_render_html', array( __CLASS__, 'filter_layouts_render_html' ), 20, 6 );
 
@@ -112,6 +112,9 @@ final class FeedSeoIntegration {
 				break;
 			case 'facebook':
 				$schema = SchemaBuilder::for_facebook_posts( $posts, $account, $feed_name );
+				break;
+			case 'social_wall':
+				$schema = SchemaBuilder::for_social_wall_posts( $posts, $account, $feed_name );
 				break;
 			case 'instagram':
 			default:

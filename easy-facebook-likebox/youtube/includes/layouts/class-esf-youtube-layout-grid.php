@@ -119,9 +119,17 @@ class ESF_YouTube_Layout_Grid extends ESF_YouTube_Layout_Base {
 			return '<div class="' . esc_attr( $class ) . '" style="' . esc_attr( $inline_style ) . '">' . $header_html . $empty_html . '</div>';
 		}
 
-		$cards_html = $this->render_video_cards( $state['videos'] );
+		$videos         = isset( $state['videos'] ) && is_array( $state['videos'] ) ? $state['videos'] : array();
+		$showcase_html  = $this->render_showcase_stage_html( $videos );
+		$cards_html     = $this->render_video_cards( $videos );
+		$load_more_html = isset( $state['load_more_html'] ) ? (string) $state['load_more_html'] : '';
 
-		return '<div class="' . esc_attr( $class ) . '" style="' . esc_attr( $inline_style ) . '">' . $header_html . '<div class="esf-yt-feed__grid-inner">' . $cards_html . '</div>' . $state['load_more_html'] . '</div>';
+		return '<div class="' . esc_attr( $class ) . '" style="' . esc_attr( $inline_style ) . '">'
+			. $header_html
+			. $showcase_html
+			. '<div class="esf-yt-feed__grid-inner">' . $cards_html . '</div>'
+			. $load_more_html
+			. '</div>';
 	}
 
 	/**
@@ -150,7 +158,7 @@ class ESF_YouTube_Layout_Grid extends ESF_YouTube_Layout_Base {
 					'icon'        => 'grid',
 					'class_name'  => self::class,
 					'is_pro'      => false,
-					'supports'    => array( 'header', 'metrics', 'load_more', 'columns' ),
+					'supports'    => array( 'header', 'metrics', 'load_more', 'columns', 'showcase' ),
 					'assets'      => array(
 						'css' => ESF_YOUTUBE_URL . 'frontend/assets/css/layouts/grid.css',
 						'js'  => null,
